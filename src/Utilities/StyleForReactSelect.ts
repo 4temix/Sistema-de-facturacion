@@ -15,7 +15,7 @@ export const customStyles: StylesConfig<Option> = {
     borderColor: state.isFocused ? "#93c5fd" : "#d1d5db",
     backgroundColor: "transparent",
     paddingLeft: "1rem", // px-4
-    paddingRight: "2.75rem", // pr-11
+    paddingRight: "0.50rem", // pr-11
     boxShadow: state.isFocused ? "0 0 0 3px rgba(59,130,246,0.1)" : "none",
     transition: "border-color 0.2s, box-shadow 0.2s",
     "&:hover": {

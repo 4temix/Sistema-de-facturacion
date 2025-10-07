@@ -25,6 +25,9 @@ const Calendar = lazy(() => import("./pages/Calendar"));
 const BasicTables = lazy(() => import("./pages/Tables/BasicTables"));
 const FormElements = lazy(() => import("./pages/Forms/FormElements"));
 const Blank = lazy(() => import("./pages/Blank"));
+const Mantenimientos = lazy(
+  () => import("./pages/Configuraciones/Mantenimientos")
+);
 
 // Definición de rutas
 const routes = createBrowserRouter([
@@ -39,6 +42,7 @@ const routes = createBrowserRouter([
       { index: true, path: "/", element: <Home /> },
       //principal
       { path: "/productos", element: <Productos /> },
+      { path: "/mantenimientos", element: <Mantenimientos /> },
 
       // Others Page
       { path: "/profile", element: <UserProfiles /> },

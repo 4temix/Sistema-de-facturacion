@@ -64,6 +64,11 @@ const navItems: NavItem[] = [
       { name: "404 Error", path: "/error-404", pro: false },
     ],
   },
+  {
+    name: "Configuracion",
+    icon: <PageIcon />,
+    subItems: [{ name: "Mantenimientos", path: "/mantenimientos", pro: false }],
+  },
 ];
 
 const othersItems: NavItem[] = [

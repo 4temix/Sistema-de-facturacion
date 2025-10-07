@@ -7,9 +7,15 @@ import Select from "react-select";
 import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
+import FormProducts from "../../components/Inventario/FormProducts";
 
 export default function Productos() {
   const { isOpen, openModal, closeModal } = useModal();
+  const {
+    isOpen: isProductModalOpen,
+    openModal: openProductModal,
+    closeModal: closeProductModal,
+  } = useModal();
 
   return (
     <section>
@@ -18,9 +24,24 @@ export default function Productos() {
           <h2 className="text-3xl font-bold">Inventario</h2>
         </div>
         <div className="action-container ml-auto">
-          <Button size="sm" variant="primary">
+          <Button size="sm" variant="primary" onClick={openProductModal}>
             Button Text
           </Button>
+          <Modal
+            isOpen={isProductModalOpen}
+            onClose={closeProductModal}
+            className="max-w-[1200px] m-4 p-5"
+          >
+            <section
+              className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
+         [&::-webkit-scrollbar-track]:bg-gray-200 
+         [&::-webkit-scrollbar-thumb]:bg-blue-500 
+         [&::-webkit-scrollbar-thumb]:rounded-full 
+         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+            >
+              <FormProducts closeModal={closeProductModal} />
+            </section>
+          </Modal>
         </div>
       </article>
       <article>

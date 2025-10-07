@@ -16,6 +16,11 @@ interface InputProps {
   success?: boolean;
   error?: boolean;
   hint?: string;
+  onBlur?: (
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => void;
 }
 
 const Input: FC<InputProps> = ({
