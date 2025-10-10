@@ -6,27 +6,27 @@ export const ValidationProduct = Yup.object({
     .max(150, "Máximo 150 caracteres")
     .required("El nombre es obligatorio"),
   descripcion: Yup.string().nullable(),
-  categoria_id: Yup.number().nullable(),
-  marca_id: Yup.number().nullable(),
-  estado_id: Yup.number().nullable(),
-  tipo_id: Yup.number().nullable(),
-  precio_compra: Yup.number()
+  categoriaId: Yup.number().nullable(),
+  marcaId: Yup.number().nullable(),
+  estadoId: Yup.number().nullable().required(),
+  tipoId: Yup.number().nullable(),
+  precioCompra: Yup.number()
     .typeError("Debe ser un número")
     .positive("Debe ser mayor que 0")
     .required("Precio de compra obligatorio"),
-  precio_venta: Yup.number()
+  precioVenta: Yup.number()
     .typeError("Debe ser un número")
     .positive("Debe ser mayor que 0")
     .required("Precio de venta obligatorio"),
-  stock_actual: Yup.number()
+  stockActual: Yup.number()
     .integer("Debe ser un número entero")
     .min(0, "No puede ser negativo")
     .required("Stock actual obligatorio"),
-  stock_minimo: Yup.number()
+  stockMinimo: Yup.number()
     .integer("Debe ser un número entero")
     .min(0, "No puede ser negativo"),
-  unidad_medida: Yup.string(),
+  unidadMedida: Yup.string(),
   ubicacion: Yup.string().nullable(),
-  codigo_barras: Yup.string().nullable(),
+  codigoBarras: Yup.string().nullable(),
   impuesto: Yup.number().typeError("Debe ser un número").min(0).max(100),
 });

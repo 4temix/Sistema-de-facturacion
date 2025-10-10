@@ -8,6 +8,15 @@ import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
 import FormProducts from "../../components/Inventario/FormProducts";
+import { useEffect, useState } from "react";
+import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import {
+  BaseSelecst,
+  Metricas,
+  Producto,
+  ProductoFiltro,
+  Selects,
+} from "../../Types/ProductTypes";
 
 export default function Productos() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -16,6 +25,103 @@ export default function Productos() {
     openModal: openProductModal,
     closeModal: closeProductModal,
   } = useModal();
+
+  //metricas superiores
+  const [dataMetricas, setDataMetricas] = useState<Metricas>();
+  //productos de la tabla
+  const [productosData, setProductosData] = useState<Producto[]>([]);
+  //filtros de busqueda
+  const [filters, setFilters] = useState({
+    tipo: null,
+    marca: null,
+    categoria: null,
+    estado: null,
+    precioVentaMinimo: null,
+    precioVentaMaximo: null,
+    search: "",
+    stockBajo: null,
+    agotados: null,
+  });
+
+  //selects para crear y filtrar productos
+  const [selectsData, setSelectsData] = useState<Selects>();
+
+  const [labelSelects, setLabelSelects] = useState({
+    tipo: "",
+    marca: "",
+    categoria: "",
+    estado: "",
+  });
+
+  //actualizar los fintros
+  function updateFilter(value: string | number | null, key: string) {
+    setFilters((prev) => {
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
+  }
+
+  //actualizar los labels de los filtros
+  function updateLabels(value: string | null, key: string) {
+    setLabelSelects((prev) => {
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
+  }
+
+  //eliminar nulos
+  function buildQueryString<T extends Record<string, any>>(filters: T): string {
+    const validEntries = Object.entries(filters)
+      .filter(([_, value]) => value !== null && value !== undefined) // ✅ elimina null/undefined
+      .map(([key, value]) => [key, String(value)]); // convierte a string
+
+    return new URLSearchParams(Object.fromEntries(validEntries)).toString();
+  }
+
+  //funcion para obtener los elementos de la tabla
+  function getData(filters?: ProductoFiltro) {
+    const queryString = buildQueryString(filters);
+
+    apiRequestThen<Producto[]>({
+      url: `api/productos/productos?${queryString}`,
+    }).then((response) => {
+      if (!response.success) {
+        console.error("Error:", response.errorMessage);
+        return;
+      }
+      setProductosData(response.result ?? []);
+    });
+  }
+
+  useEffect(() => {
+    async function Data() {
+      const request = await apiRequest<Metricas>({
+        url: "api/productos/metricas_productos",
+      });
+
+      if (request.success) {
+        setDataMetricas(request.result);
+      }
+    }
+
+    //peticion para los selcts
+    apiRequestThen<Selects>({
+      url: "api/mantenimiento/selects",
+    }).then((response) => {
+      if (!response.success) {
+        console.error("Error:", response.errorMessage);
+        return;
+      }
+      setSelectsData(response.result);
+    });
+
+    getData(filters);
+    Data();
+  }, []);
 
   return (
     <section>
@@ -39,24 +145,54 @@ export default function Productos() {
          [&::-webkit-scrollbar-thumb]:rounded-full 
          [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
             >
-              <FormProducts closeModal={closeProductModal} />
+              <FormProducts
+                closeModal={closeProductModal}
+                selectsData={selectsData}
+              />
             </section>
           </Modal>
         </div>
       </article>
       <article>
-        <CardsInventario />
+        <CardsInventario
+          totalProductos={dataMetricas?.totalProductos ?? 0}
+          margenPromedio={dataMetricas?.margenPromedio ?? 0}
+          valorTotal={dataMetricas?.valorTotal ?? 0}
+          stockBajo={dataMetricas?.stockBajo ?? 0}
+          agotados={dataMetricas?.agotados ?? 0}
+        />
       </article>
       <article className="grid lg:grid-cols-2 gap-4 rounded-2xl border sm:grid-cols-1 border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] px-6 py-5 mt-4">
         <div className="col-span-1">
-          <Label htmlFor="inputTwo">Buscar productos</Label>
-          <Input
-            type="text"
-            id="inputTwo"
-            placeholder="Nombre del producto..."
-          />
+          <form
+            action=""
+            onSubmit={(e) => {
+              e.preventDefault();
+              getData(filters);
+            }}
+          >
+            <Label htmlFor="inputTwo">Buscar productos</Label>
+            <Input
+              type="text"
+              id="inputTwo"
+              value={filters.search ?? ""}
+              placeholder="Nombre del producto..."
+              onChange={(e) => {
+                updateFilter(e.target.value, "search");
+              }}
+            />
+          </form>
         </div>
-        <div className="flex items-end">
+        <div className="flex items-end gap-4">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              getData(filters);
+            }}
+          >
+            Buscar
+          </Button>
           <Button size="sm" variant="primary" onClick={openModal}>
             Filtros
           </Button>
@@ -85,18 +221,30 @@ export default function Productos() {
                     <Select
                       name="colors"
                       id="status"
-                      styles={customStyles}
-                      placeholder={"status..."}
-                      options={[
-                        { value: "chocolate", label: "Chocolate" },
-                        { value: "strawberry", label: "Strawberry" },
-                        { value: "vanilla", label: "Vanilla" },
-                      ]}
-                      // value={{}}
-                      // styles={customStyles}
+                      styles={customStyles()}
+                      placeholder={"Estado..."}
+                      //se hace de esta manera para tener los labels de los selects
+                      //para hacer que salga el place holder se hace la verificacion de si hay valor
+                      value={
+                        filters.estado
+                          ? {
+                              label: labelSelects?.estado,
+                              value: filters.estado,
+                            }
+                          : null
+                      }
+                      options={selectsData?.estados?.map(
+                        (producto: BaseSelecst) => ({
+                          label: producto.name,
+                          value: producto.id.toString(),
+                        })
+                      )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
-                      onChange={() => {}}
+                      onChange={(e) => {
+                        updateFilter(parseInt(e.value), "estado");
+                        updateLabels(e.label, "estado");
+                      }}
                     />
                   </div>
                   <div>
@@ -104,18 +252,30 @@ export default function Productos() {
                     <Select
                       name="colors"
                       id="category"
-                      styles={customStyles}
-                      placeholder={"status..."}
-                      options={[
-                        { value: "chocolate", label: "Chocolate" },
-                        { value: "strawberry", label: "Strawberry" },
-                        { value: "vanilla", label: "Vanilla" },
-                      ]}
-                      // value={{}}
-                      // styles={customStyles}
+                      styles={customStyles()}
+                      placeholder={"Categoria..."}
+                      //se hace de esta manera para tener los labels de los selects
+                      //para hacer que salga el place holder se hace la verificacion de si hay valor
+                      value={
+                        filters.categoria
+                          ? {
+                              label: labelSelects?.categoria,
+                              value: filters.categoria,
+                            }
+                          : null
+                      }
+                      options={selectsData?.categorias?.map(
+                        (producto: BaseSelecst) => ({
+                          label: producto.name,
+                          value: producto.id.toString(),
+                        })
+                      )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
-                      onChange={() => {}}
+                      onChange={(e) => {
+                        updateFilter(parseInt(e.value), "categoria");
+                        updateLabels(e.label, "categoria");
+                      }}
                     />
                   </div>
                   <div>
@@ -123,18 +283,30 @@ export default function Productos() {
                     <Select
                       name="colors"
                       id="brand"
-                      styles={customStyles}
-                      placeholder={"status..."}
-                      options={[
-                        { value: "chocolate", label: "Chocolate" },
-                        { value: "strawberry", label: "Strawberry" },
-                        { value: "vanilla", label: "Vanilla" },
-                      ]}
-                      // value={{}}
-                      // styles={customStyles}
+                      styles={customStyles()}
+                      placeholder={"Marca..."}
+                      //se hace de esta manera para tener los labels de los selects
+                      //para hacer que salga el place holder se hace la verificacion de si hay valor
+                      value={
+                        filters.marca
+                          ? {
+                              label: labelSelects?.marca,
+                              value: filters.marca,
+                            }
+                          : null
+                      }
+                      options={selectsData?.marcas?.map(
+                        (producto: BaseSelecst) => ({
+                          label: producto.name,
+                          value: producto.id.toString(),
+                        })
+                      )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
-                      onChange={() => {}}
+                      onChange={(e) => {
+                        updateFilter(parseInt(e.value), "marca");
+                        updateLabels(e.label, "marca");
+                      }}
                     />
                   </div>
                 </div>
@@ -143,9 +315,16 @@ export default function Productos() {
                   <div className="col-span-1">
                     <Label htmlFor="inputTwo">precio minimo</Label>
                     <Input
-                      type="text"
+                      type="number"
+                      value={filters.precioVentaMinimo ?? ""}
                       id="inputTwo"
-                      placeholder="Nombre del producto..."
+                      placeholder="Minimo..."
+                      onChange={(e) => {
+                        updateFilter(
+                          parseFloat(e.target.value),
+                          "precioVentaMinimo"
+                        );
+                      }}
                     />
                   </div>
                   <div className="col-span-1">
@@ -153,7 +332,18 @@ export default function Productos() {
                     <Input
                       type="text"
                       id="inputTwo"
-                      placeholder="Nombre del producto..."
+                      value={filters.precioVentaMaximo ?? ""}
+                      placeholder="Maximo..."
+                      onChange={(e) => {
+                        if (e.target.value == "") {
+                          updateFilter(null, "precioVentaMaximo");
+                          return;
+                        }
+                        updateFilter(
+                          parseInt(e.target.value),
+                          "precioVentaMaximo"
+                        );
+                      }}
                     />
                   </div>
                 </div>
@@ -163,13 +353,21 @@ export default function Productos() {
               <Button size="sm" variant="outline" onClick={closeModal}>
                 Close
               </Button>
-              <Button size="sm">Save Changes</Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  getData(filters);
+                  closeModal();
+                }}
+              >
+                Buscar
+              </Button>
             </div>
           </form>
         </Modal>
       </article>
       <article>
-        <PropertyDataTable />
+        <PropertyDataTable data={productosData} />
       </article>
     </section>
   );

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -7,104 +7,84 @@ import {
   Row,
   Cell,
 } from "@tanstack/react-table";
+import { Producto } from "../../Types/ProductTypes";
+import { TrashBinIcon, PencilIcon } from "../../icons";
 
-// Tipo de datos
-type PropertyType = {
-  id: number;
-  titulo: string;
-  ciudad: string;
-  estado: string;
-  precio: number;
-  imagenes: { url: string }[];
-  estadoPropiedad: string;
+type DataFn = {
+  data: Producto[];
 };
 
-// Datos de prueba
-const mockData: PropertyType[] = [
-  {
-    id: 1,
-    titulo: "Casa Bonita",
-    ciudad: "Santo Domingo",
-    estado: "RD",
-    precio: 150000,
-    imagenes: [{ url: "https://via.placeholder.com/100" }],
-    estadoPropiedad: "Pending",
-  },
-  {
-    id: 2,
-    titulo: "Apartamento Moderno",
-    ciudad: "Santiago",
-    estado: "RD",
-    precio: 85000,
-    imagenes: [{ url: "https://via.placeholder.com/100" }],
-    estadoPropiedad: "Verified",
-  },
-  {
-    id: 3,
-    titulo: "Villa Lujo",
-    ciudad: "Punta Cana",
-    estado: "RD",
-    precio: 250000,
-    imagenes: [{ url: "https://via.placeholder.com/100" }],
-    estadoPropiedad: "Completed",
-  },
-];
-
-export default function PropertyDataTable() {
-  const [data, setData] = useState<PropertyType[]>(mockData);
-
+export default function PropertyDataTable({ data }: DataFn) {
   // Columnas
   const columns = useMemo(() => {
     return [
       {
-        accessorKey: "titulo",
-        header: "Listing Title",
-        cell: ({ row }: { row: Row<PropertyType> }) => (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <img
-              src={row.original.imagenes[0]?.url || "/noImage.png"}
-              alt={row.original.titulo}
-              width={60}
-              height={60}
-            />
-            <div>
-              <p>{row.original.titulo}</p>
-              <small>
-                {row.original.estado} / {row.original.ciudad}
-              </small>
-            </div>
+        accessorKey: "nombre",
+        header: "Producto",
+        cell: ({ row }: { row: Row<Producto> }) => (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <strong>{row.original.nombre}</strong>
+            <small>Código: {row.original.codigo}</small>
           </div>
         ),
       },
       {
-        accessorKey: "precio",
-        header: "Price",
-        cell: ({ getValue }: { getValue: () => number }) =>
-          `$${getValue().toLocaleString("en-US")}`,
+        accessorKey: "marca",
+        header: "Marca",
+        cell: ({ getValue }: { getValue: () => string }) => (
+          <span>{getValue() ?? "N/A"}</span>
+        ),
       },
       {
-        accessorKey: "estadoPropiedad",
-        header: "Status",
+        accessorKey: "categoria",
+        header: "Categoría",
         cell: ({ getValue }: { getValue: () => string }) => (
+          <span>{getValue() ?? "Sin categoría"}</span>
+        ),
+      },
+      {
+        accessorKey: "precioVenta",
+        header: "Precio de venta",
+        cell: ({ getValue }: { getValue: () => number }) =>
+          new Intl.NumberFormat("es-DO", {
+            style: "currency",
+            currency: "DOP",
+            minimumFractionDigits: 2,
+          }).format(getValue()),
+      },
+      {
+        accessorKey: "stockActual",
+        header: "Stock actual",
+        cell: ({ getValue }: { getValue: () => number }) => (
           <span>{getValue()}</span>
         ),
       },
       {
         id: "actions",
-        header: "Actions",
-        cell: ({ row }: { row: Row<PropertyType> }) => (
-          <div style={{ display: "flex", gap: "5px" }}>
+        header: "Acciones",
+        cell: ({ row }: { row: Row<Producto> }) => (
+          <div style={{ display: "flex", gap: "8px" }}>
             <button
-              onClick={() => alert(`Edit ${row.original.titulo}`)}
-              style={{ padding: "2px 6px" }}
+              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb]"
+              onClick={() => alert(`Editar ${row.original.nombre}`)}
+              style={{
+                padding: "8px 16px",
+                color: "white",
+                borderRadius: "6px",
+              }}
             >
-              Edit
+              <PencilIcon />
             </button>
             <button
-              onClick={() => alert(`Delete ${row.original.titulo}`)}
-              style={{ padding: "2px 6px" }}
+              onClick={() => alert(`Eliminar ${row.original.nombre}`)}
+              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626]"
+              style={{
+                padding: "8px 16px",
+                color: "white",
+                borderRadius: "6px",
+              }}
             >
-              Delete
+              <TrashBinIcon />
             </button>
           </div>
         ),
@@ -112,7 +92,7 @@ export default function PropertyDataTable() {
     ];
   }, []);
 
-  const table = useReactTable<PropertyType>({
+  const table = useReactTable<Producto>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -140,17 +120,18 @@ export default function PropertyDataTable() {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row
-                .getVisibleCells()
-                .map((cell: Cell<PropertyType, unknown>) => (
-                  <td
-                    key={cell.id}
-                    className="p-4 border-b-[1px] border-solid borde-b-[#ccc]"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            <tr
+              key={row.id}
+              className="transition-colors duration-200 hover:bg-gray-200 cursor-pointer"
+            >
+              {row.getVisibleCells().map((cell: Cell<Producto, unknown>) => (
+                <td
+                  key={cell.id}
+                  className="p-4 border-b-[1px] border-solid borde-b-[#ccc]"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>

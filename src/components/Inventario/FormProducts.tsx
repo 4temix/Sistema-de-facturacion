@@ -5,25 +5,22 @@ import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
 import { ValidationProduct } from "../../Utilities/ValidationProduct";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  BaseSelecst,
+  Option,
+  SaveProducto,
+  Selects,
+} from "../../Types/ProductTypes";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { array } from "yup";
 
 type Actions = {
   closeModal: () => void;
+  selectsData: Selects | undefined;
 };
-
-type Option = {
-  value: string;
-  label: string;
-};
-
-const categoriaOptions: Option[] = [
-  { value: "1", label: "Electrónica" },
-  { value: "2", label: "Ropa" },
-  { value: "3", label: "Hogar" },
-];
-
 export default function FormProducts(params: Actions) {
-  const { closeModal } = params;
+  const { closeModal, selectsData } = params;
 
   //formik validation
   const {
@@ -43,18 +40,18 @@ export default function FormProducts(params: Actions) {
       codigo: "",
       nombre: "",
       descripcion: "",
-      categoria_id: 0,
-      marca_id: 0,
-      tipo_id: 0,
-      estado_id: 0,
-      precio_compra: 0,
-      precio_venta: 0,
-      precio_minimo: 0,
-      stock_actual: 0,
-      stock_minimo: 0,
-      unidad_medida: "unidad",
+      categoriaId: null,
+      marcaId: null,
+      tipoId: null,
+      estadoId: null,
+      precioCompra: 0,
+      precioVenta: 0,
+      precioMinimo: null,
+      stockActual: 0,
+      stockMinimo: 0,
+      unidadMedida: "unidad",
       ubicacion: "",
-      codigo_barras: "",
+      codigoBarras: "",
       impuesto: 0,
     },
     validationSchema: ValidationProduct,
@@ -62,6 +59,24 @@ export default function FormProducts(params: Actions) {
       console.log("Producto enviado:", values);
     },
   });
+
+  //guardar los elementos
+  function Saveproducto(producto: SaveProducto) {
+    apiRequestThen<boolean>({
+      url: "api/productos/guardar_producto",
+      configuration: {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(producto),
+      },
+    }).then((response) => {
+      if (!response.success) {
+        console.error("Error:", response.errorMessage);
+        return;
+      }
+      closeModal();
+    });
+  }
 
   useEffect(() => {
     console.log(values);
@@ -87,12 +102,13 @@ export default function FormProducts(params: Actions) {
                   type="text"
                   id="nombre"
                   placeholder="Nombre del producto"
-                  hint={errors.nombre}
+                  hint={errors.nombre && touched.nombre ? errors.nombre : ""}
                   value={values.nombre ?? ""}
-                  error={errors.nombre ? true : false}
+                  error={errors.nombre && touched.nombre ? true : false}
                   onChange={(e) => {
                     setFieldValue("nombre", e.target.value);
                   }}
+                  onBlur={() => setFieldTouched("nombre", true)}
                 />
               </div>
               <div>
@@ -132,11 +148,16 @@ export default function FormProducts(params: Actions) {
                 <Label htmlFor="categoria">Categoría</Label>
                 <Select
                   id="categoria"
-                  styles={customStyles}
+                  styles={customStyles()}
                   placeholder="Selecciona una categoría..."
-                  options={categoriaOptions}
+                  options={selectsData?.categorias?.map(
+                    (element: BaseSelecst) => ({
+                      value: element.id.toString(),
+                      label: element.name,
+                    })
+                  )}
                   onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("categoria_id", parseInt(e.value));
+                    setFieldValue("categoriaId", parseInt(e.value));
                   }}
                 />
               </div>
@@ -144,11 +165,15 @@ export default function FormProducts(params: Actions) {
                 <Label htmlFor="categoria">Tipo</Label>
                 <Select
                   id="categoria"
-                  styles={customStyles}
-                  placeholder="Selecciona una categoría..."
-                  options={categoriaOptions}
-                  onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("tipo_id", parseInt(e.value));
+                  styles={customStyles()}
+                  placeholder="Selecciona un tipo..."
+                  options={selectsData?.tipos?.map((element: BaseSelecst) => ({
+                    value: element.id.toString(),
+                    label: element.name,
+                  }))}
+                  onChange={(e) => {
+                    if (!e || Array.isArray(e)) return;
+                    setFieldValue("tipoId", parseInt(e.value));
                   }}
                 />
               </div>
@@ -156,26 +181,29 @@ export default function FormProducts(params: Actions) {
                 <Label htmlFor="categoria">Marca</Label>
                 <Select
                   id="categoria"
-                  styles={customStyles}
-                  placeholder="Selecciona una categoría..."
-                  options={categoriaOptions}
+                  styles={customStyles()}
+                  placeholder="Selecciona una marca..."
+                  options={selectsData?.marcas?.map((element: BaseSelecst) => ({
+                    value: element.id.toString(),
+                    label: element.name,
+                  }))}
                   onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("marca_id", parseInt(e.value));
+                    setFieldValue("marcaId", parseInt(e.value));
                   }}
                 />
               </div>
-              <div>
-                <Label htmlFor="unidad_medida">Unidad de medida</Label>
+              {/* <div>
+                <Label htmlFor="unidadMedida">Unidad de medida</Label>
                 <Select
-                  id="unidad_medida"
+                  id="unidadMedida"
                   styles={customStyles}
                   placeholder="Unidad..."
                   options={categoriaOptions}
                   onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("unidad_medida", parseInt(e.value));
+                    setFieldValue("unidadMedida", parseInt(e.value));
                   }}
                 />
-              </div>
+              </div> */}
             </div>
 
             {/* 4️⃣ Precios */}
@@ -186,12 +214,23 @@ export default function FormProducts(params: Actions) {
                   type="number"
                   id="precio_compra"
                   placeholder="0.00"
-                  hint={errors.precio_compra}
-                  value={values.precio_compra ?? ""}
-                  error={errors.precio_compra ? true : false}
+                  hint={
+                    errors.precioCompra && touched.precioCompra
+                      ? errors.precioCompra
+                      : ""
+                  }
+                  value={values.precioCompra ?? ""}
+                  error={
+                    errors.precioCompra && touched.precioCompra ? true : false
+                  }
                   onChange={(e) => {
-                    setFieldValue("precio_compra", parseFloat(e.target.value));
+                    const val = e.target.value;
+                    setFieldValue(
+                      "precioCompra",
+                      val === "" ? null : parseFloat(val)
+                    );
                   }}
+                  onBlur={() => setFieldTouched("precioCompra", true)}
                 />
               </div>
               <div>
@@ -200,12 +239,23 @@ export default function FormProducts(params: Actions) {
                   type="number"
                   id="precio_venta"
                   placeholder="0.00"
-                  hint={errors.precio_venta}
-                  value={values.precio_venta ?? ""}
-                  error={errors.precio_venta ? true : false}
+                  hint={
+                    errors.precioVenta && touched.precioVenta
+                      ? errors.precioVenta
+                      : ""
+                  }
+                  value={values.precioVenta ?? ""}
+                  error={
+                    errors.precioVenta && touched.precioVenta ? true : false
+                  }
                   onChange={(e) => {
-                    setFieldValue("precio_venta", parseFloat(e.target.value));
+                    const val = e.target.value;
+                    setFieldValue(
+                      "precioVenta",
+                      val === "" ? null : parseFloat(val)
+                    );
                   }}
+                  onBlur={() => setFieldTouched("precioVenta", true)}
                 />
               </div>
               <div>
@@ -214,11 +264,15 @@ export default function FormProducts(params: Actions) {
                   type="number"
                   id="precio_minimo"
                   placeholder="0.00"
-                  hint={errors.precio_minimo}
-                  value={values.precio_minimo ?? ""}
-                  error={errors.precio_minimo ? true : false}
+                  hint={errors.precioMinimo}
+                  value={values.precioMinimo ?? ""}
+                  error={errors.precioMinimo ? true : false}
                   onChange={(e) => {
-                    setFieldValue("precio_minimo", parseFloat(e.target.value));
+                    const val = e.target.value;
+                    setFieldValue(
+                      "precioMinimo",
+                      val === "" ? null : parseFloat(val)
+                    );
                   }}
                 />
               </div>
@@ -227,17 +281,28 @@ export default function FormProducts(params: Actions) {
             {/* 5️⃣ Stock y ubicación */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
               <div>
-                <Label htmlFor="stock_actual">Stock actual</Label>
+                <Label htmlFor="stockActual">Stock actual</Label>
                 <Input
                   type="number"
-                  id="stock_actual"
+                  id="stockActual"
                   placeholder="0"
-                  hint={errors.stock_actual}
-                  value={values.stock_actual ?? ""}
-                  error={errors.stock_actual ? true : false}
+                  hint={
+                    errors.stockActual && touched.stockActual
+                      ? errors.stockActual
+                      : ""
+                  }
+                  value={values.stockActual ?? ""}
+                  error={
+                    errors.stockActual && touched.stockActual ? true : false
+                  }
                   onChange={(e) => {
-                    setFieldValue("stock_actual", parseInt(e.target.value));
+                    const val = e.target.value;
+                    setFieldValue(
+                      "stockActual",
+                      val === "" ? null : parseFloat(val)
+                    );
                   }}
+                  onBlur={() => setFieldTouched("stockActual", true)}
                 />
               </div>
               <div>
@@ -246,11 +311,15 @@ export default function FormProducts(params: Actions) {
                   type="number"
                   id="stock_minimo"
                   placeholder="0"
-                  hint={errors.stock_minimo}
-                  value={values.stock_minimo ?? ""}
-                  error={errors.stock_minimo ? true : false}
+                  hint={errors.stockMinimo}
+                  value={values.stockMinimo ?? ""}
+                  error={errors.stockMinimo ? true : false}
                   onChange={(e) => {
-                    setFieldValue("stock_minimo", parseInt(e.target.value));
+                    const val = e.target.value;
+                    setFieldValue(
+                      "stockMinimo",
+                      val === "" ? null : parseFloat(val)
+                    );
                   }}
                 />
               </div>
@@ -278,11 +347,11 @@ export default function FormProducts(params: Actions) {
                   type="text"
                   id="codigo_barras"
                   placeholder="Ej: 1234567890"
-                  hint={errors.codigo_barras}
-                  value={values.codigo_barras ?? ""}
-                  error={errors.codigo_barras ? true : false}
+                  hint={errors.codigoBarras}
+                  value={values.codigoBarras ?? ""}
+                  error={errors.codigoBarras ? true : false}
                   onChange={(e) => {
-                    setFieldValue("codigo_barras", e.target.value);
+                    setFieldValue("codigoBarras", e.target.value);
                   }}
                 />
               </div>
@@ -290,12 +359,24 @@ export default function FormProducts(params: Actions) {
                 <Label htmlFor="es_activo">Estado</Label>
                 <Select
                   id="estado"
-                  styles={customStyles}
-                  options={categoriaOptions}
+                  styles={customStyles(!!errors.estadoId && touched.estadoId)}
+                  placeholder="Seleccione un estado.."
+                  options={selectsData?.estados?.map(
+                    (element: BaseSelecst) => ({
+                      value: element.id.toString(),
+                      label: element.name,
+                    })
+                  )}
                   onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("estado_id", parseInt(e.value));
+                    setFieldValue("estadoId", parseInt(e.value));
                   }}
+                  onBlur={() => setFieldTouched("estadoId", true)}
                 />
+                {errors.estadoId && touched.estadoId && (
+                  <p className={`mt-1.5 text-xs text-error-500`}>
+                    {errors.estadoId}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -310,7 +391,11 @@ export default function FormProducts(params: Actions) {
                 value={values.impuesto ?? ""}
                 error={errors.impuesto ? true : false}
                 onChange={(e) => {
-                  setFieldValue("impuesto", e.target.value);
+                  const val = e.target.value;
+                  setFieldValue(
+                    "impuesto",
+                    val === "" ? null : parseFloat(val)
+                  );
                 }}
               />
             </div>
@@ -322,7 +407,32 @@ export default function FormProducts(params: Actions) {
           <Button size="sm" variant="outline" onClick={closeModal}>
             Cancelar
           </Button>
-          <Button size="sm">Guardar producto</Button>
+          <Button
+            size="sm"
+            onClick={async (e?: React.MouseEvent<HTMLButtonElement>) => {
+              e?.preventDefault();
+              // Valida todos los campos
+              const errors = await validateForm();
+
+              // Marca todos los campos como tocados
+              setTouched(
+                Object.keys(initialValues).reduce((acc, key) => {
+                  acc[key] = true;
+                  return acc;
+                }, {} as Record<string, boolean>),
+                true
+              );
+              // Si no hay errores
+              if (Object.keys(errors).length === 0) {
+                console.log("todo bien");
+                Saveproducto(values);
+              } else {
+                console.log("Errores encontrados:", errors);
+              }
+            }}
+          >
+            Guardar producto
+          </Button>
         </div>
       </form>
     </>

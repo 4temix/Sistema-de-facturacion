@@ -1,6 +1,13 @@
 import { BoxIconLine, GroupIcon } from "../../icons";
+import { Metricas } from "../../Types/ProductTypes";
 
-export default function CardsInventario() {
+export default function CardsInventario({
+  totalProductos,
+  margenPromedio,
+  valorTotal,
+  stockBajo,
+  agotados,
+}: Metricas) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-4 lg:grid-cols-6 md:gap-4">
       {/* <!-- Metric Item Start --> */}
@@ -15,7 +22,7 @@ export default function CardsInventario() {
               Total Productos
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              3,782
+              {totalProductos ?? 0}
             </h4>
           </div>
         </div>
@@ -33,7 +40,7 @@ export default function CardsInventario() {
               Stock Bajo
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+              {stockBajo ?? 0}
             </h4>
           </div>
         </div>
@@ -49,7 +56,7 @@ export default function CardsInventario() {
               Agotados
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+              {agotados ?? 0}
             </h4>
           </div>
         </div>
@@ -65,7 +72,11 @@ export default function CardsInventario() {
               Costo Total del inventario
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+              RD{" "}
+              {new Intl.NumberFormat("es-DO", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(valorTotal)}
             </h4>
           </div>
         </div>
