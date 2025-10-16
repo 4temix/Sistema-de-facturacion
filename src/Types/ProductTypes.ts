@@ -20,6 +20,13 @@ export type Producto = {
   precioCompra: number;
   precioVenta: number;
   stockActual: number;
+  Porsentaje: string;
+};
+
+//respuesta del backend
+export type DataRequest = {
+  data: Producto[];
+  total_pages: number;
 };
 
 //filtro de busqueda
@@ -71,4 +78,14 @@ export type SaveProducto = {
   ubicacion: string;
   codigoBarras: string;
   impuesto: number | null;
+};
+
+//paginacion para tablas
+export type PaginationProps = {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  showFirstLast?: boolean;
+  maxVisiblePages?: number;
+  className?: string;
 };

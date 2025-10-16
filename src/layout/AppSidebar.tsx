@@ -33,8 +33,11 @@ const navItems: NavItem[] = [
   },
   {
     icon: <BoxCubeIcon />,
-    name: "Inventario",
-    subItems: [{ name: "Productos", path: "/productos", pro: false }],
+    name: "Gestion",
+    subItems: [
+      { name: "Inventario", path: "/inventario", pro: false },
+      { name: "Facturacion", path: "/facturacion", pro: false },
+    ],
   },
   {
     icon: <CalenderIcon />,

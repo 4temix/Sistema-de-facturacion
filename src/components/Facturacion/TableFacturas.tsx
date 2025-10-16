@@ -20,7 +20,7 @@ type internalProps = DataRequest & {
   updateSize: (value: number, key: string) => void;
 };
 
-export default function PropertyDataTable({
+export default function TableFacturas({
   data,
   total_pages,
   setPage,
@@ -33,24 +33,24 @@ export default function PropertyDataTable({
     return [
       {
         accessorKey: "nombre",
-        header: "Producto",
+        header: "Factura",
         cell: ({ row }: { row: Row<Producto> }) => (
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <strong>{row.original.nombre}</strong>
+            <strong>#{row.original.nombre}</strong>
             <small>Código: {row.original.codigo}</small>
           </div>
         ),
       },
       {
         accessorKey: "marca",
-        header: "Marca",
+        header: "Cliente",
         cell: ({ getValue }: { getValue: () => string }) => (
           <span>{getValue() ?? "N/A"}</span>
         ),
       },
       {
         accessorKey: "porsentaje",
-        header: "Margen (%)",
+        header: "Fecha",
         cell: ({ getValue }: { getValue: () => string }) => {
           const porsentaje = Math.round(parseFloat(getValue()) * 100) / 100;
           return (
@@ -72,14 +72,14 @@ export default function PropertyDataTable({
       },
       {
         accessorKey: "categoria",
-        header: "Categoría",
+        header: "Monto",
         cell: ({ getValue }: { getValue: () => string }) => (
           <span>{getValue() ?? "Sin categoría"}</span>
         ),
       },
       {
         accessorKey: "precioVenta",
-        header: "Precio de venta",
+        header: "Estado",
         cell: ({ getValue }: { getValue: () => number }) =>
           new Intl.NumberFormat("es-DO", {
             style: "currency",
@@ -89,7 +89,7 @@ export default function PropertyDataTable({
       },
       {
         accessorKey: "stockActual",
-        header: "Stock actual",
+        header: "Metodo de pago",
         cell: ({ getValue }: { getValue: () => number }) => (
           <span>{getValue()}</span>
         ),

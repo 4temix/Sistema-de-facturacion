@@ -8,7 +8,8 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 
 // lazy loading para cada página
 const Home = lazy(() => import("./pages/Dashboard/Home"));
-const Productos = lazy(() => import("./pages/Inventario/Productos"));
+const Productos = lazy(() => import("./pages/Gestion/Productos"));
+const Facturacion = lazy(() => import("./pages/Gestion/Facturacion"));
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
 const SignUp = lazy(() => import("./pages/AuthPages/SignUp"));
 const NotFound = lazy(() => import("./pages/OtherPage/NotFound"));
@@ -41,7 +42,8 @@ const routes = createBrowserRouter([
     children: [
       { index: true, path: "/", element: <Home /> },
       //principal
-      { path: "/productos", element: <Productos /> },
+      { path: "/inventario", element: <Productos /> },
+      { path: "/facturacion", element: <Facturacion /> },
       { path: "/mantenimientos", element: <Mantenimientos /> },
 
       // Others Page

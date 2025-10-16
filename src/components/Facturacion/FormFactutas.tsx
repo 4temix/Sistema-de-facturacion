@@ -20,7 +20,7 @@ type Actions = {
   selectsData: Selects | undefined;
 };
 
-export default function FormProducts(params: Actions) {
+export default function FormFactutas(params: Actions) {
   const { closeModal, selectsData } = params;
 
   //formik validation

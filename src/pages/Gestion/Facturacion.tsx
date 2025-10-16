@@ -1,6 +1,4 @@
-import CardsInventario from "../../components/Inventario/CardsInventario";
 import Button from "../../components/ui/button/Button";
-import PropertyDataTable from "../../components/Inventario/TableElements";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import Select from "react-select";
@@ -12,13 +10,16 @@ import { useEffect, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import {
   BaseSelecst,
+  DataRequest,
   Metricas,
-  Producto,
+  // Producto,
   ProductoFiltro,
   Selects,
 } from "../../Types/ProductTypes";
+import CardsFacturacion from "../../components/Facturacion/CardsFacturacion";
+import TableFacturas from "../../components/Facturacion/TableFacturas";
 
-export default function Productos() {
+export default function Facturacion() {
   const { isOpen, openModal, closeModal } = useModal();
   const {
     isOpen: isProductModalOpen,
@@ -29,7 +30,21 @@ export default function Productos() {
   //metricas superiores
   const [dataMetricas, setDataMetricas] = useState<Metricas>();
   //productos de la tabla
-  const [productosData, setProductosData] = useState<Producto[]>([]);
+  const [productosData, setProductosData] = useState<DataRequest>({
+    data: [],
+    total_pages: 0,
+  });
+
+  //selects para crear y filtrar productos
+  const [selectsData, setSelectsData] = useState<Selects>();
+
+  const [labelSelects, setLabelSelects] = useState({
+    tipo: "",
+    marca: "",
+    categoria: "",
+    estado: "",
+  });
+
   //filtros de busqueda
   const [filters, setFilters] = useState({
     tipo: null,
@@ -41,16 +56,8 @@ export default function Productos() {
     search: "",
     stockBajo: null,
     agotados: null,
-  });
-
-  //selects para crear y filtrar productos
-  const [selectsData, setSelectsData] = useState<Selects>();
-
-  const [labelSelects, setLabelSelects] = useState({
-    tipo: "",
-    marca: "",
-    categoria: "",
-    estado: "",
+    page: 1,
+    PageSize: 5,
   });
 
   //actualizar los fintros
@@ -86,14 +93,20 @@ export default function Productos() {
   function getData(filters?: ProductoFiltro) {
     const queryString = buildQueryString(filters);
 
-    apiRequestThen<Producto[]>({
+    apiRequestThen<DataRequest>({
       url: `api/productos/productos?${queryString}`,
     }).then((response) => {
       if (!response.success) {
         console.error("Error:", response.errorMessage);
         return;
       }
-      setProductosData(response.result ?? []);
+      console.log(response.result);
+      setProductosData(
+        response.result ?? {
+          data: [],
+          total_pages: 0,
+        }
+      );
     });
   }
 
@@ -122,6 +135,15 @@ export default function Productos() {
     getData(filters);
     Data();
   }, []);
+
+  useEffect(() => {
+    getData(filters);
+  }, [filters.page]);
+
+  //incremento de la pagina
+  function incrementPage(page: number) {
+    updateFilter(page, "page");
+  }
 
   return (
     <section>
@@ -154,7 +176,7 @@ export default function Productos() {
         </div>
       </article>
       <article>
-        <CardsInventario
+        <CardsFacturacion
           totalProductos={dataMetricas?.totalProductos ?? 0}
           margenPromedio={dataMetricas?.margenPromedio ?? 0}
           valorTotal={dataMetricas?.valorTotal ?? 0}
@@ -367,7 +389,14 @@ export default function Productos() {
         </Modal>
       </article>
       <article>
-        <PropertyDataTable data={productosData} />
+        <TableFacturas
+          data={productosData.data}
+          total_pages={productosData.total_pages}
+          setPage={incrementPage}
+          pageNUmber={filters.page}
+          pageSize={filters.PageSize}
+          updateSize={updateFilter}
+        />
       </article>
     </section>
   );
