@@ -16,6 +16,7 @@ import {
   MetricasFacturas,
   ParamsFacturasRequest,
 } from "../../Types/FacturacionTypes";
+import { useDebounce } from "../../hooks/useDebounce";
 
 export default function Facturacion() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -52,7 +53,7 @@ export default function Facturacion() {
   //filtros de busqueda
   const [filters, setFilters] = useState({
     estado: null,
-    search: null,
+    search: "",
     fechaPago: null,
     page: 1,
     PageSize: 5,
@@ -60,6 +61,9 @@ export default function Facturacion() {
 
   //pagina anterior, esto se hace para que al cargar la pagina no haga una peticion doble
   let Beforepag = useRef(1);
+  let BeforeFilter = useRef<string>("");
+
+  const debouncedSearch = useDebounce(filters.search, 600);
 
   //actualizar los fintros
   function updateFilter(value: string | number | null, key: string) {
@@ -94,6 +98,10 @@ export default function Facturacion() {
   function getData(filters?: ParamsFacturasRequest) {
     const queryString = buildQueryString(filters);
 
+    if (BeforeFilter.current == queryString) {
+      return;
+    }
+    BeforeFilter.current = queryString;
     apiRequestThen<DataRequest>({
       url: `api/facturas?${queryString}`,
     }).then((response) => {
@@ -146,6 +154,11 @@ export default function Facturacion() {
   function incrementPage(page: number) {
     updateFilter(page, "page");
   }
+
+  //debounce para busquedas
+  useEffect(() => {
+    getData(filters);
+  }, [debouncedSearch]);
 
   return (
     <section>

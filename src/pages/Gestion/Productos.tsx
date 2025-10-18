@@ -8,7 +8,7 @@ import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
 import FormProducts from "../../components/Inventario/FormProducts";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import {
   BaseSelecst,
@@ -18,6 +18,7 @@ import {
   ProductoFiltro,
   Selects,
 } from "../../Types/ProductTypes";
+import { useDebounce } from "../../hooks/useDebounce";
 
 export default function Productos() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -60,6 +61,10 @@ export default function Productos() {
     PageSize: 5,
   });
 
+  //elementos para que funcione el debounce
+  const debouncedSearch = useDebounce(filters.search, 600);
+  let BeforeFilter = useRef<string>("");
+
   //actualizar los fintros
   function updateFilter(value: string | number | null, key: string) {
     setFilters((prev) => {
@@ -93,6 +98,9 @@ export default function Productos() {
   function getData(filters?: ProductoFiltro) {
     const queryString = buildQueryString(filters);
 
+    if (BeforeFilter.current == queryString) {
+      return;
+    }
     apiRequestThen<DataRequest>({
       url: `api/productos/productos?${queryString}`,
     }).then((response) => {
@@ -145,6 +153,10 @@ export default function Productos() {
     updateFilter(page, "page");
   }
 
+  //debounce para busquedas
+  useEffect(() => {
+    getData(filters);
+  }, [debouncedSearch]);
   return (
     <section>
       <article className="flex mb-3">
