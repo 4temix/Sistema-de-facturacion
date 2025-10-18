@@ -1,13 +1,13 @@
 import { BoxIconLine, GroupIcon } from "../../icons";
-import { Metricas } from "../../Types/ProductTypes";
+import { MetricasFacturas } from "../../Types/FacturacionTypes";
 
 export default function CardsFacturacion({
-  totalProductos,
-  margenPromedio,
-  valorTotal,
-  stockBajo,
-  agotados,
-}: Metricas) {
+  ventasMes,
+  fPendientes,
+  montoTransito,
+  totalVentasMesEspc,
+  totalVentasMesReal,
+}: MetricasFacturas) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-5 md:gap-4 lg:grid-cols-7 md:gap-4">
       {/* <!-- Metric Item Start --> */}
@@ -25,7 +25,7 @@ export default function CardsFacturacion({
               {new Intl.NumberFormat("es-DO", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
-              }).format(valorTotal)}
+              }).format(totalVentasMesEspc)}
             </h4>
           </div>
         </div>
@@ -44,7 +44,7 @@ export default function CardsFacturacion({
               {new Intl.NumberFormat("es-DO", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
-              }).format(valorTotal)}
+              }).format(totalVentasMesReal)}
             </h4>
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function CardsFacturacion({
               Ventas del mes
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {stockBajo ?? 0}
+              {ventasMes ?? 0}
             </h4>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function CardsFacturacion({
               Facturas pendientes
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {agotados ?? 0}
+              {fPendientes ?? 0}
             </h4>
           </div>
         </div>
@@ -93,7 +93,11 @@ export default function CardsFacturacion({
               Monto en transito
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {agotados ?? 0}
+              RD{" "}
+              {new Intl.NumberFormat("es-DO", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(montoTransito)}
             </h4>
           </div>
         </div>

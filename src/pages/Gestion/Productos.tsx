@@ -153,7 +153,7 @@ export default function Productos() {
         </div>
         <div className="action-container ml-auto">
           <Button size="sm" variant="primary" onClick={openProductModal}>
-            Button Text
+            Crear producto
           </Button>
           <Modal
             isOpen={isProductModalOpen}

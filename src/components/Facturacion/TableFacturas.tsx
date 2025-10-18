@@ -7,11 +7,12 @@ import {
   Row,
   Cell,
 } from "@tanstack/react-table";
-import { DataRequest, Producto } from "../../Types/ProductTypes";
+import { Producto } from "../../Types/ProductTypes";
 import { TrashBinIcon, PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
 import { number } from "yup";
+import { DataRequest, Factura } from "../../Types/FacturacionTypes";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
@@ -34,52 +35,32 @@ export default function TableFacturas({
       {
         accessorKey: "nombre",
         header: "Factura",
-        cell: ({ row }: { row: Row<Producto> }) => (
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <strong>#{row.original.nombre}</strong>
-            <small>Código: {row.original.codigo}</small>
-          </div>
+        cell: ({ row }: { row: Row<Factura> }) => (
+          <span>
+            <strong>#</strong>
+            {row.original.numeroFactura}
+          </span>
         ),
       },
       {
-        accessorKey: "marca",
+        accessorKey: "cliente",
         header: "Cliente",
         cell: ({ getValue }: { getValue: () => string }) => (
           <span>{getValue() ?? "N/A"}</span>
         ),
       },
       {
-        accessorKey: "porsentaje",
+        accessorKey: "fechaEmision",
         header: "Fecha",
-        cell: ({ getValue }: { getValue: () => string }) => {
-          const porsentaje = Math.round(parseFloat(getValue()) * 100) / 100;
-          return (
-            <span
-              className={
-                porsentaje > 0
-                  ? "text-green-500"
-                  : porsentaje < 0
-                  ? "text-error-600"
-                  : ""
-              }
-            >
-              {typeof porsentaje === "number" && !isNaN(porsentaje)
-                ? porsentaje
-                : "N/A"}
-            </span>
-          );
-        },
-      },
-      {
-        accessorKey: "categoria",
-        header: "Monto",
         cell: ({ getValue }: { getValue: () => string }) => (
-          <span>{getValue() ?? "Sin categoría"}</span>
+          <span>
+            {new Date(getValue()).toLocaleDateString("es-DO") ?? "N/A"}
+          </span>
         ),
       },
       {
-        accessorKey: "precioVenta",
-        header: "Estado",
+        accessorKey: "monto",
+        header: "Monto",
         cell: ({ getValue }: { getValue: () => number }) =>
           new Intl.NumberFormat("es-DO", {
             style: "currency",
@@ -88,9 +69,16 @@ export default function TableFacturas({
           }).format(getValue()),
       },
       {
-        accessorKey: "stockActual",
+        accessorKey: "estado",
+        header: "Estado",
+        cell: ({ getValue }: { getValue: () => string }) => (
+          <span>{getValue()}</span>
+        ),
+      },
+      {
+        accessorKey: "metodoPago",
         header: "Metodo de pago",
-        cell: ({ getValue }: { getValue: () => number }) => (
+        cell: ({ getValue }: { getValue: () => string }) => (
           <span>{getValue()}</span>
         ),
       },

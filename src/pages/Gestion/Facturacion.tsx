@@ -6,18 +6,16 @@ import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
 import FormProducts from "../../components/Inventario/FormProducts";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
-import {
-  BaseSelecst,
-  DataRequest,
-  Metricas,
-  // Producto,
-  ProductoFiltro,
-  Selects,
-} from "../../Types/ProductTypes";
+import { BaseSelecst, Selects } from "../../Types/ProductTypes";
 import CardsFacturacion from "../../components/Facturacion/CardsFacturacion";
 import TableFacturas from "../../components/Facturacion/TableFacturas";
+import {
+  DataRequest,
+  MetricasFacturas,
+  ParamsFacturasRequest,
+} from "../../Types/FacturacionTypes";
 
 export default function Facturacion() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -28,7 +26,13 @@ export default function Facturacion() {
   } = useModal();
 
   //metricas superiores
-  const [dataMetricas, setDataMetricas] = useState<Metricas>();
+  const [dataMetricas, setDataMetricas] = useState<MetricasFacturas>({
+    ventasMes: 0,
+    fPendientes: 0,
+    montoTransito: 0,
+    totalVentasMesEspc: 0,
+    totalVentasMesReal: 0,
+  });
   //productos de la tabla
   const [productosData, setProductosData] = useState<DataRequest>({
     data: [],
@@ -47,18 +51,15 @@ export default function Facturacion() {
 
   //filtros de busqueda
   const [filters, setFilters] = useState({
-    tipo: null,
-    marca: null,
-    categoria: null,
     estado: null,
-    precioVentaMinimo: null,
-    precioVentaMaximo: null,
-    search: "",
-    stockBajo: null,
-    agotados: null,
+    search: null,
+    fechaPago: null,
     page: 1,
     PageSize: 5,
   });
+
+  //pagina anterior, esto se hace para que al cargar la pagina no haga una peticion doble
+  let Beforepag = useRef(1);
 
   //actualizar los fintros
   function updateFilter(value: string | number | null, key: string) {
@@ -90,11 +91,11 @@ export default function Facturacion() {
   }
 
   //funcion para obtener los elementos de la tabla
-  function getData(filters?: ProductoFiltro) {
+  function getData(filters?: ParamsFacturasRequest) {
     const queryString = buildQueryString(filters);
 
     apiRequestThen<DataRequest>({
-      url: `api/productos/productos?${queryString}`,
+      url: `api/facturas?${queryString}`,
     }).then((response) => {
       if (!response.success) {
         console.error("Error:", response.errorMessage);
@@ -112,10 +113,11 @@ export default function Facturacion() {
 
   useEffect(() => {
     async function Data() {
-      const request = await apiRequest<Metricas>({
-        url: "api/productos/metricas_productos",
+      const request = await apiRequest<MetricasFacturas>({
+        url: "api/facturas/metricas_facturas",
       });
 
+      console.log(request);
       if (request.success) {
         setDataMetricas(request.result);
       }
@@ -149,11 +151,11 @@ export default function Facturacion() {
     <section>
       <article className="flex mb-3">
         <div className="text-container">
-          <h2 className="text-3xl font-bold">Inventario</h2>
+          <h2 className="text-3xl font-bold">Facturacion</h2>
         </div>
         <div className="action-container ml-auto">
           <Button size="sm" variant="primary" onClick={openProductModal}>
-            Button Text
+            Crear factura
           </Button>
           <Modal
             isOpen={isProductModalOpen}
@@ -177,11 +179,11 @@ export default function Facturacion() {
       </article>
       <article>
         <CardsFacturacion
-          totalProductos={dataMetricas?.totalProductos ?? 0}
-          margenPromedio={dataMetricas?.margenPromedio ?? 0}
-          valorTotal={dataMetricas?.valorTotal ?? 0}
-          stockBajo={dataMetricas?.stockBajo ?? 0}
-          agotados={dataMetricas?.agotados ?? 0}
+          ventasMes={dataMetricas?.ventasMes}
+          fPendientes={dataMetricas?.fPendientes}
+          montoTransito={dataMetricas?.montoTransito}
+          totalVentasMesEspc={dataMetricas?.totalVentasMesEspc}
+          totalVentasMesReal={dataMetricas?.totalVentasMesReal}
         />
       </article>
       <article className="grid lg:grid-cols-2 gap-4 rounded-2xl border sm:grid-cols-1 border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] px-6 py-5 mt-4">
@@ -193,12 +195,12 @@ export default function Facturacion() {
               getData(filters);
             }}
           >
-            <Label htmlFor="inputTwo">Buscar productos</Label>
+            <Label htmlFor="inputTwo">Buscar facturas</Label>
             <Input
               type="text"
               id="inputTwo"
               value={filters.search ?? ""}
-              placeholder="Nombre del producto..."
+              placeholder="Numero de factura o nombre del cliente..."
               onChange={(e) => {
                 updateFilter(e.target.value, "search");
               }}
