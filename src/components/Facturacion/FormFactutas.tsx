@@ -4,24 +4,68 @@ import Label from "../form/Label";
 import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
-import { ValidationProduct } from "../../Utilities/ValidationProduct";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BaseSelecst,
+  DataRequest,
   Option,
+  Producto,
+  ProductoFiltro,
   SaveProducto,
-  Selects,
 } from "../../Types/ProductTypes";
+import { TrashBinIcon, PencilIcon, BoxCubeIcon } from "../../icons";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
-import { array } from "yup";
+import { useDebounce } from "../../hooks/useDebounce";
+import { ValidationFactura } from "../../Utilities/ValidationFactura";
+import { SelectsFacturacion } from "../../Types/FacturacionTypes";
 
 type Actions = {
   closeModal: () => void;
-  selectsData: Selects | undefined;
+  selectsData: SelectsFacturacion | undefined;
 };
 
+type Productos = {
+  id: number;
+  nombre: string;
+  codigo: string;
+  precioVenta: number;
+  precioMinimo: number;
+  cantidad: number;
+  descuento: number;
+  subtotal: number;
+  precioVentaOriginal: number;
+};
+
+//expresion regular para validar si algo es
+const regexNum = /^-?\d+(\.\d+)?$/;
 export default function FormFactutas(params: Actions) {
   const { closeModal, selectsData } = params;
+  //filtros de busqueda
+  const [filters, setFilters] = useState({
+    tipo: null,
+    marca: null,
+    categoria: null,
+    estado: null,
+    precioVentaMinimo: null,
+    precioVentaMaximo: null,
+    search: "",
+    stockBajo: null,
+    agotados: null,
+    page: 1,
+    PageSize: 5,
+  });
+
+  //search configuration
+  const [searchConfig, setSearchConfig] = useState({
+    enFoco: false,
+  });
+
+  //elementos para que funcione el debounce
+  const debouncedSearch = useDebounce(filters.search, 600);
+  let BeforeFilter = useRef<string>("");
+  let searchFocus = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   //formik validation
   const {
@@ -38,31 +82,73 @@ export default function FormFactutas(params: Actions) {
     setTouched,
   } = useFormik({
     initialValues: {
-      codigo: "",
-      nombre: "",
-      descripcion: "",
-      categoriaId: null,
-      marcaId: null,
-      tipoId: null,
-      estadoId: null,
-      precioCompra: 0,
-      precioVenta: 0,
-      precioMinimo: null,
-      stockActual: 0,
-      stockMinimo: 0,
-      unidadMedida: "unidad",
-      ubicacion: "",
-      codigoBarras: "",
-      impuesto: 0,
+      clienteId: 1,
+      nombreCliente: "",
+      DocumentoCliente: "",
+      TelefonoCLiente: "",
+
+      Subtotal: 0,
+      ImpuestoTotal: 0,
+      DescuentoTotal: 0,
+      Total: 0,
+      Ganancia: 0,
+
+      MetodoPagoId: 0,
+      MontoPagado: 0,
+
+      Vendedor: 1,
+      Sucursal: 1,
+      Moneda: "DOP",
+
+      Productos: [],
     },
-    validationSchema: ValidationProduct,
+    validationSchema: ValidationFactura,
     onSubmit: (values) => {
       console.log("Producto enviado:", values);
     },
   });
 
+  //propductos de la busqueda
+  const [productosData, setProductosData] = useState<DataRequest>({
+    data: [],
+    total_pages: 0,
+  });
+
+  //productos agregados
+  const [products, setProducts] = useState<Productos[]>([]);
+
+  //funcion para agregar productos a la factura
+  function SaveElements(productElement: Producto) {
+    let existElement = products.find((el) => el.id == productElement.id);
+
+    if (existElement) {
+      handleProductoChange(
+        existElement.id,
+        "cantidad",
+        existElement.cantidad + 1
+      );
+      return;
+    }
+
+    setProducts((prev) => [
+      ...prev,
+      {
+        id: productElement.id,
+        nombre: productElement.nombre,
+        codigo: productElement.codigo,
+        precioVenta: productElement.precioVenta,
+        precioMinimo: 0,
+        cantidad: 1,
+        descuento: 0,
+        subtotal: productElement.precioVenta,
+        precioVentaOriginal: productElement.precioVenta,
+      },
+    ]);
+  }
+
   //guardar los elementos
-  function Saveproducto(producto: SaveProducto) {
+  function SaveFactura(producto: SaveProducto) {
+    return;
     apiRequestThen<boolean>({
       url: "api/productos/guardar_producto",
       configuration: {
@@ -78,16 +164,117 @@ export default function FormFactutas(params: Actions) {
     });
   }
 
+  //funcion para actualizar los elementos de los formularios
+  const handleProductoChange = (id: number, field: string, value: number) => {
+    const index = products.findIndex((el) => el.id === id);
+    const producto = index !== -1 ? products[index] : null;
+
+    if (producto == undefined) {
+      return;
+    }
+
+    producto[field] = value;
+
+    // Si cambia el precio, recalcula descuento
+    if (field === "precioVenta" && producto.precioVentaOriginal) {
+      producto.descuento = Math.round(
+        Math.max(
+          0,
+          ((producto.precioVentaOriginal - producto.precioVenta) /
+            producto.precioVentaOriginal) *
+            100
+        )
+      );
+    }
+
+    // Si cambia el descuento, recalcula precio
+    if (field === "descuento" && producto.precioVentaOriginal) {
+      producto.precioVenta =
+        producto.precioVentaOriginal * (1 - producto.descuento / 100);
+    }
+
+    // ✅ Recalcular subtotal siempre al final
+    producto.subtotal = producto.cantidad * producto.precioVenta;
+
+    // Validación de precio mínimo
+    // if (producto.precioVenta < producto.precioMinimo) {
+    //   alert(
+    //     `⚠️ El precio ingresado (${producto.precioVenta}) está por debajo del mínimo (${producto.precioMinimo})`
+    //   );
+    // }
+
+    // Actualizar el array
+    const nuevosProductos = [...products];
+    nuevosProductos[index] = producto;
+    setProducts(nuevosProductos);
+  };
+
+  //eliminar nulos
+  function buildQueryString<T extends Record<string, any>>(filters: T): string {
+    const validEntries = Object.entries(filters)
+      .filter(([_, value]) => value !== null && value !== undefined) // ✅ elimina null/undefined
+      .map(([key, value]) => [key, String(value)]); // convierte a string
+
+    return new URLSearchParams(Object.fromEntries(validEntries)).toString();
+  }
+
+  //funcion para buscar los elementos de la facturacion
+  function getData(filters?: ProductoFiltro) {
+    const queryString = buildQueryString(filters);
+
+    if (BeforeFilter.current == queryString) {
+      return;
+    }
+    apiRequestThen<DataRequest>({
+      url: `api/productos/productos?${queryString}`,
+    }).then((response) => {
+      if (!response.success) {
+        console.error("Error:", response.errorMessage);
+        return;
+      }
+      console.log(response.result);
+      setProductosData(
+        response.result ?? {
+          data: [],
+          total_pages: 0,
+        }
+      );
+    });
+  }
+
   useEffect(() => {
-    console.log(values);
-  }, [values]);
+    if (!searchFocus.current) {
+      return;
+    }
+
+    if (filters.search.length == 0) {
+      setProductosData({ data: [], total_pages: 0 });
+      return;
+    }
+    getData(filters);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setSearchConfig((prev) => ({ ...prev, enFoco: false }));
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <>
       <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            Agregar un producto
+            Creacion de factura
           </h4>
         </div>
       </div>
@@ -97,307 +284,291 @@ export default function FormFactutas(params: Actions) {
             {/* 1️⃣ Código y nombre */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="nombre">Nombre</Label>
+                <Label htmlFor="nombre">Nombre cliente</Label>
+                <Input
+                  type="text"
+                  id="nombreCliente"
+                  placeholder="Nombre del producto"
+                  hint={
+                    errors.nombreCliente && touched.nombreCliente
+                      ? errors.nombreCliente
+                      : ""
+                  }
+                  value={values.nombreCliente ?? ""}
+                  error={
+                    errors.nombreCliente && touched.nombreCliente ? true : false
+                  }
+                  onChange={(e) => {
+                    setFieldValue("nombreCliente", e.target.value);
+                  }}
+                  onBlur={() => setFieldTouched("nombreCliente", true)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="nombre">Documento del Cliente</Label>
                 <Input
                   type="text"
                   id="nombre"
                   placeholder="Nombre del producto"
-                  hint={errors.nombre && touched.nombre ? errors.nombre : ""}
-                  value={values.nombre ?? ""}
-                  error={errors.nombre && touched.nombre ? true : false}
+                  hint={
+                    errors.DocumentoCliente && touched.DocumentoCliente
+                      ? errors.DocumentoCliente
+                      : ""
+                  }
+                  value={values.DocumentoCliente ?? ""}
+                  error={
+                    errors.DocumentoCliente && touched.DocumentoCliente
+                      ? true
+                      : false
+                  }
                   onChange={(e) => {
-                    setFieldValue("nombre", e.target.value);
+                    setFieldValue("DocumentoCliente", e.target.value);
                   }}
-                  onBlur={() => setFieldTouched("nombre", true)}
+                  onBlur={() => setFieldTouched("DocumentoCliente", true)}
                 />
               </div>
               <div>
-                <Label htmlFor="codigo">Código</Label>
+                <Label htmlFor="nombre">Telefono del cliente</Label>
                 <Input
                   type="text"
-                  id="codigo"
-                  placeholder="Ej: SKU-1234"
-                  hint={errors.codigo}
-                  value={values.codigo ?? ""}
-                  error={errors.codigo ? true : false}
+                  id="nombre"
+                  placeholder="Nombre del producto"
+                  hint={
+                    errors.TelefonoCLiente && touched.TelefonoCLiente
+                      ? errors.TelefonoCLiente
+                      : ""
+                  }
+                  value={values.TelefonoCLiente ?? ""}
+                  error={
+                    errors.TelefonoCLiente && touched.TelefonoCLiente
+                      ? true
+                      : false
+                  }
                   onChange={(e) => {
-                    setFieldValue("codigo", e.target.value);
+                    setFieldValue("TelefonoCLiente", e.target.value);
                   }}
+                  onBlur={() => setFieldTouched("TelefonoCLiente", true)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="nombre">Nombre cliente</Label>
+                <Input
+                  type="text"
+                  id="nombre"
+                  placeholder="Nombre del producto"
+                  hint={
+                    errors.nombreCliente && touched.nombreCliente
+                      ? errors.nombreCliente
+                      : ""
+                  }
+                  value={values.nombreCliente ?? ""}
+                  error={
+                    errors.nombreCliente && touched.nombreCliente ? true : false
+                  }
+                  onChange={(e) => {
+                    setFieldValue("nombreCliente", e.target.value);
+                  }}
+                  onBlur={() => setFieldTouched("nombreCliente", true)}
                 />
               </div>
             </div>
-
-            {/* 2️⃣ Descripción */}
-            <div>
-              <Label htmlFor="descripcion">Descripción</Label>
-              <textarea
-                id="descripcion"
-                rows={3}
-                placeholder="Detalles o características del producto..."
-                value={values.descripcion ?? ""}
-                className={`border rounded-xl w-full p-2 text-sm`}
+            <h5 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              Productos
+            </h5>
+            <div className="relative ">
+              <Label htmlFor="nombre">Buscar producto</Label>
+              <Input
+                ref={inputRef}
+                type="text"
+                id="search"
+                placeholder="Nombre del producto o codigo..."
+                onFocus={() => setSearchConfig((p) => ({ ...p, enFoco: true }))}
+                value={filters.search ?? ""}
                 onChange={(e) => {
-                  setFieldValue("descripcion", e.target.value);
+                  if (!searchFocus.current) {
+                    searchFocus.current = true;
+                  }
+                  setFilters((prev) => ({
+                    ...prev,
+                    ["search"]: e.target.value,
+                  }));
                 }}
-              ></textarea>
-            </div>
+              />
+              {searchConfig.enFoco && (
+                <div
+                  className="absolute z-40 w-full bg-gray-100 max-h-[300px] min-h-[200px] rounded-[9px] p-3 overflow-y-scroll"
+                  ref={dropdownRef}
+                >
+                  {productosData.data.map((producto: Producto) => (
+                    <div
+                      key={producto.id}
+                      className="p-3 border border-gray-200 rounded-[9px] dark:border-gray-800 flex bg-white min-h-24 gap-3 lg:flex-row flex-col mt-3 hover:bg-gray-300 transition-colors duration-150 ease-in cursor-pointer"
+                      onClick={() => {
+                        SaveElements(producto);
+                      }}
+                    >
+                      <div className="bg-gray-200 p-2 flex justify-center items-center rounded-[9px] max-h-[40px]">
+                        <BoxCubeIcon />
+                      </div>
 
+                      <div className="flex flex-col">
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                          {producto.nombre}
+                        </div>
+                        <span className="text-gray-500">
+                          Código: {producto.codigo}
+                        </span>
+                      </div>
+
+                      {/* BOTÓN ELIMINAR */}
+                      <div className="ml-auto flex gap-2 flex-col">
+                        <span>RD${producto.precioVenta.toFixed(2)}</span>
+                        <span className="text-gray-400">
+                          {producto.stockActual} en stock
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div
+              className={`bg-brand-25 min-h-[200px] rounded-[9px] p-3 overflow-y-scroll max-h-[450px] ${
+                products.length == 0 &&
+                "flex flex-col justify-center items-center"
+              }`}
+            >
+              {/* mapeo de elementos */}
+
+              {products.length == 0 && (
+                <p className="text-gray-500">
+                  Seleccione los elementos para la factura
+                </p>
+              )}
+              {products.map((producto, index) => (
+                <div
+                  key={producto.id || index}
+                  className="p-3 border border-gray-200 rounded-[9px] dark:border-gray-800 flex bg-white min-h-24 gap-3 lg:flex-row flex-col mt-3"
+                >
+                  <div className="bg-gray-200 p-2 flex justify-center items-center rounded-[9px] max-h-[40px]">
+                    <BoxCubeIcon />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                      {producto.nombre}
+                    </div>
+                    <span className="text-gray-500">
+                      Código: {producto.codigo}
+                    </span>
+                    <span>RD${producto.precioVentaOriginal.toFixed(2)}</span>
+                  </div>
+
+                  <div className="flex gap-2 lg:flex-row flex-col">
+                    {/* CANTIDAD */}
+                    <div>
+                      <Label>Cantidad</Label>
+                      <Input
+                        value={producto.cantidad ?? ""}
+                        onChange={(e) => {
+                          if (
+                            regexNum.test(e.target.value) ||
+                            e.target.value.length == 0
+                          ) {
+                            handleProductoChange(
+                              producto.id,
+                              "cantidad",
+                              Number(e.target.value)
+                            );
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* PRECIO DE VENTA */}
+                    <div>
+                      <Label>Precio de venta</Label>
+                      <Input
+                        value={producto.precioVenta}
+                        onChange={(e) => {
+                          if (
+                            regexNum.test(e.target.value) ||
+                            e.target.value.length == 0
+                          ) {
+                            handleProductoChange(
+                              producto.id,
+                              "precioVenta",
+                              Number(e.target.value)
+                            );
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* DESCUENTO */}
+                    <div>
+                      <Label>Descuento %</Label>
+                      <Input
+                        className="max-w-20"
+                        value={producto.descuento}
+                        onChange={(e) => {
+                          if (
+                            regexNum.test(e.target.value) ||
+                            e.target.value.length == 0
+                          ) {
+                            handleProductoChange(
+                              producto.id,
+                              "descuento",
+                              Number(e.target.value)
+                            );
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* SUBTOTAL */}
+                    <div className="flex flex-col">
+                      <Label>Subtotal</Label>
+                      <span>RD${producto.subtotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* BOTÓN ELIMINAR */}
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nuevos = products.filter((_, i) => i !== index);
+                        setProducts(nuevos);
+                      }}
+                      className="flex w-full items-center justify-center rounded-full border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-error-600"
+                    >
+                      <TrashBinIcon />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
             {/* 3️⃣ Categoría, Marca y Unidad de medida */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
               <div>
-                <Label htmlFor="categoria">Categoría</Label>
+                <Label htmlFor="categoria">Metodo de pago</Label>
                 <Select
                   id="categoria"
                   styles={customStyles()}
-                  placeholder="Selecciona una categoría..."
-                  options={selectsData?.categorias?.map(
+                  placeholder="Selecciona un metodo de pago..."
+                  options={selectsData?.metodoPago?.map(
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
                     })
                   )}
                   onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("categoriaId", parseInt(e.value));
+                    setFieldValue("MetodoPagoId", parseInt(e.value));
                   }}
+                  menuPosition="fixed"
                 />
               </div>
-              <div>
-                <Label htmlFor="categoria">Tipo</Label>
-                <Select
-                  id="categoria"
-                  styles={customStyles()}
-                  placeholder="Selecciona un tipo..."
-                  options={selectsData?.tipos?.map((element: BaseSelecst) => ({
-                    value: element.id.toString(),
-                    label: element.name,
-                  }))}
-                  onChange={(e) => {
-                    if (!e || Array.isArray(e)) return;
-                    setFieldValue("tipoId", parseInt(e.value));
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="categoria">Marca</Label>
-                <Select
-                  id="categoria"
-                  styles={customStyles()}
-                  placeholder="Selecciona una marca..."
-                  options={selectsData?.marcas?.map((element: BaseSelecst) => ({
-                    value: element.id.toString(),
-                    label: element.name,
-                  }))}
-                  onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("marcaId", parseInt(e.value));
-                  }}
-                />
-              </div>
-              {/* <div>
-                <Label htmlFor="unidadMedida">Unidad de medida</Label>
-                <Select
-                  id="unidadMedida"
-                  styles={customStyles}
-                  placeholder="Unidad..."
-                  options={categoriaOptions}
-                  onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("unidadMedida", parseInt(e.value));
-                  }}
-                />
-              </div> */}
-            </div>
-
-            {/* 4️⃣ Precios */}
-            <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
-              <div>
-                <Label htmlFor="precio_compra">Precio de compra</Label>
-                <Input
-                  type="number"
-                  id="precio_compra"
-                  placeholder="0.00"
-                  hint={
-                    errors.precioCompra && touched.precioCompra
-                      ? errors.precioCompra
-                      : ""
-                  }
-                  value={values.precioCompra ?? ""}
-                  error={
-                    errors.precioCompra && touched.precioCompra ? true : false
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "precioCompra",
-                      val === "" ? null : parseFloat(val)
-                    );
-                  }}
-                  onBlur={() => setFieldTouched("precioCompra", true)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="precio_venta">Precio de venta</Label>
-                <Input
-                  type="number"
-                  id="precio_venta"
-                  placeholder="0.00"
-                  hint={
-                    errors.precioVenta && touched.precioVenta
-                      ? errors.precioVenta
-                      : ""
-                  }
-                  value={values.precioVenta ?? ""}
-                  error={
-                    errors.precioVenta && touched.precioVenta ? true : false
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "precioVenta",
-                      val === "" ? null : parseFloat(val)
-                    );
-                  }}
-                  onBlur={() => setFieldTouched("precioVenta", true)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="precio_minimo">Precio minimo negociable</Label>
-                <Input
-                  type="number"
-                  id="precio_minimo"
-                  placeholder="0.00"
-                  hint={errors.precioMinimo}
-                  value={values.precioMinimo ?? ""}
-                  error={errors.precioMinimo ? true : false}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "precioMinimo",
-                      val === "" ? null : parseFloat(val)
-                    );
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* 5️⃣ Stock y ubicación */}
-            <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
-              <div>
-                <Label htmlFor="stockActual">Stock actual</Label>
-                <Input
-                  type="number"
-                  id="stockActual"
-                  placeholder="0"
-                  hint={
-                    errors.stockActual && touched.stockActual
-                      ? errors.stockActual
-                      : ""
-                  }
-                  value={values.stockActual ?? ""}
-                  error={
-                    errors.stockActual && touched.stockActual ? true : false
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "stockActual",
-                      val === "" ? null : parseFloat(val)
-                    );
-                  }}
-                  onBlur={() => setFieldTouched("stockActual", true)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="stock_minimo">Stock mínimo</Label>
-                <Input
-                  type="number"
-                  id="stock_minimo"
-                  placeholder="0"
-                  hint={errors.stockMinimo}
-                  value={values.stockMinimo ?? ""}
-                  error={errors.stockMinimo ? true : false}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "stockMinimo",
-                      val === "" ? null : parseFloat(val)
-                    );
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ubicacion">Ubicación</Label>
-                <Input
-                  type="text"
-                  id="ubicacion"
-                  placeholder="Ej: Estante A3"
-                  hint={errors.ubicacion}
-                  value={values.ubicacion ?? ""}
-                  error={errors.ubicacion ? true : false}
-                  onChange={(e) => {
-                    setFieldValue("ubicacion", e.target.value);
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* 6️⃣ Código de barras y estado */}
-            <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="codigo_barras">Código de barras</Label>
-                <Input
-                  type="text"
-                  id="codigo_barras"
-                  placeholder="Ej: 1234567890"
-                  hint={errors.codigoBarras}
-                  value={values.codigoBarras ?? ""}
-                  error={errors.codigoBarras ? true : false}
-                  onChange={(e) => {
-                    setFieldValue("codigoBarras", e.target.value);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="es_activo">Estado</Label>
-                <Select
-                  id="estado"
-                  styles={customStyles(!!errors.estadoId && touched.estadoId)}
-                  placeholder="Seleccione un estado.."
-                  options={selectsData?.estados?.map(
-                    (element: BaseSelecst) => ({
-                      value: element.id.toString(),
-                      label: element.name,
-                    })
-                  )}
-                  onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("estadoId", parseInt(e.value));
-                  }}
-                  onBlur={() => setFieldTouched("estadoId", true)}
-                />
-                {errors.estadoId && touched.estadoId && (
-                  <p className={`mt-1.5 text-xs text-error-500`}>
-                    {errors.estadoId}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* 7️⃣ Impuesto */}
-            <div>
-              <Label htmlFor="impuesto">Impuesto (%)</Label>
-              <Input
-                type="number"
-                id="impuesto"
-                placeholder="Ej: 18"
-                hint={errors.impuesto}
-                value={values.impuesto ?? ""}
-                error={errors.impuesto ? true : false}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFieldValue(
-                    "impuesto",
-                    val === "" ? null : parseFloat(val)
-                  );
-                }}
-              />
             </div>
           </div>
         </div>
@@ -425,13 +596,13 @@ export default function FormFactutas(params: Actions) {
               // Si no hay errores
               if (Object.keys(errors).length === 0) {
                 console.log("todo bien");
-                Saveproducto(values);
+                SaveFactura(values);
               } else {
                 console.log("Errores encontrados:", errors);
               }
             }}
           >
-            Guardar producto
+            Guardar Factura
           </Button>
         </div>
       </form>

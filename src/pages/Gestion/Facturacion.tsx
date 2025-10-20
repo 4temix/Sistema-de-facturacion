@@ -5,18 +5,19 @@ import Select from "react-select";
 import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
-import FormProducts from "../../components/Inventario/FormProducts";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
-import { BaseSelecst, Selects } from "../../Types/ProductTypes";
+import { BaseSelecst } from "../../Types/ProductTypes";
 import CardsFacturacion from "../../components/Facturacion/CardsFacturacion";
 import TableFacturas from "../../components/Facturacion/TableFacturas";
 import {
   DataRequest,
   MetricasFacturas,
   ParamsFacturasRequest,
+  SelectsFacturacion,
 } from "../../Types/FacturacionTypes";
 import { useDebounce } from "../../hooks/useDebounce";
+import FormFactutas from "../../components/Facturacion/FormFactutas";
 
 export default function Facturacion() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -41,7 +42,7 @@ export default function Facturacion() {
   });
 
   //selects para crear y filtrar productos
-  const [selectsData, setSelectsData] = useState<Selects>();
+  const [selectsData, setSelectsData] = useState<SelectsFacturacion>();
 
   const [labelSelects, setLabelSelects] = useState({
     tipo: "",
@@ -61,6 +62,7 @@ export default function Facturacion() {
 
   //pagina anterior, esto se hace para que al cargar la pagina no haga una peticion doble
   let Beforepag = useRef(1);
+  //para la bsuqueda de facturas
   let BeforeFilter = useRef<string>("");
 
   const debouncedSearch = useDebounce(filters.search, 600);
@@ -132,8 +134,8 @@ export default function Facturacion() {
     }
 
     //peticion para los selcts
-    apiRequestThen<Selects>({
-      url: "api/mantenimiento/selects",
+    apiRequestThen<SelectsFacturacion>({
+      url: "api/facturas/selects",
     }).then((response) => {
       if (!response.success) {
         console.error("Error:", response.errorMessage);
@@ -182,7 +184,7 @@ export default function Facturacion() {
          [&::-webkit-scrollbar-thumb]:rounded-full 
          [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
             >
-              <FormProducts
+              <FormFactutas
                 closeModal={closeProductModal}
                 selectsData={selectsData}
               />

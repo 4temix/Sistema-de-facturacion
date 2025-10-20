@@ -1,5 +1,5 @@
 import type React from "react";
-import type { FC } from "react";
+import type { FC, Ref } from "react";
 
 interface InputProps {
   type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
@@ -21,6 +21,12 @@ interface InputProps {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
+  onFocus?: (
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => void;
+  ref?: Ref<HTMLInputElement>;
 }
 
 const Input: FC<InputProps> = ({
@@ -28,6 +34,7 @@ const Input: FC<InputProps> = ({
   id,
   name,
   placeholder,
+  onBlur,
   value,
   onChange,
   className = "",
@@ -38,6 +45,8 @@ const Input: FC<InputProps> = ({
   success = false,
   error = false,
   hint,
+  ref,
+  onFocus,
 }) => {
   let inputClasses = ` h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3  dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
@@ -56,7 +65,9 @@ const Input: FC<InputProps> = ({
       <input
         type={type}
         id={id}
+        ref={ref}
         name={name}
+        onBlur={onBlur}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -65,6 +76,7 @@ const Input: FC<InputProps> = ({
         step={step}
         disabled={disabled}
         className={inputClasses}
+        onFocus={onFocus}
       />
 
       {hint && (
