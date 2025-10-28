@@ -1,9 +1,8 @@
-import { BoxIconLine, GroupIcon } from "../../icons";
+import { BoxIconLine } from "../../icons";
 import { Metricas } from "../../Types/ProductTypes";
 
 export default function CardsInventario({
   totalProductos,
-  margenPromedio,
   valorTotal,
   stockBajo,
   agotados,

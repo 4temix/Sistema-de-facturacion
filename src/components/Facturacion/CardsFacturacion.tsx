@@ -1,4 +1,4 @@
-import { BoxIconLine, GroupIcon } from "../../icons";
+import { BoxIconLine } from "../../icons";
 import { MetricasFacturas } from "../../Types/FacturacionTypes";
 
 export default function CardsFacturacion({

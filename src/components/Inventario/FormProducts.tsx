@@ -5,7 +5,7 @@ import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
 import { ValidationProduct } from "../../Utilities/ValidationProduct";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   BaseSelecst,
   Option,
@@ -13,7 +13,6 @@ import {
   Selects,
 } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
-import { array } from "yup";
 
 type Actions = {
   closeModal: () => void;
@@ -26,13 +25,13 @@ export default function FormProducts(params: Actions) {
   //formik validation
   const {
     values,
-    handleBlur,
+    // handleBlur,
     touched,
-    handleChange,
+    // handleChange,
     errors,
     setFieldValue,
     setFieldTouched,
-    handleSubmit,
+    // handleSubmit,
     validateForm,
     initialValues,
     setTouched,
@@ -146,7 +145,7 @@ export default function FormProducts(params: Actions) {
             <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
               <div>
                 <Label htmlFor="categoria">Categoría</Label>
-                <Select
+                <Select<Option, false>
                   id="categoria"
                   styles={customStyles()}
                   placeholder="Selecciona una categoría..."
@@ -157,13 +156,14 @@ export default function FormProducts(params: Actions) {
                     })
                   )}
                   onChange={(e: SingleValue<Option>) => {
+                    if (!e) return;
                     setFieldValue("categoriaId", parseInt(e.value));
                   }}
                 />
               </div>
               <div>
                 <Label htmlFor="categoria">Tipo</Label>
-                <Select
+                <Select<Option, false>
                   id="categoria"
                   styles={customStyles()}
                   placeholder="Selecciona un tipo..."
@@ -179,7 +179,7 @@ export default function FormProducts(params: Actions) {
               </div>
               <div>
                 <Label htmlFor="categoria">Marca</Label>
-                <Select
+                <Select<Option, false>
                   id="categoria"
                   styles={customStyles()}
                   placeholder="Selecciona una marca..."
@@ -188,6 +188,7 @@ export default function FormProducts(params: Actions) {
                     label: element.name,
                   }))}
                   onChange={(e: SingleValue<Option>) => {
+                    if (!e) return;
                     setFieldValue("marcaId", parseInt(e.value));
                   }}
                 />
@@ -357,7 +358,7 @@ export default function FormProducts(params: Actions) {
               </div>
               <div>
                 <Label htmlFor="es_activo">Estado</Label>
-                <Select
+                <Select<Option, false>
                   id="estado"
                   styles={customStyles(!!errors.estadoId && touched.estadoId)}
                   placeholder="Seleccione un estado.."
@@ -368,6 +369,7 @@ export default function FormProducts(params: Actions) {
                     })
                   )}
                   onChange={(e: SingleValue<Option>) => {
+                    if (!e) return;
                     setFieldValue("estadoId", parseInt(e.value));
                   }}
                   onBlur={() => setFieldTouched("estadoId", true)}

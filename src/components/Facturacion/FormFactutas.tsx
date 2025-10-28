@@ -11,13 +11,19 @@ import {
   Option,
   Producto,
   ProductoFiltro,
-  SaveProducto,
 } from "../../Types/ProductTypes";
-import { TrashBinIcon, PencilIcon, BoxCubeIcon } from "../../icons";
+import { TrashBinIcon, BoxCubeIcon } from "../../icons";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { useDebounce } from "../../hooks/useDebounce";
 import { ValidationFactura } from "../../Utilities/ValidationFactura";
-import { SelectsFacturacion } from "../../Types/FacturacionTypes";
+import {
+  ProduscFactruraSend,
+  SaveFactura,
+  SelectsFacturacion,
+} from "../../Types/FacturacionTypes";
+import LoaderFun from "../loader/LoaderFunc";
+import Swal from "sweetalert2";
+import Checkbox from "../form/input/Checkbox";
 
 type Actions = {
   closeModal: () => void;
@@ -33,7 +39,14 @@ type Productos = {
   cantidad: number;
   descuento: number;
   subtotal: number;
+  impuestos: number;
+  precioCompra: number;
   precioVentaOriginal: number;
+};
+
+type productosStock = {
+  id: number;
+  stockActual: number;
 };
 
 //expresion regular para validar si algo es
@@ -58,10 +71,11 @@ export default function FormFactutas(params: Actions) {
   //search configuration
   const [searchConfig, setSearchConfig] = useState({
     enFoco: false,
+    loading: false,
   });
 
   //elementos para que funcione el debounce
-  const debouncedSearch = useDebounce(filters.search, 600);
+  const debouncedSearch = useDebounce(filters.search, 400);
   let BeforeFilter = useRef<string>("");
   let searchFocus = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,13 +84,13 @@ export default function FormFactutas(params: Actions) {
   //formik validation
   const {
     values,
-    handleBlur,
+    // handleBlur,
     touched,
-    handleChange,
+    // handleChange,
     errors,
     setFieldValue,
     setFieldTouched,
-    handleSubmit,
+    // handleSubmit,
     validateForm,
     initialValues,
     setTouched,
@@ -84,23 +98,23 @@ export default function FormFactutas(params: Actions) {
     initialValues: {
       clienteId: 1,
       nombreCliente: "",
-      DocumentoCliente: "",
-      TelefonoCLiente: "",
+      documentoCliente: "",
+      telefonoCLiente: "",
 
-      Subtotal: 0,
-      ImpuestoTotal: 0,
-      DescuentoTotal: 0,
-      Total: 0,
-      Ganancia: 0,
+      subtotal: 0,
+      impuestoTotal: 0,
+      descuentoTotal: 0,
+      total: 0,
+      ganancia: 0,
 
-      MetodoPagoId: 0,
-      MontoPagado: 0,
+      metodoPagoId: 0,
+      montoPagado: 0,
 
-      Vendedor: 1,
-      Sucursal: 1,
-      Moneda: "DOP",
+      vendedor: 1,
+      sucursal: "Repuesto",
+      moneda: "DOP",
 
-      Productos: [],
+      productos: [],
     },
     validationSchema: ValidationFactura,
     onSubmit: (values) => {
@@ -114,54 +128,248 @@ export default function FormFactutas(params: Actions) {
     total_pages: 0,
   });
 
+  const [isCheckedTwo, setIsCheckedTwo] = useState(false);
+
   //productos agregados
   const [products, setProducts] = useState<Productos[]>([]);
+
+  //guardar el stock de los productos de manera global
+  const [stockActual, setStockActual] = useState<productosStock[]>([]);
+
+  //cargando
+  const [isLoading, setIsLoading] = useState(false);
 
   //funcion para agregar productos a la factura
   function SaveElements(productElement: Producto) {
     let existElement = products.find((el) => el.id == productElement.id);
+    let cantidad = stockActual.findIndex((el) => el.id == productElement.id);
 
     if (existElement) {
+      if (stockActual[cantidad].stockActual == 0) {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "bottom-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          },
+        });
+        Toast.fire({
+          icon: "info",
+          title: "No queda existencia de este producto",
+        });
+        return;
+      }
+
       handleProductoChange(
         existElement.id,
         "cantidad",
         existElement.cantidad + 1
       );
+
+      const elementCantidad = stockActual[cantidad];
+      elementCantidad.stockActual = elementCantidad.stockActual - 1;
+
+      const cantidades = [...stockActual];
+      cantidades[cantidad] = elementCantidad;
+      setStockActual(cantidades);
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        },
+      });
+      Toast.fire({
+        icon: "success",
+        title: "Cantida agregada exitosamente",
+      });
       return;
     }
 
-    setProducts((prev) => [
-      ...prev,
-      {
+    //agregacion del elemento a la facturacion
+    const elements = [...products];
+    elements.push({
+      id: productElement.id,
+      nombre: productElement.nombre,
+      codigo: productElement.codigo,
+      precioVenta: productElement.precioVenta,
+      precioMinimo: productElement.precioMinimo,
+      cantidad: 1,
+      impuestos: productElement.impuestos,
+      descuento: 0,
+      precioCompra: productElement.precioCompra,
+      subtotal: productElement.precioVenta,
+      precioVentaOriginal: productElement.precioVenta,
+    });
+
+    if (cantidad != -1) {
+      const elementCantidad = stockActual[cantidad];
+      elementCantidad.stockActual = elementCantidad.stockActual - 1;
+      const cantidades = [...stockActual];
+      cantidades[cantidad] = elementCantidad;
+      setStockActual(cantidades);
+    } else {
+      //creacion de un historial de stock
+      const cantidades = [...stockActual];
+      cantidades.push({
         id: productElement.id,
-        nombre: productElement.nombre,
-        codigo: productElement.codigo,
-        precioVenta: productElement.precioVenta,
-        precioMinimo: 0,
-        cantidad: 1,
-        descuento: 0,
-        subtotal: productElement.precioVenta,
-        precioVentaOriginal: productElement.precioVenta,
+        stockActual: productElement.stockActual - 1,
+      });
+
+      setStockActual(cantidades);
+    }
+
+    RecalcularFactura(elements);
+
+    setProducts([...elements]);
+
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 5000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
       },
-    ]);
+    });
+    Toast.fire({
+      icon: "success",
+      title: "producto agregado",
+    });
+  }
+
+  //funcion para recalcular los valores totaldes de la factura
+  function RecalcularFactura(elements: Productos[]) {
+    //calculo del total de los elementos comprados
+    const resultado = elements.reduce(
+      (acc, el) => {
+        // subtotal de la línea = precio unitario * cantidad
+        const subtotalLinea = el.precioVenta * el.cantidad;
+
+        // impuesto total de la línea = (precio unitario * tasa / 100) * cantidad
+        const totalImpuestosLinea =
+          ((el.precioVenta * el.impuestos) / 100) * el.cantidad;
+
+        // acumula subtotal, impuesto y descuento
+        const TotalDeLine = subtotalLinea + totalImpuestosLinea;
+
+        return {
+          subtotal: acc.subtotal + subtotalLinea,
+          total: acc.total + TotalDeLine,
+          descuentoTotal: acc.descuentoTotal + (el.descuento || 0),
+          impuestos: acc.impuestos + el.impuestos * el.cantidad,
+        };
+      },
+      { subtotal: 0, total: 0, descuentoTotal: 0, impuestos: 0 }
+    );
+
+    // asigna los valores al estado o formulario
+    setFieldValue("subtotal", resultado.subtotal);
+    setFieldValue("descuentoTotal", resultado.descuentoTotal);
+    setFieldValue("impuestoTotal", resultado.impuestos);
+    setFieldValue("total", resultado.total);
   }
 
   //guardar los elementos
-  function SaveFactura(producto: SaveProducto) {
-    return;
+  function SaveFactura(producto: SaveFactura) {
+    if (products.length == 0) {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        },
+      });
+      Toast.fire({
+        icon: "info",
+        title: "No se puede guardar una factura sin elementos",
+      });
+      return;
+    }
+    setIsLoading(true);
+    const saveProductos: ProduscFactruraSend[] = [];
+
+    products.forEach((el: Productos) => {
+      if (el.cantidad !== 0) {
+        saveProductos.push({
+          productoId: el.id,
+          precioVentaActual: el.precioVenta,
+          precioBase: el.precioVentaOriginal,
+          cantidad: el.cantidad,
+          desuento: el.descuento,
+          impuesto: el.impuestos,
+          precioCompra: el.precioCompra,
+        });
+      }
+    });
+
+    const payload = {
+      ...producto,
+      productos: saveProductos,
+    };
+
     apiRequestThen<boolean>({
-      url: "api/productos/guardar_producto",
+      url: "api/facturas/crear_factura",
       configuration: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(producto),
+        body: JSON.stringify(payload),
       },
-    }).then((response) => {
-      if (!response.success) {
-        return;
-      }
-      closeModal();
-    });
+    })
+      .then((response) => {
+        if (!response.success) {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "bottom-end",
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            },
+          });
+          Toast.fire({
+            icon: "error",
+            title: response.errorMessage,
+          });
+          return;
+        }
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "bottom-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          },
+        });
+        Toast.fire({
+          icon: "success",
+          title: "Factura guardada correctamente",
+        });
+        closeModal();
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   //funcion para actualizar los elementos de los formularios
@@ -173,17 +381,96 @@ export default function FormFactutas(params: Actions) {
       return;
     }
 
-    producto[field] = value;
+    if (field === "cantidad") {
+      const indexStock = stockActual.findIndex((el) => el.id === id);
+      if (indexStock === -1) return;
+
+      const elementoStock = stockActual[index];
+      const cantidadAnterior = producto.cantidad;
+      const cantidadDisponible = elementoStock.stockActual + cantidadAnterior;
+      const cantidadNueva = Number(value) || 0;
+
+      // 1️⃣ Si la cantidad nueva es 0 → devolver al stock global lo que tenía antes
+      if (cantidadNueva === 0) {
+        const nuevoStock = elementoStock.stockActual + cantidadAnterior;
+
+        const actualizado = [...stockActual];
+        actualizado[indexStock] = { ...elementoStock, stockActual: nuevoStock };
+
+        producto.cantidad = 0;
+        producto.subtotal = 0;
+        const productosUpdate = [...products];
+        productosUpdate[index] = producto;
+
+        RecalcularFactura(productosUpdate);
+        setStockActual(actualizado);
+        return;
+      }
+
+      // 2️⃣ Si la cantidad nueva supera lo disponible → no aplicar el cambio
+      if (cantidadNueva > cantidadDisponible) {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "bottom-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          },
+        });
+        Toast.fire({
+          icon: "info",
+          title: "NO queda existencia de este producto",
+        });
+        return; // ❌ detenemos aquí, no actualizamos nada
+      }
+
+      // 3️⃣ Calcular diferencia real
+      const diferencia = cantidadNueva - cantidadAnterior;
+      const nuevoStock = elementoStock.stockActual - diferencia;
+
+      if (nuevoStock < 0) {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "bottom-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          },
+        });
+        Toast.fire({
+          icon: "info",
+          title: "NO queda existencia de este producto",
+        });
+        return;
+      }
+
+      // 4️⃣ Actualizar el stock global
+      const actualizado = [...stockActual];
+      actualizado[indexStock] = { ...elementoStock, stockActual: nuevoStock };
+      setStockActual(actualizado);
+
+      // 5️⃣ Actualizar la cantidad del producto
+      producto.cantidad = cantidadNueva;
+    }
+
+    (producto as any)[field] = value;
 
     // Si cambia el precio, recalcula descuento
     if (field === "precioVenta" && producto.precioVentaOriginal) {
-      producto.descuento = Math.round(
-        Math.max(
-          0,
+      producto.descuento = Math.max(
+        0,
+        Math.round(
           ((producto.precioVentaOriginal - producto.precioVenta) /
             producto.precioVentaOriginal) *
+            100 *
             100
-        )
+        ) / 100
       );
     }
 
@@ -194,18 +481,15 @@ export default function FormFactutas(params: Actions) {
     }
 
     // ✅ Recalcular subtotal siempre al final
-    producto.subtotal = producto.cantidad * producto.precioVenta;
-
-    // Validación de precio mínimo
-    // if (producto.precioVenta < producto.precioMinimo) {
-    //   alert(
-    //     `⚠️ El precio ingresado (${producto.precioVenta}) está por debajo del mínimo (${producto.precioMinimo})`
-    //   );
-    // }
+    producto.subtotal =
+      Math.round(producto.cantidad * producto.precioVenta * 100) / 100;
 
     // Actualizar el array
     const nuevosProductos = [...products];
     nuevosProductos[index] = producto;
+
+    RecalcularFactura(nuevosProductos);
+
     setProducts(nuevosProductos);
   };
 
@@ -219,7 +503,7 @@ export default function FormFactutas(params: Actions) {
   }
 
   //funcion para buscar los elementos de la facturacion
-  function getData(filters?: ProductoFiltro) {
+  function getData(filters: ProductoFiltro) {
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
@@ -227,19 +511,80 @@ export default function FormFactutas(params: Actions) {
     }
     apiRequestThen<DataRequest>({
       url: `api/productos/productos?${queryString}`,
-    }).then((response) => {
-      if (!response.success) {
-        console.error("Error:", response.errorMessage);
-        return;
-      }
-      console.log(response.result);
-      setProductosData(
-        response.result ?? {
-          data: [],
-          total_pages: 0,
+    })
+      .then((response) => {
+        if (!response.success) {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "bottom-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            },
+          });
+          Toast.fire({
+            icon: "error",
+            title: response.errorMessage,
+          });
+          return;
         }
-      );
-    });
+
+        setProductosData(
+          response.result ?? {
+            data: [],
+            total_pages: 0,
+          }
+        );
+      })
+      .finally(() => {
+        setSearchConfig((p) => ({ ...p, loading: false }));
+      });
+  }
+
+  //esta funcion es para buscar la existencia de la cantidad actualmente en el front y vincularla a la cantidad que tiene desde el backend
+  function SearchCantidad(id: number) {
+    const cantidad = stockActual.find((el) => el.id === id);
+    return cantidad?.stockActual;
+  }
+
+  //delete producto
+  function DeleteProduct(id: number) {
+    const nuevos = products.filter((el) => el.id !== id);
+    const index = products.findIndex((el) => el.id === id);
+    const producto = index !== -1 ? products[index] : null;
+
+    if (producto == undefined) {
+      return;
+    }
+
+    const indexStock = stockActual.findIndex((el) => el.id === id);
+    if (index === -1) return;
+
+    const elementoStock = stockActual[indexStock];
+    const cantidadAnterior = producto.cantidad;
+    const cantidadNueva = 0;
+
+    // 1️⃣ Si la cantidad nueva es 0 → devolver al stock global lo que tenía antes
+    if (cantidadNueva === 0) {
+      const nuevoStock = elementoStock.stockActual + cantidadAnterior;
+
+      const actualizado = [...stockActual];
+      actualizado[index] = { ...elementoStock, stockActual: nuevoStock };
+      setStockActual(actualizado);
+
+      producto.cantidad = 0;
+    }
+
+    const nuevosProductos = [...products];
+    producto.subtotal = 0;
+    nuevosProductos[index] = producto;
+
+    RecalcularFactura(nuevosProductos);
+
+    setProducts(nuevos);
   }
 
   useEffect(() => {
@@ -251,6 +596,7 @@ export default function FormFactutas(params: Actions) {
       setProductosData({ data: [], total_pages: 0 });
       return;
     }
+
     getData(filters);
   }, [debouncedSearch]);
 
@@ -269,9 +615,24 @@ export default function FormFactutas(params: Actions) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (
+      filters.search.length == 0 &&
+      searchConfig.loading == true &&
+      productosData.data.length == 0
+    ) {
+      setSearchConfig((p) => ({ ...p, loading: false }));
+    }
+  }, [filters.search, productosData.data]);
+
+  useEffect(() => {
+    setFieldValue("montoPagado", isCheckedTwo ? values.total : 0);
+  }, [isCheckedTwo]);
+
   return (
     <>
       <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
+        {isLoading && <LoaderFun absolute={false} />}
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
             Creacion de factura
@@ -305,78 +666,57 @@ export default function FormFactutas(params: Actions) {
                 />
               </div>
               <div>
-                <Label htmlFor="nombre">Documento del Cliente</Label>
+                <Label htmlFor="documento">Documento del Cliente</Label>
                 <Input
                   type="text"
-                  id="nombre"
+                  id="documento"
                   placeholder="Nombre del producto"
                   hint={
-                    errors.DocumentoCliente && touched.DocumentoCliente
-                      ? errors.DocumentoCliente
+                    errors.documentoCliente && touched.documentoCliente
+                      ? errors.documentoCliente
                       : ""
                   }
-                  value={values.DocumentoCliente ?? ""}
+                  value={values.documentoCliente ?? ""}
                   error={
-                    errors.DocumentoCliente && touched.DocumentoCliente
+                    errors.documentoCliente && touched.documentoCliente
                       ? true
                       : false
                   }
                   onChange={(e) => {
-                    setFieldValue("DocumentoCliente", e.target.value);
+                    setFieldValue("documentoCliente", e.target.value);
                   }}
-                  onBlur={() => setFieldTouched("DocumentoCliente", true)}
+                  onBlur={() => setFieldTouched("documentoCliente", true)}
                 />
               </div>
               <div>
-                <Label htmlFor="nombre">Telefono del cliente</Label>
+                <Label htmlFor="telefono">Telefono del cliente</Label>
                 <Input
                   type="text"
-                  id="nombre"
+                  id="telefono"
                   placeholder="Nombre del producto"
                   hint={
-                    errors.TelefonoCLiente && touched.TelefonoCLiente
-                      ? errors.TelefonoCLiente
+                    errors.telefonoCLiente && touched.telefonoCLiente
+                      ? errors.telefonoCLiente
                       : ""
                   }
-                  value={values.TelefonoCLiente ?? ""}
+                  value={values.telefonoCLiente ?? ""}
                   error={
-                    errors.TelefonoCLiente && touched.TelefonoCLiente
+                    errors.telefonoCLiente && touched.telefonoCLiente
                       ? true
                       : false
                   }
                   onChange={(e) => {
-                    setFieldValue("TelefonoCLiente", e.target.value);
+                    setFieldValue("telefonoCLiente", e.target.value);
                   }}
-                  onBlur={() => setFieldTouched("TelefonoCLiente", true)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="nombre">Nombre cliente</Label>
-                <Input
-                  type="text"
-                  id="nombre"
-                  placeholder="Nombre del producto"
-                  hint={
-                    errors.nombreCliente && touched.nombreCliente
-                      ? errors.nombreCliente
-                      : ""
-                  }
-                  value={values.nombreCliente ?? ""}
-                  error={
-                    errors.nombreCliente && touched.nombreCliente ? true : false
-                  }
-                  onChange={(e) => {
-                    setFieldValue("nombreCliente", e.target.value);
-                  }}
-                  onBlur={() => setFieldTouched("nombreCliente", true)}
+                  onBlur={() => setFieldTouched("telefonoCLiente", true)}
                 />
               </div>
             </div>
             <h5 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               Productos
             </h5>
-            <div className="relative ">
-              <Label htmlFor="nombre">Buscar producto</Label>
+            <div className="relative">
+              <Label htmlFor="search">Buscar producto</Label>
               <Input
                 ref={inputRef}
                 type="text"
@@ -388,17 +728,45 @@ export default function FormFactutas(params: Actions) {
                   if (!searchFocus.current) {
                     searchFocus.current = true;
                   }
+
+                  if (searchConfig.loading == false) {
+                    setSearchConfig((p) => ({ ...p, loading: true }));
+                  }
+
                   setFilters((prev) => ({
                     ...prev,
                     ["search"]: e.target.value,
                   }));
                 }}
               />
+
               {searchConfig.enFoco && (
                 <div
-                  className="absolute z-40 w-full bg-gray-100 max-h-[300px] min-h-[200px] rounded-[9px] p-3 overflow-y-scroll"
+                  className={`absolute z-40 w-full bg-gray-100 max-h-[300px] min-h-[200px] rounded-[9px] p-3 overflow-y-scroll ${
+                    productosData.data.length == 0 &&
+                    filters.search.length > 0 &&
+                    "flex justify-center items-center"
+                  } ${
+                    productosData.data.length == 0 &&
+                    filters.search.length == 0 &&
+                    "flex justify-center items-center"
+                  }`}
                   ref={dropdownRef}
                 >
+                  {searchConfig.loading && <LoaderFun absolute={true} />}
+
+                  {productosData.data.length == 0 &&
+                    filters.search.length == 0 && (
+                      <p className="text-gray-500">
+                        Escriba el nombre el producto a buscar
+                      </p>
+                    )}
+
+                  {productosData.data.length == 0 &&
+                    filters.search.length > 0 && (
+                      <p className="text-gray-500">Sin resultados</p>
+                    )}
+
                   {productosData.data.map((producto: Producto) => (
                     <div
                       key={producto.id}
@@ -424,7 +792,8 @@ export default function FormFactutas(params: Actions) {
                       <div className="ml-auto flex gap-2 flex-col">
                         <span>RD${producto.precioVenta.toFixed(2)}</span>
                         <span className="text-gray-400">
-                          {producto.stockActual} en stock
+                          {SearchCantidad(producto.id) ?? producto.stockActual}
+                          en stock
                         </span>
                       </div>
                     </div>
@@ -461,7 +830,20 @@ export default function FormFactutas(params: Actions) {
                     <span className="text-gray-500">
                       Código: {producto.codigo}
                     </span>
-                    <span>RD${producto.precioVentaOriginal.toFixed(2)}</span>
+                    <div>
+                      <span>
+                        RD${producto.precioVentaOriginal.toFixed(2)} -{" "}
+                      </span>
+                      <span
+                        className={`${
+                          producto.precioVenta < producto.precioMinimo
+                            ? "text-error-500"
+                            : "text-green-400"
+                        }`}
+                      >
+                        {producto.precioMinimo.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex gap-2 lg:flex-row flex-col">
@@ -538,8 +920,7 @@ export default function FormFactutas(params: Actions) {
                     <button
                       type="button"
                       onClick={() => {
-                        const nuevos = products.filter((_, i) => i !== index);
-                        setProducts(nuevos);
+                        DeleteProduct(producto.id);
                       }}
                       className="flex w-full items-center justify-center rounded-full border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-error-600"
                     >
@@ -553,10 +934,11 @@ export default function FormFactutas(params: Actions) {
             <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
               <div>
                 <Label htmlFor="categoria">Metodo de pago</Label>
-                <Select
+                <Select<Option, false>
                   id="categoria"
                   styles={customStyles()}
-                  placeholder="Selecciona un metodo de pago..."
+                  placeholder="Método de pago..."
+                  menuPosition="fixed"
                   options={selectsData?.metodoPago?.map(
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
@@ -564,10 +946,63 @@ export default function FormFactutas(params: Actions) {
                     })
                   )}
                   onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("MetodoPagoId", parseInt(e.value));
+                    if (!e) return;
+                    setFieldValue("metodoPagoId", parseInt(e.value));
                   }}
-                  menuPosition="fixed"
                 />
+              </div>
+              <div>
+                <Label htmlFor="telefono">Monto pagado</Label>
+                <Input
+                  type="text"
+                  id="telefono"
+                  placeholder="Nombre del producto"
+                  hint={
+                    errors.montoPagado && touched.montoPagado
+                      ? errors.montoPagado
+                      : ""
+                  }
+                  value={values.montoPagado ?? ""}
+                  error={
+                    errors.montoPagado && touched.montoPagado ? true : false
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    if (value === "") {
+                      setFieldValue("montoPagado", 0);
+                      return;
+                    }
+
+                    if (regexNum.test(value)) {
+                      setFieldValue("montoPagado", Number(e.target.value));
+                    }
+                  }}
+                  onBlur={() => setFieldTouched("montoPagado", true)}
+                />
+              </div>
+              <Checkbox
+                checked={isCheckedTwo}
+                onChange={setIsCheckedTwo}
+                label="Todo pagado"
+              />
+              <div className="rounded-[9px] bg-gray-200 flex flex-col p-3">
+                <span>
+                  Subtotal: {"RD$"}
+                  {values.subtotal}
+                </span>
+                <span>
+                  Desc: {"RD$"}
+                  {values.descuentoTotal}
+                </span>
+                <span>
+                  Total impuestos:
+                  {values.impuestoTotal}%
+                </span>
+                <span>
+                  Total: {"RD$"}
+                  {values.total}
+                </span>
               </div>
             </div>
           </div>
@@ -596,7 +1031,7 @@ export default function FormFactutas(params: Actions) {
               // Si no hay errores
               if (Object.keys(errors).length === 0) {
                 console.log("todo bien");
-                SaveFactura(values);
+                SaveFactura({ ...values });
               } else {
                 console.log("Errores encontrados:", errors);
               }

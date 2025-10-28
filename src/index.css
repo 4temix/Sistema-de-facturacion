@@ -776,3 +776,41 @@ span.flatpickr-weekday,
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
 }
+
+/* aniamcion para el spiner de las tablas */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    to right,
+    #e5e7eb 0%,
+    #d1d5db 20%,
+    #e5e7eb 40%,
+    #e5e7eb 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: 0.25rem; /* igual que rounded */
+  height: 1rem; /* igual que h-4 */
+}
+
+/* animacion de salida de lado para el sidebar de detalles de factura */
+@keyframes initSidebar {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.initSidebar {
+  animation: initSidebar 0.25s ease-out both;
+}

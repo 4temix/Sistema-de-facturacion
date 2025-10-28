@@ -1,9 +1,8 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
-  ColumnDef,
   Row,
   Cell,
 } from "@tanstack/react-table";
@@ -11,7 +10,6 @@ import { DataRequest, Producto } from "../../Types/ProductTypes";
 import { TrashBinIcon, PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
-import { number } from "yup";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;

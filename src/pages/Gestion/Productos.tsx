@@ -10,6 +10,7 @@ import { customStyles } from "../../Utilities/StyleForReactSelect";
 import FormProducts from "../../components/Inventario/FormProducts";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import { Option } from "../../Types/ProductTypes";
 import {
   BaseSelecst,
   DataRequest,
@@ -95,7 +96,7 @@ export default function Productos() {
   }
 
   //funcion para obtener los elementos de la tabla
-  function getData(filters?: ProductoFiltro) {
+  function getData(filters: ProductoFiltro) {
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
@@ -252,7 +253,7 @@ export default function Productos() {
                 <div className="grid sm:grid-cols-1 gap-3 lg:grid-cols-2">
                   <div>
                     <Label htmlFor="status">Estado</Label>
-                    <Select
+                    <Select<Option, false>
                       name="colors"
                       id="status"
                       styles={customStyles()}
@@ -276,6 +277,7 @@ export default function Productos() {
                       className="select-custom pl-0"
                       classNamePrefix="select"
                       onChange={(e) => {
+                        if (!e) return;
                         updateFilter(parseInt(e.value), "estado");
                         updateLabels(e.label, "estado");
                       }}
@@ -283,7 +285,7 @@ export default function Productos() {
                   </div>
                   <div>
                     <Label htmlFor="inputTwo">Categoria</Label>
-                    <Select
+                    <Select<Option, false>
                       name="colors"
                       id="category"
                       styles={customStyles()}
@@ -307,6 +309,7 @@ export default function Productos() {
                       className="select-custom pl-0"
                       classNamePrefix="select"
                       onChange={(e) => {
+                        if (!e) return;
                         updateFilter(parseInt(e.value), "categoria");
                         updateLabels(e.label, "categoria");
                       }}
@@ -314,7 +317,7 @@ export default function Productos() {
                   </div>
                   <div>
                     <Label htmlFor="inputTwo">Marca</Label>
-                    <Select
+                    <Select<Option, false>
                       name="colors"
                       id="brand"
                       styles={customStyles()}
@@ -338,6 +341,7 @@ export default function Productos() {
                       className="select-custom pl-0"
                       classNamePrefix="select"
                       onChange={(e) => {
+                        if (!e) return;
                         updateFilter(parseInt(e.value), "marca");
                         updateLabels(e.label, "marca");
                       }}

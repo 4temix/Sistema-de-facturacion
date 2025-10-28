@@ -5,7 +5,7 @@ export function Pagination({
   totalPages,
   onPageChange,
   showFirstLast = true,
-  maxVisiblePages = 5,
+  maxVisiblePages = 4,
   className = "",
 }: PaginationProps) {
   const getPageNumbers = () => {
@@ -90,7 +90,7 @@ export function Pagination({
         {pages.map((page, index) =>
           page === "..." ? (
             <div key={`ellipsis-${index}`} className="px-2 py-2">
-              {">"}
+              {"..."}
             </div>
           ) : (
             <button

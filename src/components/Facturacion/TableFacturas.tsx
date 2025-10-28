@@ -1,24 +1,32 @@
-import React, { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
-  ColumnDef,
   Row,
   Cell,
 } from "@tanstack/react-table";
-import { Producto } from "../../Types/ProductTypes";
 import { TrashBinIcon, PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
-import { number } from "yup";
-import { DataRequest, Factura } from "../../Types/FacturacionTypes";
+import {
+  DataRequest,
+  Factura,
+  FacturaDetalle,
+  Totales,
+} from "../../Types/FacturacionTypes";
+import { LoadingTable } from "../loader/LoadingTable";
+import { useFacturaColor } from "../../hooks/useFacturaColor";
+import Drawer from "../ui/modal/Drawer";
+import FacturacionDetails from "./FacturacionDetails";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
   pageNUmber: number;
   pageSize?: number;
   updateSize: (value: number, key: string) => void;
+  loader: boolean;
 };
 
 export default function TableFacturas({
@@ -28,8 +36,78 @@ export default function TableFacturas({
   pageNUmber,
   pageSize,
   updateSize,
+  loader,
 }: internalProps) {
+  const getFacturaColor = useFacturaColor();
+  const [isLoading, setIsLoading] = useState(false);
   // Columnas
+  const [DetailsFactura, setDetailsFactura] = useState<FacturaDetalle>({
+    id: 0,
+    numeroFactura: "",
+
+    // Fechas
+    fechaEmision: "", // Se recibe como ISO string desde C#
+    fechaPago: "",
+
+    // Cliente
+    clienteId: 0,
+    nombreCliente: "",
+    documentoCliente: "",
+    telefonoCliente: "",
+
+    // Totales
+    subtotal: 0,
+    impuestoTotal: 0,
+    descuentoTotal: 0,
+    total: 0,
+    ganancia: 0,
+    margen: 0,
+
+    // Estado y pago
+    montoPagado: 0,
+    estado: "",
+    metodoPago: "",
+
+    // Relaciones y metadatos
+    vendedor: 1,
+    sucursal: "",
+    moneda: "",
+    tipoCambio: 0,
+
+    // Actualización
+    actualizadoEn: "",
+    actualizacionPago: "",
+
+    // Productos
+    productos: [],
+
+    totales: {} as Totales,
+
+    devoluciones: [],
+
+    gananciaActual: 0,
+  });
+
+  //funcion para obtener los elementos de la tabla
+  function getData(id: number) {
+    setIsLoading(true);
+
+    apiRequestThen<FacturaDetalle>({
+      url: `api/facturas/details/${id}`,
+    })
+      .then((response) => {
+        if (!response.success) {
+          console.error("Error:", response.errorMessage);
+          return;
+        }
+        setDetailsFactura(response.result!);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+
+  const [IsDetailsOpen, setIsDetailsOpen] = useState(false);
   const columns = useMemo(() => {
     return [
       {
@@ -51,10 +129,21 @@ export default function TableFacturas({
       },
       {
         accessorKey: "fechaEmision",
-        header: "Fecha",
+        header: "Fecha emision",
         cell: ({ getValue }: { getValue: () => string }) => (
           <span>
             {new Date(getValue()).toLocaleDateString("es-DO") ?? "N/A"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "fechaPago",
+        header: "Fecha pago",
+        cell: ({ getValue }: { getValue: () => string }) => (
+          <span>
+            {getValue() != null
+              ? new Date(getValue()).toLocaleDateString("es-DO")
+              : "N/A"}
           </span>
         ),
       },
@@ -72,7 +161,13 @@ export default function TableFacturas({
         accessorKey: "estado",
         header: "Estado",
         cell: ({ getValue }: { getValue: () => string }) => (
-          <span>{getValue()}</span>
+          <div
+            className={`px-3 py-1 rounded-full border text-sm font-medium text-center ${getFacturaColor(
+              getValue()
+            )}`}
+          >
+            {getValue() ?? "Desconocido"}
+          </div>
         ),
       },
       {
@@ -85,11 +180,11 @@ export default function TableFacturas({
       {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }: { row: Row<Producto> }) => (
+        cell: ({ row }: { row: Row<Factura> }) => (
           <div style={{ display: "flex", gap: "8px" }}>
             <button
-              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb]"
-              onClick={() => alert(`Editar ${row.original.nombre}`)}
+              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb] action_btn"
+              onClick={() => alert(`Editar ${row.original.id}`)}
               style={{
                 padding: "8px 16px",
                 color: "white",
@@ -99,8 +194,8 @@ export default function TableFacturas({
               <PencilIcon />
             </button>
             <button
-              onClick={() => alert(`Eliminar ${row.original.nombre}`)}
-              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626]"
+              onClick={() => alert(`Eliminar ${row.original.id}`)}
+              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626] action_btn"
               style={{
                 padding: "8px 16px",
                 color: "white",
@@ -115,7 +210,7 @@ export default function TableFacturas({
     ];
   }, []);
 
-  const table = useReactTable<Producto>({
+  const table = useReactTable<Factura>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -124,42 +219,68 @@ export default function TableFacturas({
   return (
     <>
       <div className="p-8 overflow-x-scroll">
-        <table className="border-collapse w-[100%]">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="border-b-[1px] border-solid borde-b-[#ccc] p-4 text-left"
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="transition-colors duration-200 hover:bg-gray-200 cursor-pointer"
-              >
-                {row.getVisibleCells().map((cell: Cell<Producto, unknown>) => (
-                  <td
-                    key={cell.id}
-                    className="p-4 border-b-[1px] border-solid borde-b-[#ccc]"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Drawer isOpen={IsDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
+          <FacturacionDetails
+            isOpen={IsDetailsOpen}
+            onClose={() => setIsDetailsOpen(false)}
+            factura={DetailsFactura}
+            isLoading={isLoading}
+          />
+        </Drawer>
+        {loader ? (
+          <LoadingTable columns={7} />
+        ) : (
+          <table className="border-collapse w-[100%]">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="border-b-[1px] border-solid borde-b-[#ccc] p-4 text-left"
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="transition-colors duration-200 hover:bg-gray-200 cursor-pointer"
+                  onClick={(e) => {
+                    const target = e.target as HTMLElement;
+
+                    // Si el click viene de un botón o un hijo con la clase .action_btn, no abrir el modal
+                    if (target.closest(".action_btn")) {
+                      return;
+                    }
+
+                    getData(row.original.id);
+                    setIsDetailsOpen(true);
+                  }}
+                >
+                  {row.getVisibleCells().map((cell: Cell<Factura, unknown>) => (
+                    <td
+                      key={cell.id}
+                      className="p-4 border-b-[1px] border-solid borde-b-[#ccc]"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
       <div className="flex justify-end">
         <Input

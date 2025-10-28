@@ -18,7 +18,9 @@ export type Producto = {
   estado?: string | null;
   marca?: string | null;
   precioCompra: number;
+  precioMinimo: number;
   precioVenta: number;
+  impuestos: number;
   stockActual: number;
   Porsentaje: string;
 };
