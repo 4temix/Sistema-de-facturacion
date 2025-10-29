@@ -46,6 +46,14 @@ export default function CardsFacturacion({
                 maximumFractionDigits: 2,
               }).format(totalVentasMesReal)}
             </h4>
+
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Monto en transito RD{" "}
+              {new Intl.NumberFormat("es-DO", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(montoTransito)}
+            </span>
           </div>
         </div>
       </div>
@@ -83,7 +91,7 @@ export default function CardsFacturacion({
           </div>
         </div>
       </div>
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+      {/* <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
           <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
         </div>
@@ -101,7 +109,7 @@ export default function CardsFacturacion({
             </h4>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

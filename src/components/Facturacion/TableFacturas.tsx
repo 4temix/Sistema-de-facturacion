@@ -218,7 +218,7 @@ export default function TableFacturas({
 
   return (
     <>
-      <div className="p-8 overflow-x-scroll">
+      <div className="overflow-x-scroll">
         <Drawer isOpen={IsDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
           <FacturacionDetails
             isOpen={IsDetailsOpen}
@@ -282,12 +282,12 @@ export default function TableFacturas({
           </table>
         )}
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-center">
         <Input
           type="number"
           id="size"
           placeholder="Ej: 18"
-          className="max-w-[100px] mr-12"
+          className="max-w-[100px]"
           value={pageSize ?? ""}
           onChange={(e) => {
             if (e.target.value == "e") {

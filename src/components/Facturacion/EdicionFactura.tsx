@@ -228,6 +228,12 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
 
   useEffect(() => {
     setEditData(actualizarProductos(facturaDetails?.productos));
+    setSendData({
+      id: facturaDetails?.id ?? 0,
+      estado: { value: "", label: "" },
+      pagado: facturaDetails?.montoPagado ?? 0,
+      detalles: [],
+    });
   }, [facturaDetails]);
 
   //marcar el total del monto pagado
@@ -239,10 +245,6 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
       "pagado"
     );
   }, [isCheckedTwo]);
-
-  useEffect(() => {
-    console.log(sendData.detalles);
-  }, [sendData]);
 
   return (
     <>
