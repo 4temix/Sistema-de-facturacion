@@ -404,16 +404,14 @@ export default function Productos() {
           </form>
         </Modal>
       </article>
-      <article>
-        <PropertyDataTable
-          data={productosData.data}
-          total_pages={productosData.total_pages}
-          setPage={incrementPage}
-          pageNUmber={filters.page}
-          pageSize={filters.PageSize}
-          updateSize={updateFilter}
-        />
-      </article>
+      <PropertyDataTable
+        data={productosData.data}
+        total_pages={productosData.total_pages}
+        setPage={incrementPage}
+        pageNUmber={filters.page}
+        pageSize={filters.PageSize}
+        updateSize={updateFilter}
+      />
     </section>
   );
 }

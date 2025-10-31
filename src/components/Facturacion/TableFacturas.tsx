@@ -272,7 +272,7 @@ export default function TableFacturas({
         {loader ? (
           <LoadingTable columns={7} />
         ) : (
-          <table className="border-collapse w-[100%]">
+          <table className="table-fixed w-full border-collapse">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
