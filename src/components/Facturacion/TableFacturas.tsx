@@ -6,7 +6,7 @@ import {
   Row,
   Cell,
 } from "@tanstack/react-table";
-import { TrashBinIcon, PencilIcon } from "../../icons";
+import { PencilIcon, DownloadIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
 import {
@@ -20,6 +20,9 @@ import { useFacturaColor } from "../../hooks/useFacturaColor";
 import Drawer from "../ui/modal/Drawer";
 import FacturacionDetails from "./FacturacionDetails";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { useModalEdit } from "../../context/ModalEditContext";
+import { handlePrintFactura } from "../../hooks/useImpresion";
+import LoaderFun from "../loader/LoaderFunc";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
@@ -40,6 +43,11 @@ export default function TableFacturas({
 }: internalProps) {
   const getFacturaColor = useFacturaColor();
   const [isLoading, setIsLoading] = useState(false);
+
+  //cargando
+  const [loadintComplete, setLoadintComplete] = useState(false);
+
+  const { modalEditOpen, AsingFactura } = useModalEdit();
   // Columnas
   const [DetailsFactura, setDetailsFactura] = useState<FacturaDetalle>({
     id: 0,
@@ -184,7 +192,7 @@ export default function TableFacturas({
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb] action_btn"
-              onClick={() => alert(`Editar ${row.original.id}`)}
+              onClick={() => EditFactura(row.original.id)}
               style={{
                 padding: "8px 16px",
                 color: "white",
@@ -194,21 +202,54 @@ export default function TableFacturas({
               <PencilIcon />
             </button>
             <button
-              onClick={() => alert(`Eliminar ${row.original.id}`)}
-              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626] action_btn"
+              onClick={() => Impresion(row.original.id)}
+              className="transition-colors duration-200 hover:bg-green-500 bg-green-400 action_btn"
               style={{
                 padding: "8px 16px",
                 color: "white",
                 borderRadius: "6px",
               }}
             >
-              <TrashBinIcon />
+              <DownloadIcon />
             </button>
           </div>
         ),
       },
     ];
   }, []);
+
+  function EditFactura(id: number) {
+    setLoadintComplete(true);
+    apiRequestThen<FacturaDetalle>({
+      url: `api/facturas/details/${id}`,
+    })
+      .then((response) => {
+        if (!response.success) {
+          return;
+        }
+        AsingFactura(response.result!);
+        modalEditOpen();
+      })
+      .finally(() => {
+        setLoadintComplete(false);
+      });
+  }
+
+  function Impresion(id: number) {
+    setLoadintComplete(true);
+    apiRequestThen<FacturaDetalle>({
+      url: `api/facturas/details/${id}`,
+    })
+      .then((response) => {
+        if (!response.success) {
+          return;
+        }
+        handlePrintFactura(response.result!);
+      })
+      .finally(() => {
+        setLoadintComplete(false);
+      });
+  }
 
   const table = useReactTable<Factura>({
     data,
@@ -218,6 +259,7 @@ export default function TableFacturas({
 
   return (
     <>
+      {loadintComplete && <LoaderFun absolute={false} />}
       <div className="overflow-x-scroll">
         <Drawer isOpen={IsDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
           <FacturacionDetails
@@ -282,7 +324,7 @@ export default function TableFacturas({
           </table>
         )}
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center flex-col sm:flex-row">
         <Input
           type="number"
           id="size"

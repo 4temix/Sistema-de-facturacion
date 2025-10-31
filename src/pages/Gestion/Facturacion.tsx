@@ -183,10 +183,10 @@ function FacturacionPageContent() {
               isOpen={isProductModalOpen}
               onClose={closeProductModal}
               CloseClickBanner={false}
-              className="max-w-[1200px] m-4 p-5"
+              className="max-w-[1200px] m-4 p-2"
             >
               <section
-                className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
+                className="overflow-y-scroll max-h-[95vh]  [&::-webkit-scrollbar]:w-2 
          [&::-webkit-scrollbar-track]:bg-gray-200 
          [&::-webkit-scrollbar-thumb]:bg-blue-500 
          [&::-webkit-scrollbar-thumb]:rounded-full 
@@ -432,15 +432,23 @@ function FacturacionPageContent() {
         isOpen={modalEditIsOpen}
         onClose={closeModalEdit}
         zIndex="999"
-        className="max-w-[900px] m-4 p-5"
+        className="max-w-[900px] overflow-hidden m-4 p-2"
         CloseClickBanner={false}
       >
-        <EdicionFactura
-          closeModal={closeModalEdit}
-          selectsData={selectsData?.estados.filter(
-            (el) => ![1, 2, 3, 5].includes(el.id)
-          )}
-        />
+        <section
+          className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
+         [&::-webkit-scrollbar-track]:bg-gray-200 
+         [&::-webkit-scrollbar-thumb]:bg-blue-500 
+         [&::-webkit-scrollbar-thumb]:rounded-full 
+         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+        >
+          <EdicionFactura
+            closeModal={closeModalEdit}
+            selectsData={selectsData?.estados.filter(
+              (el) => ![1, 2, 3, 5].includes(el.id)
+            )}
+          />
+        </section>
       </Modal>
     </>
   );

@@ -91,3 +91,36 @@ export type PaginationProps = {
   maxVisiblePages?: number;
   className?: string;
 };
+
+//types para detalles
+export type ProductoDetalles = {
+  // 🔹 DETALLES BÁSICOS
+  id: number;
+  nombre: string;
+  codigo: string;
+  descripcion: string;
+  categoria: string;
+  marca: string;
+  estado: string;
+  tipo: string;
+  unidadMedida: string;
+  ubicacion: string;
+
+  // 🔹 DETALLES FINANCIEROS
+  precioCompra: number;
+  precioVenta: number;
+  precioMinimo: number;
+  impuesto: number;
+  descuentoBase: number;
+
+  // 🔹 MÉTRICAS DE RENTABILIDAD
+  gananciaPorUnidadBruta: string;
+  margenGananciaBrutoPorcentaje: string;
+  roiPorcentaje: string;
+  gananciaTotalHistorica: string;
+
+  // 🔹 MÉTRICAS DE VENTAS Y POPULARIDAD
+  totalVendidoHistorico: string;
+  vendidoUltimos30Dias: string;
+  ventaNetaUltimos30Dias: string;
+};

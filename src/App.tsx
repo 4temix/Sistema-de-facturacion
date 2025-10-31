@@ -30,6 +30,10 @@ const Mantenimientos = lazy(
   () => import("./pages/Configuraciones/Mantenimientos")
 );
 
+const PageDetailsProductos = lazy(
+  () => import("./pages/Gestion/PageDetailsProductos")
+);
+
 // Definición de rutas
 const routes = createBrowserRouter([
   {
@@ -43,6 +47,7 @@ const routes = createBrowserRouter([
       { index: true, path: "/", element: <Home /> },
       //principal
       { path: "/inventario", element: <Productos /> },
+      { path: "/inventario/:id", element: <PageDetailsProductos /> },
       { path: "/facturacion", element: <Facturacion /> },
       { path: "/mantenimientos", element: <Mantenimientos /> },
 

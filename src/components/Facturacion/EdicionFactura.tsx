@@ -26,6 +26,7 @@ type Devolucion = {
   pagado: number;
   detalles: DevolucionDetallesSave[];
 };
+
 const regexNum = /^-?\d+(\.\d+)?$/;
 export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
   const [sendData, setSendData] = useState<Devolucion>({
@@ -170,10 +171,15 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
   }
 
   function saveDevolution(saveElement: Devolucion) {
+    if (!facturaDetails) return;
     const devolucion = {
       id: saveElement.id,
-      estado: saveElement.estado.value,
-      pagado: saveElement.pagado,
+      estado:
+        saveElement.estado.value == "" ? 0 : parseInt(saveElement.estado.value),
+      pagado:
+        facturaDetails.montoPagado >= facturaDetails.total
+          ? 0
+          : saveElement.pagado,
       detalles: saveElement.detalles,
     };
 
@@ -248,7 +254,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
 
   return (
     <>
-      <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
+      <div className="relative w-full bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
             Edición
@@ -282,7 +288,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
         </div>
       </div>
       <form className="flex flex-col">
-        <div className="px-2 overflow-y-auto custom-scrollbar">
+        <div className="px-2 custom-scrollbar">
           <div className="grid">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-1">

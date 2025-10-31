@@ -10,6 +10,7 @@ import { DataRequest, Producto } from "../../Types/ProductTypes";
 import { TrashBinIcon, PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
+import { useNavigate } from "react-router";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
@@ -26,6 +27,7 @@ export default function PropertyDataTable({
   pageSize,
   updateSize,
 }: internalProps) {
+  const route = useNavigate();
   // Columnas
   const columns = useMemo(() => {
     return [
@@ -76,6 +78,23 @@ export default function PropertyDataTable({
         ),
       },
       {
+        accessorKey: "estado",
+        header: "Estado",
+        cell: ({ getValue }: { getValue: () => string }) => (
+          <span>{getValue() ?? "Sin estado"}</span>
+        ),
+      },
+      {
+        accessorKey: "precioCompra",
+        header: "Precio de compra",
+        cell: ({ getValue }: { getValue: () => number }) =>
+          new Intl.NumberFormat("es-DO", {
+            style: "currency",
+            currency: "DOP",
+            minimumFractionDigits: 2,
+          }).format(getValue()),
+      },
+      {
         accessorKey: "precioVenta",
         header: "Precio de venta",
         cell: ({ getValue }: { getValue: () => number }) =>
@@ -98,7 +117,7 @@ export default function PropertyDataTable({
         cell: ({ row }: { row: Row<Producto> }) => (
           <div style={{ display: "flex", gap: "8px" }}>
             <button
-              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb]"
+              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb] action_btn"
               onClick={() => alert(`Editar ${row.original.nombre}`)}
               style={{
                 padding: "8px 16px",
@@ -110,7 +129,7 @@ export default function PropertyDataTable({
             </button>
             <button
               onClick={() => alert(`Eliminar ${row.original.nombre}`)}
-              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626]"
+              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626] action_btn"
               style={{
                 padding: "8px 16px",
                 color: "white",
@@ -133,7 +152,7 @@ export default function PropertyDataTable({
 
   return (
     <>
-      <div className="p-8 overflow-x-scroll">
+      <div className="overflow-x-scroll">
         <table className="border-collapse w-[100%]">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -157,6 +176,14 @@ export default function PropertyDataTable({
               <tr
                 key={row.id}
                 className="transition-colors duration-200 hover:bg-gray-200 cursor-pointer"
+                onClick={(e) => {
+                  const target = e.target as HTMLElement;
+
+                  if (target.closest(".action_btn")) {
+                    return;
+                  }
+                  route(`${row.original.id}`);
+                }}
               >
                 {row.getVisibleCells().map((cell: Cell<Producto, unknown>) => (
                   <td
@@ -171,7 +198,7 @@ export default function PropertyDataTable({
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-center flex-col sm:flex-row">
         <Input
           type="number"
           id="size"

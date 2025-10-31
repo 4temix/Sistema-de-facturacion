@@ -631,7 +631,7 @@ export default function FormFactutas(params: Actions) {
 
   return (
     <>
-      <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
+      <div className="relative max-h-[95vh] overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
         {isLoading && <LoaderFun absolute={false} />}
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
@@ -984,6 +984,7 @@ export default function FormFactutas(params: Actions) {
               <Checkbox
                 checked={isCheckedTwo}
                 onChange={setIsCheckedTwo}
+                disabled={products.length == 0 ? true : falsep}
                 label="Todo pagado"
               />
               <div className="rounded-[9px] bg-gray-200 flex flex-col p-3">

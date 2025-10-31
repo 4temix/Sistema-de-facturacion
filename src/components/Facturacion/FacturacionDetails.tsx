@@ -1,5 +1,7 @@
 import { useModalEdit } from "../../context/ModalEditContext";
 import { useFacturaColor } from "../../hooks/useFacturaColor";
+import { handlePrintFactura } from "../../hooks/useImpresion";
+import { DownloadIcon, PencilIcon } from "../../icons";
 import { FacturaDetalle, ProductoVenta } from "../../Types/FacturacionTypes";
 import { FacturaSkeleton } from "./FacturaSkeleton";
 
@@ -324,12 +326,19 @@ export default function FacturacionDetails({
               }}
               className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {/* <EditIcon /> */}
-              Editar
+              <span className="flex justify-center items-center">
+                <PencilIcon /> Editar
+              </span>
             </button>
-            <button className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors">
-              {/* <TrashIcon /> */}
-              Eliminar
+            <button
+              className="flex-1 bg-green-400 text-white py-2 rounded-lg hover:bg-green-500 transition-colors"
+              onClick={() => {
+                handlePrintFactura(factura);
+              }}
+            >
+              <span className="flex justify-center items-center">
+                <DownloadIcon /> Imprimir
+              </span>
             </button>
           </div>
 
