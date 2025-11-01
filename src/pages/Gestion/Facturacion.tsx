@@ -416,7 +416,7 @@ function FacturacionPageContent() {
             </form>
           </Modal>
         </article>
-        <article className="overflow-x-scroll min-w-[940px]">
+        <article className="overflow-x-scroll md:min-w-[940px]">
           <TableFacturas
             loader={pagUtilities.tableLoader}
             data={productosData.data}
