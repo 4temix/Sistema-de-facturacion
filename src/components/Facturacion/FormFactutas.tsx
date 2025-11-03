@@ -984,7 +984,7 @@ export default function FormFactutas(params: Actions) {
               <Checkbox
                 checked={isCheckedTwo}
                 onChange={setIsCheckedTwo}
-                disabled={products.length == 0 ? true : falsep}
+                disabled={products.length == 0 ? true : false}
                 label="Todo pagado"
               />
               <div className="rounded-[9px] bg-gray-200 flex flex-col p-3">

@@ -5,8 +5,9 @@ interface CheckboxProps {
   checked: boolean;
   className?: string;
   id?: string;
-  onChange: (checked: boolean) => void;
+  onChange?: (checked: boolean) => void;
   disabled?: boolean;
+  onChecketPer?: () => void;
 }
 
 const Checkbox: React.FC<CheckboxProps> = ({
@@ -16,6 +17,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
   onChange,
   className = "",
   disabled = false,
+  onChecketPer,
 }) => {
   return (
     <label
@@ -31,7 +33,13 @@ const Checkbox: React.FC<CheckboxProps> = ({
           ${className}`}
           checked={checked}
           onChange={(e) => {
-            onChange(e.target.checked);
+            if (onChange) {
+              onChange(e.target.checked);
+            }
+
+            if (onChecketPer) {
+              onChecketPer();
+            }
           }}
           disabled={disabled}
         />

@@ -20,6 +20,8 @@ import {
   Selects,
 } from "../../Types/ProductTypes";
 import { useDebounce } from "../../hooks/useDebounce";
+import { useSearchParams } from "react-router";
+import Checkbox from "../../components/form/input/Checkbox";
 
 export default function Productos() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -28,6 +30,8 @@ export default function Productos() {
     openModal: openProductModal,
     closeModal: closeProductModal,
   } = useModal();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   //metricas superiores
   const [dataMetricas, setDataMetricas] = useState<Metricas>();
@@ -56,8 +60,8 @@ export default function Productos() {
     precioVentaMinimo: null,
     precioVentaMaximo: null,
     search: "",
-    stockBajo: null,
-    agotados: null,
+    stockBajo: false,
+    agotados: false,
     page: 1,
     PageSize: 5,
   });
@@ -67,7 +71,7 @@ export default function Productos() {
   let BeforeFilter = useRef<string>("");
 
   //actualizar los fintros
-  function updateFilter(value: string | number | null, key: string) {
+  function updateFilter(value: string | number | null | boolean, key: string) {
     setFilters((prev) => {
       return {
         ...prev,
@@ -102,6 +106,8 @@ export default function Productos() {
     if (BeforeFilter.current == queryString) {
       return;
     }
+
+    BeforeFilter.current = queryString;
     apiRequestThen<DataRequest>({
       url: `api/productos/productos?${queryString}`,
     }).then((response) => {
@@ -140,8 +146,6 @@ export default function Productos() {
       }
       setSelectsData(response.result);
     });
-
-    getData(filters);
     Data();
   }, []);
 
@@ -152,12 +156,24 @@ export default function Productos() {
   //incremento de la pagina
   function incrementPage(page: number) {
     updateFilter(page, "page");
+    searchParams.set("pag", page.toString());
+    setSearchParams(searchParams);
   }
 
   //debounce para busquedas
   useEffect(() => {
     getData(filters);
   }, [debouncedSearch]);
+
+  //debounce para cuado se recarga una pagina
+  useEffect(() => {
+    if (!searchParams.get("pag")) {
+      return;
+    }
+    console.log("hola");
+    updateFilter(Number(searchParams.get("pag")), "page");
+  }, [searchParams]);
+
   return (
     <section>
       <article className="flex mb-3">
@@ -385,6 +401,21 @@ export default function Productos() {
                     />
                   </div>
                 </div>
+
+                <Checkbox
+                  checked={filters.agotados}
+                  onChecketPer={() => {
+                    updateFilter(!filters.agotados, "agotados");
+                  }}
+                  label="Agotados"
+                />
+                <Checkbox
+                  checked={filters.stockBajo}
+                  label="Stock bajo"
+                  onChecketPer={() => {
+                    updateFilter(!filters.stockBajo, "stockBajo");
+                  }}
+                />
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
@@ -411,6 +442,7 @@ export default function Productos() {
         pageNUmber={filters.page}
         pageSize={filters.PageSize}
         updateSize={updateFilter}
+        selects={selectsData!}
       />
     </section>
   );

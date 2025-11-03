@@ -124,3 +124,24 @@ export type ProductoDetalles = {
   vendidoUltimos30Dias: string;
   ventaNetaUltimos30Dias: string;
 };
+
+//guardar producto
+export type UpdateProducto = {
+  id: number;
+  codigo: string | null;
+  nombre: string;
+  descripcion: string | null;
+  categoriaId: number | null;
+  marcaId: number | null;
+  tipoId: number | null;
+  estadoId: number | null;
+  precioCompra: number;
+  precioVenta: number;
+  precioMinimo: number | null;
+  stockActual: number;
+  stockMinimo: number;
+  unidadMedida: string;
+  ubicacion: string;
+  codigoBarras: string;
+  impuesto: number | null;
+};

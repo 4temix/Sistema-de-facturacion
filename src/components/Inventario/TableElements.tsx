@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -6,17 +6,26 @@ import {
   Row,
   Cell,
 } from "@tanstack/react-table";
-import { DataRequest, Producto } from "../../Types/ProductTypes";
+import { DataRequest, Producto, Selects } from "../../Types/ProductTypes";
 import { TrashBinIcon, PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
 import { useNavigate } from "react-router";
+import EditProducto from "./EditProducto";
+import { useModal } from "../../hooks/useModal";
+import { Modal } from "../ui/modal";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
   pageNUmber: number;
   pageSize?: number;
+  selects: Selects;
   updateSize: (value: number, key: string) => void;
+};
+
+type idActual = {
+  id: number;
+  refreshKey: string;
 };
 
 export default function PropertyDataTable({
@@ -26,8 +35,13 @@ export default function PropertyDataTable({
   pageNUmber,
   pageSize,
   updateSize,
+  selects,
 }: internalProps) {
   const route = useNavigate();
+
+  const [idUpdate, setIdUpdate] = useState<idActual>({ id: 0, refreshKey: "" });
+
+  const { isOpen, openModal, closeModal } = useModal();
   // Columnas
   const columns = useMemo(() => {
     return [
@@ -118,7 +132,12 @@ export default function PropertyDataTable({
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb] action_btn"
-              onClick={() => alert(`Editar ${row.original.nombre}`)}
+              onClick={() => {
+                setIdUpdate({
+                  id: row.original.id,
+                  refreshKey: Date.now().toString(),
+                });
+              }}
               style={{
                 padding: "8px 16px",
                 color: "white",
@@ -143,6 +162,12 @@ export default function PropertyDataTable({
       },
     ];
   }, []);
+
+  useEffect(() => {
+    if (idUpdate?.id != 0) {
+      openModal();
+    }
+  }, [idUpdate]);
 
   const table = useReactTable<Producto>({
     data,
@@ -218,6 +243,19 @@ export default function PropertyDataTable({
           onPageChange={setPage}
         />
       </div>
+
+      <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        CloseClickBanner={false}
+        className="max-w-[1200px] m-4 p-5"
+      >
+        <EditProducto
+          selectsData={selects}
+          id={idUpdate.id}
+          closeModal={closeModal}
+        />
+      </Modal>
     </>
   );
 }
