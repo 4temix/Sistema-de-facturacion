@@ -250,11 +250,19 @@ export default function PropertyDataTable({
         CloseClickBanner={false}
         className="max-w-[1200px] m-4 p-5"
       >
-        <EditProducto
-          selectsData={selects}
-          id={idUpdate.id}
-          closeModal={closeModal}
-        />
+        <section
+          className="overflow-y-scroll max-h-[90vh] [&::-webkit-scrollbar]:w-2 
+                 [&::-webkit-scrollbar-track]:bg-gray-200 
+                 [&::-webkit-scrollbar-thumb]:bg-blue-500 
+                 [&::-webkit-scrollbar-thumb]:rounded-full 
+                 [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+        >
+          <EditProducto
+            selectsData={selects}
+            id={idUpdate.id}
+            closeModal={closeModal}
+          />
+        </section>
       </Modal>
     </>
   );

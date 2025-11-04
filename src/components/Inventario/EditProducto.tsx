@@ -78,19 +78,24 @@ export default function EditProducto(params: Actions) {
 
   //guardar los elementos
   function Saveproducto(producto: SaveProducto) {
+    setIsloading(true);
     apiRequestThen<boolean>({
-      url: "api/productos/guardar_producto",
+      url: "api/productos/detalles-update",
       configuration: {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(producto),
       },
-    }).then((response) => {
-      if (!response.success) {
-        return;
-      }
-      closeModal();
-    });
+    })
+      .then((response) => {
+        if (!response.success) {
+          return;
+        }
+        closeModal();
+      })
+      .finally(() => {
+        setIsloading(false);
+      });
   }
 
   //guardar los elementos
@@ -162,6 +167,7 @@ export default function EditProducto(params: Actions) {
                     <Input
                       type="text"
                       id="codigo"
+                      disabled={true}
                       placeholder="Ej: SKU-1234"
                       hint={errors.codigo}
                       value={values.codigo ?? ""}
@@ -432,6 +438,7 @@ export default function EditProducto(params: Actions) {
                     <Label htmlFor="codigo_barras">Código de barras</Label>
                     <Input
                       type="text"
+                      disabled={true}
                       id="codigo_barras"
                       placeholder="Ej: 1234567890"
                       hint={errors.codigoBarras}
