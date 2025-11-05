@@ -33,6 +33,8 @@ export default function Productos() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [loadintComplete, setLoadintComplete] = useState(false);
+
   //metricas superiores
   const [dataMetricas, setDataMetricas] = useState<Metricas>();
   //productos de la tabla
@@ -101,6 +103,7 @@ export default function Productos() {
 
   //funcion para obtener los elementos de la tabla
   function getData(filters: ProductoFiltro) {
+    setLoadintComplete(true);
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {

@@ -146,6 +146,50 @@ export default function ProductoDetallesScreen({
                 </div>
               </div>
             </div>
+
+            {/* Inventario y Riesgo */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                {/* ICONO: Package/Box icon */}
+                Inventario y Riesgo
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">Stock Actual</span>
+                  <span className="text-sm font-semibold text-slate-900">
+                    {producto.stockActual}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">Stock Mínimo</span>
+                  <span className="text-sm font-semibold text-orange-600">
+                    {producto.stockMinimo}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">
+                    Días de Suministro
+                  </span>
+                  <span className="text-sm font-medium text-slate-900">
+                    {producto.diasSuministroRestante}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">Total Devuelto</span>
+                  <span className="text-sm font-medium text-slate-900">
+                    {producto.totalDevueltoHistorico}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-slate-600">
+                    Tasa de Devolución
+                  </span>
+                  <span className="text-sm font-medium text-red-600">
+                    {producto.tasaDevolucionPorcentaje}%
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column - Métricas */}
@@ -180,7 +224,7 @@ export default function ProductoDetallesScreen({
                     {/* ICONO: Percent icon */}
                   </div>
                   <p className="text-2xl font-bold text-blue-900">
-                    {producto.margenGananciaBrutoPorcentaje}
+                    {producto.margenGananciaBrutoPorcentaje} %
                   </p>
                   <p className="text-xs text-blue-600 mt-1">Porcentaje bruto</p>
                 </div>
@@ -191,7 +235,7 @@ export default function ProductoDetallesScreen({
                     {/* ICONO: TrendingUp icon */}
                   </div>
                   <p className="text-2xl font-bold text-purple-900">
-                    {producto.roiPorcentaje}
+                    {producto.roiPorcentaje} %
                   </p>
                   <p className="text-xs text-purple-600 mt-1">
                     Retorno de inversión
@@ -279,13 +323,13 @@ export default function ProductoDetallesScreen({
                 <div>
                   <p className="text-xs text-slate-400 mb-1">Margen</p>
                   <p className="text-lg font-semibold">
-                    {producto.margenGananciaBrutoPorcentaje}
+                    {producto.margenGananciaBrutoPorcentaje} %
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-400 mb-1">ROI</p>
                   <p className="text-lg font-semibold">
-                    {producto.roiPorcentaje}
+                    {producto.roiPorcentaje} %
                   </p>
                 </div>
                 <div>

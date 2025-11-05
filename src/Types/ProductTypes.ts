@@ -92,7 +92,7 @@ export type PaginationProps = {
   className?: string;
 };
 
-//types para detalles
+// 🔹 Types para detalles
 export type ProductoDetalles = {
   // 🔹 DETALLES BÁSICOS
   id: number;
@@ -123,6 +123,13 @@ export type ProductoDetalles = {
   totalVendidoHistorico: string;
   vendidoUltimos30Dias: string;
   ventaNetaUltimos30Dias: string;
+
+  // 🔹 MÉTRICAS DE INVENTARIO Y RIESGO
+  stockActual: string;
+  stockMinimo: string;
+  totalDevueltoHistorico: string;
+  tasaDevolucionPorcentaje: string;
+  diasSuministroRestante: string;
 };
 
 //guardar producto
