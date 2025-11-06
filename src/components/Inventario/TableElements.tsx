@@ -178,7 +178,7 @@ export default function PropertyDataTable({
   return (
     <>
       <div className="overflow-x-scroll md:min-w-[940px]">
-        <table className="md:table-fixed w-full border-collapse">
+        <table className="md:table-fixed md:w-[120%] border-collapse">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>

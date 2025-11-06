@@ -23,6 +23,7 @@ import {
   ModalEditProvider,
   useModalEdit,
 } from "../../context/ModalEditContext";
+import { useSearchParams } from "react-router";
 
 function FacturacionPageContent() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -31,6 +32,8 @@ function FacturacionPageContent() {
     openModal: openProductModal,
     closeModal: closeProductModal,
   } = useModal();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { modalEditIsOpen, closeModalEdit } = useModalEdit();
 
@@ -161,12 +164,21 @@ function FacturacionPageContent() {
   //incremento de la pagina
   function incrementPage(page: number) {
     updateFilter(page, "page");
+    searchParams.set("pag", page.toString());
+    setSearchParams(searchParams);
   }
 
   //debounce para busquedas
   useEffect(() => {
     getData(filters);
   }, [debouncedSearch, filters.page]);
+
+  useEffect(() => {
+    if (!searchParams.get("pag")) {
+      return;
+    }
+    updateFilter(Number(searchParams.get("pag")), "page");
+  }, [searchParams]);
 
   return (
     <>

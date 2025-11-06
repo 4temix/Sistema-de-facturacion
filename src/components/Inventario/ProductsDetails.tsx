@@ -167,14 +167,6 @@ export default function ProductoDetallesScreen({
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600">
-                    Días de Suministro
-                  </span>
-                  <span className="text-sm font-medium text-slate-900">
-                    {producto.diasSuministroRestante}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-600">Total Devuelto</span>
                   <span className="text-sm font-medium text-slate-900">
                     {producto.totalDevueltoHistorico}

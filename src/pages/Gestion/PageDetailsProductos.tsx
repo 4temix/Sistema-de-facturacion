@@ -19,6 +19,7 @@ export default function PageDetailsProductos() {
         navigate("/nada");
         return;
       }
+      console.log(response.result);
       setData(response.result);
     });
   }

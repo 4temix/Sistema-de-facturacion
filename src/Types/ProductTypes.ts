@@ -129,7 +129,7 @@ export type ProductoDetalles = {
   stockMinimo: string;
   totalDevueltoHistorico: string;
   tasaDevolucionPorcentaje: string;
-  diasSuministroRestante: string;
+  ventasAnuales: number[];
 };
 
 //guardar producto

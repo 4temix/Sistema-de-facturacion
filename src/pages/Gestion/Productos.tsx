@@ -22,6 +22,7 @@ import {
 import { useDebounce } from "../../hooks/useDebounce";
 import { useSearchParams } from "react-router";
 import Checkbox from "../../components/form/input/Checkbox";
+import { LoadingTable } from "../../components/loader/LoadingTable";
 
 export default function Productos() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -107,25 +108,30 @@ export default function Productos() {
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
+      setLoadintComplete(false);
       return;
     }
 
     BeforeFilter.current = queryString;
     apiRequestThen<DataRequest>({
       url: `api/productos/productos?${queryString}`,
-    }).then((response) => {
-      if (!response.success) {
-        console.error("Error:", response.errorMessage);
-        return;
-      }
-      console.log(response.result);
-      setProductosData(
-        response.result ?? {
-          data: [],
-          total_pages: 0,
+    })
+      .then((response) => {
+        if (!response.success) {
+          console.error("Error:", response.errorMessage);
+          return;
         }
-      );
-    });
+        console.log(response.result);
+        setProductosData(
+          response.result ?? {
+            data: [],
+            total_pages: 0,
+          }
+        );
+      })
+      .finally(() => {
+        setLoadintComplete(false);
+      });
   }
 
   useEffect(() => {
@@ -168,12 +174,10 @@ export default function Productos() {
     getData(filters);
   }, [debouncedSearch]);
 
-  //debounce para cuado se recarga una pagina
   useEffect(() => {
     if (!searchParams.get("pag")) {
       return;
     }
-    console.log("hola");
     updateFilter(Number(searchParams.get("pag")), "page");
   }, [searchParams]);
 
@@ -438,15 +442,19 @@ export default function Productos() {
           </form>
         </Modal>
       </article>
-      <PropertyDataTable
-        data={productosData.data}
-        total_pages={productosData.total_pages}
-        setPage={incrementPage}
-        pageNUmber={filters.page}
-        pageSize={filters.PageSize}
-        updateSize={updateFilter}
-        selects={selectsData!}
-      />
+      {!loadintComplete ? (
+        <PropertyDataTable
+          data={productosData.data}
+          total_pages={productosData.total_pages}
+          setPage={incrementPage}
+          pageNUmber={filters.page}
+          pageSize={filters.PageSize}
+          updateSize={updateFilter}
+          selects={selectsData!}
+        />
+      ) : (
+        <LoadingTable columns={7} />
+      )}
     </section>
   );
 }
