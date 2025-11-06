@@ -936,7 +936,9 @@ export default function FormFactutas(params: Actions) {
                 <Label htmlFor="categoria">Metodo de pago</Label>
                 <Select<Option, false>
                   id="categoria"
-                  styles={customStyles()}
+                  styles={customStyles(
+                    !!errors.metodoPagoId && touched.metodoPagoId
+                  )}
                   placeholder="Método de pago..."
                   menuPosition="fixed"
                   options={selectsData?.metodoPago?.map(
@@ -949,7 +951,13 @@ export default function FormFactutas(params: Actions) {
                     if (!e) return;
                     setFieldValue("metodoPagoId", parseInt(e.value));
                   }}
+                  onBlur={() => setFieldTouched("metodoPagoId", true)}
                 />
+                {errors.metodoPagoId && touched.metodoPagoId && (
+                  <p className={`mt-1.5 text-xs text-error-500`}>
+                    {errors.metodoPagoId}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="telefono">Monto pagado</Label>

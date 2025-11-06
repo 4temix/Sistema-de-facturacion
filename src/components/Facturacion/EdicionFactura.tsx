@@ -80,6 +80,24 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
     estado: string,
     observaciones: string = ""
   ) {
+    if (estado == "") {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        },
+      });
+      Toast.fire({
+        icon: "warning",
+        title: "Seleccione el estado en el que se devolvio le producto",
+      });
+      return;
+    }
     let elements = [...sendData.detalles];
 
     const existente = sendData.detalles.findIndex(

@@ -15,6 +15,7 @@ export const ValidationFactura = Yup.object({
 
   metodoPagoId: Yup.number()
     .required()
+    .min(1, "Seleccione un metodo de pago")
     .integer("Debe ser un número entero")
     .required("El método de pago es obligatorio"),
 
