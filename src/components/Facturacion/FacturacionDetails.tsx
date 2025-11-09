@@ -12,6 +12,7 @@ interface FacturaDetailsDrawerProps {
   isLoading?: boolean;
   onEliminar?: (factura: FacturaDetalle) => void;
   onEditar?: (factura: FacturaDetalle) => void;
+  btnEdit?: boolean;
 }
 
 // ===============================
@@ -21,6 +22,7 @@ export default function FacturacionDetails({
   onClose,
   factura,
   isLoading,
+  btnEdit,
 }: FacturaDetailsDrawerProps) {
   const getFacturaColor = useFacturaColor();
 
@@ -319,17 +321,19 @@ export default function FacturacionDetails({
 
           {/* 🔹 Botones */}
           <div className="flex gap-3">
-            <button
-              onClick={() => {
-                modalEditOpen();
-                AsingFactura(factura);
-              }}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <span className="flex justify-center items-center">
-                <PencilIcon /> Editar
-              </span>
-            </button>
+            {btnEdit && (
+              <button
+                onClick={() => {
+                  modalEditOpen();
+                  AsingFactura(factura);
+                }}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <span className="flex justify-center items-center">
+                  <PencilIcon /> Editar
+                </span>
+              </button>
+            )}
             <button
               className="flex-1 bg-green-400 text-white py-2 rounded-lg hover:bg-green-500 transition-colors"
               onClick={() => {

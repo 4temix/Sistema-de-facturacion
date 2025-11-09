@@ -39,6 +39,12 @@ const navItems: NavItem[] = [
       { name: "Facturacion", path: "/facturacion", pro: false },
     ],
   },
+
+  {
+    icon: <PieChartIcon />,
+    name: "Reportes",
+    subItems: [{ name: "Reportes anuales", path: "/reportes", pro: false }],
+  },
   {
     icon: <CalenderIcon />,
     name: "Calendar",

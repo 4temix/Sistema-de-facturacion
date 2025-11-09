@@ -5,6 +5,7 @@ import {
   flexRender,
   Row,
   Cell,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import { PencilIcon, DownloadIcon } from "../../icons";
 import { Pagination } from "./pagination";
@@ -30,6 +31,9 @@ type internalProps = DataRequest & {
   pageSize?: number;
   updateSize: (value: number, key: string) => void;
   loader: boolean;
+  showPag?: boolean;
+  showColum?: VisibilityState;
+  btnEdit?: boolean;
 };
 
 export default function TableFacturas({
@@ -40,6 +44,9 @@ export default function TableFacturas({
   pageSize,
   updateSize,
   loader,
+  showPag = true,
+  showColum,
+  btnEdit = true,
 }: internalProps) {
   const getFacturaColor = useFacturaColor();
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +55,12 @@ export default function TableFacturas({
   const [loadintComplete, setLoadintComplete] = useState(false);
 
   const { modalEditOpen, AsingFactura } = useModalEdit();
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    ...showColum,
+  }); // ✅ aquí
   // Columnas
+
   const [DetailsFactura, setDetailsFactura] = useState<FacturaDetalle>({
     id: 0,
     numeroFactura: "",
@@ -254,6 +266,10 @@ export default function TableFacturas({
   const table = useReactTable<Factura>({
     data,
     columns,
+    state: {
+      columnVisibility,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -267,6 +283,7 @@ export default function TableFacturas({
             onClose={() => setIsDetailsOpen(false)}
             factura={DetailsFactura}
             isLoading={isLoading}
+            btnEdit={btnEdit}
           />
         </Drawer>
         {loader ? (
@@ -324,26 +341,28 @@ export default function TableFacturas({
           </table>
         )}
       </div>
-      <div className="flex justify-center flex-col sm:flex-row">
-        <Input
-          type="number"
-          id="size"
-          placeholder="Ej: 18"
-          className="max-w-[100px]"
-          value={pageSize ?? ""}
-          onChange={(e) => {
-            if (e.target.value == "e") {
-              return;
-            }
-            updateSize(parseInt(e.target.value), "PageSize");
-          }}
-        />
-        <Pagination
-          totalPages={total_pages}
-          currentPage={pageNUmber}
-          onPageChange={setPage}
-        />
-      </div>
+      {showPag && (
+        <div className="flex justify-center flex-col sm:flex-row">
+          <Input
+            type="number"
+            id="size"
+            placeholder="Ej: 18"
+            className="max-w-[100px]"
+            value={pageSize ?? ""}
+            onChange={(e) => {
+              if (e.target.value == "e") {
+                return;
+              }
+              updateSize(parseInt(e.target.value), "PageSize");
+            }}
+          />
+          <Pagination
+            totalPages={total_pages}
+            currentPage={pageNUmber}
+            onPageChange={setPage}
+          />
+        </div>
+      )}
     </>
   );
 }

@@ -108,7 +108,9 @@ export default function Productos() {
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
-      setLoadintComplete(false);
+      if (loadintComplete) {
+        setLoadintComplete(false);
+      }
       return;
     }
 

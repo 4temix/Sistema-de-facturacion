@@ -29,6 +29,7 @@ const Blank = lazy(() => import("./pages/Blank"));
 const Mantenimientos = lazy(
   () => import("./pages/Configuraciones/Mantenimientos")
 );
+const Reportes = lazy(() => import("./pages/Reportes/Reportes"));
 
 const PageDetailsProductos = lazy(
   () => import("./pages/Gestion/PageDetailsProductos")
@@ -50,6 +51,7 @@ const routes = createBrowserRouter([
       { path: "/inventario/:id", element: <PageDetailsProductos /> },
       { path: "/facturacion", element: <Facturacion /> },
       { path: "/mantenimientos", element: <Mantenimientos /> },
+      { path: "/reportes", element: <Reportes /> },
 
       // Others Page
       { path: "/profile", element: <UserProfiles /> },

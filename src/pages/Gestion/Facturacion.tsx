@@ -111,7 +111,9 @@ function FacturacionPageContent() {
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
-      setPagUtilities((p) => ({ ...p, tableLoader: false }));
+      if (pagUtilities.tableLoader) {
+        setPagUtilities((p) => ({ ...p, tableLoader: false }));
+      }
       return;
     }
     BeforeFilter.current = queryString;
