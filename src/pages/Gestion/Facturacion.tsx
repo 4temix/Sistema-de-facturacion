@@ -65,6 +65,8 @@ function FacturacionPageContent() {
     fechaPago: null,
     page: 1,
     PageSize: 5,
+    fechaInit: "",
+    fechaFin: "",
   });
 
   //para la bsuqueda de facturas

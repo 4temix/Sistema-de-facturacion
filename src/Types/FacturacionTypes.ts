@@ -28,6 +28,8 @@ export type ParamsFacturasRequest = {
   fechaPago?: Date | string | null;
   page?: number;
   pageSize?: number;
+  fechaInit?: string;
+  FechaFin?: string;
 };
 
 //data response

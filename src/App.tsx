@@ -30,10 +30,11 @@ const Mantenimientos = lazy(
   () => import("./pages/Configuraciones/Mantenimientos")
 );
 const Reportes = lazy(() => import("./pages/Reportes/Reportes"));
-
 const PageDetailsProductos = lazy(
   () => import("./pages/Gestion/PageDetailsProductos")
 );
+const DetailsYearPage = lazy(() => import("./pages/Reportes/DetailsYear"));
+const DetailsMonth = lazy(() => import("./pages/Reportes/PageDetailsMonth"));
 
 // Definición de rutas
 const routes = createBrowserRouter([
@@ -52,6 +53,8 @@ const routes = createBrowserRouter([
       { path: "/facturacion", element: <Facturacion /> },
       { path: "/mantenimientos", element: <Mantenimientos /> },
       { path: "/reportes", element: <Reportes /> },
+      { path: "/reportes/:year", element: <DetailsYearPage /> },
+      { path: "/reportes/:year/:month", element: <DetailsMonth /> },
 
       // Others Page
       { path: "/profile", element: <UserProfiles /> },

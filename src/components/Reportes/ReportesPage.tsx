@@ -1,4 +1,5 @@
 import { VentasAnuales } from "../../Types/Reportes";
+import { Link } from "react-router";
 
 type Params = {
   data: VentasAnuales[];
@@ -7,7 +8,7 @@ type Params = {
 export default function ReportesPage({ data = [] }: Params) {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <div className="flex-1 p-6 lg:p-8">
+      <div className="flex-1">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -21,9 +22,9 @@ export default function ReportesPage({ data = [] }: Params) {
         {/* Year Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map((yearData) => (
-            <a
+            <Link
               key={yearData.anio}
-              href={`/reportes/${yearData.anio}`}
+              to={`/reportes/${yearData.anio}`}
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all group"
             >
               {/* Year Header */}
@@ -88,7 +89,7 @@ export default function ReportesPage({ data = [] }: Params) {
                   </span>
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -98,8 +99,8 @@ export default function ReportesPage({ data = [] }: Params) {
             Otros Reportes
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
-              href="/reportes/productos-top"
+            <Link
+              to="/reportes/productos-top"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-3">
@@ -111,10 +112,10 @@ export default function ReportesPage({ data = [] }: Params) {
                   <p className="text-xs text-gray-600">Rankings y tendencias</p>
                 </div>
               </div>
-            </a>
+            </Link>
 
-            <a
-              href="/reportes/categorias"
+            <Link
+              to="/reportes/categorias"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-3">
@@ -126,10 +127,10 @@ export default function ReportesPage({ data = [] }: Params) {
                   <p className="text-xs text-gray-600">Análisis detallado</p>
                 </div>
               </div>
-            </a>
+            </Link>
 
-            <a
-              href="/reportes/devoluciones"
+            <Link
+              to="/reportes/devoluciones"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-3">
@@ -141,7 +142,7 @@ export default function ReportesPage({ data = [] }: Params) {
                   <p className="text-xs text-gray-600">Control de retornos</p>
                 </div>
               </div>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
