@@ -50,6 +50,10 @@ export type Devoluciones = {
   cantidad: number;
   valorTotal: number;
   productoMasDevuelto: string;
+  cantidadPerdida: number;
+  valorTotalPerdido: number;
+  cantidadReintegrable: number;
+  valorTotalReintegrable: number;
 };
 
 export type TopProducto = {

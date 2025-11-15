@@ -249,7 +249,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
         </div>
 
         {/* Additional Reports Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Devoluciones */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -264,13 +264,42 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                     {params.devoluciones.cantidad}
                   </p>
                   <p className="text-xs text-gray-600">unidades</p>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="text-xs text-gray-600 mb-1">Valor</p>
-                  <p className="text-lg font-bold text-red-600">
+                  <p className="text-lg font-bold text-purple-500">
                     ${params.devoluciones.valorTotal?.toLocaleString()}
                   </p>
+                  <p className="text-xs text-gray-600">reintegrable</p>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Total Devuelto</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {params.devoluciones.cantidadPerdida}
+                    </p>
+                    <p className="text-xs text-gray-600">unidades</p>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-1">Valor</p>
+                  <p className="text-lg font-bold text-red-600">
+                    ${params.devoluciones.valorTotalPerdido?.toLocaleString()}
+                  </p>
                   <p className="text-xs text-gray-600">perdido</p>
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Total Devuelto</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {params.devoluciones.cantidadReintegrable}
+                    </p>
+                    <p className="text-xs text-gray-600">unidades</p>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-1">Valor</p>
+                  <p className="text-lg font-bold text-blue-500">
+                    $
+                    {params.devoluciones.valorTotalReintegrable?.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-600">reintegrable</p>
                 </div>
               </div>
               <div className="pt-3 border-t border-gray-100">
@@ -285,23 +314,25 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03] col-span-12 md:min-w-[940px] mt-9">
-          <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
-            <PageBreadcrumb pageTitle="Ventas recientes" />
-            <TableFacturas
-              loader={false}
-              data={productosData.data}
-              total_pages={productosData.total_pages}
-              setPage={incrementPage}
-              pageNUmber={filters.page}
-              pageSize={10}
-              updateSize={() => {}}
-              showPag={true}
-              showColum={{ actions: false }}
-              btnEdit={false}
-            />
+        <section className="grid grid-cols-12 gap-4 md:gap-6">
+          <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03] col-span-12 md:min-w-[600px] mt-9">
+            <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
+              <PageBreadcrumb pageTitle="Ventas recientes" />
+              <TableFacturas
+                loader={false}
+                data={productosData.data}
+                total_pages={productosData.total_pages}
+                setPage={incrementPage}
+                pageNUmber={filters.page}
+                pageSize={10}
+                updateSize={() => {}}
+                showPag={true}
+                showColum={{ actions: false }}
+                btnEdit={false}
+              />
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
