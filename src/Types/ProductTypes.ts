@@ -144,7 +144,7 @@ export type UpdateProducto = {
   estadoId: number | null;
   precioCompra: number;
   precioVenta: number;
-  precioMinimo: number | null;
+  minPriceSale: number | null;
   stockActual: number;
   stockMinimo: number;
   unidadMedida: string;

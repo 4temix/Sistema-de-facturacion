@@ -461,7 +461,7 @@ function FacturacionPageContent() {
           <EdicionFactura
             closeModal={closeModalEdit}
             selectsData={selectsData?.estados.filter(
-              (el) => ![1, 2, 3, 5].includes(el.id)
+              (el) => ![1, 2, 3].includes(el.id)
             )}
           />
         </section>

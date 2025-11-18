@@ -62,7 +62,7 @@ export default function EditProducto(params: Actions) {
       estadoId: 0,
       precioCompra: 0,
       precioVenta: 0,
-      precioMinimo: 0,
+      minPriceSale: 0,
       stockActual: 0,
       stockMinimo: 0,
       unidadMedida: "unidad",
@@ -357,13 +357,13 @@ export default function EditProducto(params: Actions) {
                       type="number"
                       id="precio_minimo"
                       placeholder="0.00"
-                      hint={errors.precioMinimo}
-                      value={values.precioMinimo ?? ""}
-                      error={errors.precioMinimo ? true : false}
+                      hint={errors.minPriceSale}
+                      value={values.minPriceSale ?? ""}
+                      error={errors.minPriceSale ? true : false}
                       onChange={(e) => {
                         const val = e.target.value;
                         setFieldValue(
-                          "precioMinimo",
+                          "minPriceSale",
                           val === "" ? null : parseFloat(val)
                         );
                       }}
