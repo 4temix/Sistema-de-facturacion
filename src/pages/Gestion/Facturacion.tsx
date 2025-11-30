@@ -14,6 +14,7 @@ import {
   DataRequest,
   MetricasFacturas,
   ParamsFacturasRequest,
+  SaveFactura,
   SelectsFacturacion,
 } from "../../Types/FacturacionTypes";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -24,6 +25,32 @@ import {
   useModalEdit,
 } from "../../context/ModalEditContext";
 import { useSearchParams } from "react-router";
+import FormFacturasPersistentes from "../../components/Facturacion/FormFacturasPersistentes";
+
+type Productos = {
+  id: number;
+  nombre: string;
+  codigo: string;
+  precioVenta: number;
+  precioMinimo: number;
+  cantidad: number;
+  descuento: number;
+  subtotal: number;
+  impuestos: number;
+  precioCompra: number;
+  precioVentaOriginal: number;
+};
+
+type PersistenciaFactura = {
+  id: number;
+  factura: SaveFactura;
+  elements: Productos[];
+};
+
+type productosStock = {
+  id: number;
+  stockActual: number;
+};
 
 function FacturacionPageContent() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -31,6 +58,18 @@ function FacturacionPageContent() {
     isOpen: isProductModalOpen,
     openModal: openProductModal,
     closeModal: closeProductModal,
+  } = useModal();
+
+  const {
+    isOpen: facturaPIsOpen,
+    openModal: openFacturaP,
+    closeModal: closeFacturaP,
+  } = useModal();
+
+  const {
+    isOpen: FacturapersitenteIsOpen,
+    openModal: openFacturapersitente,
+    closeModal: closeFacturapersitente,
   } = useModal();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,16 +97,19 @@ function FacturacionPageContent() {
     estado: "",
   });
 
-  //filtros de busqueda
-  const [filters, setFilters] = useState({
-    estado: null,
-    search: "",
-    fechaPago: null,
-    page: 1,
+  const initialFilters = {
+    estado: searchParams.get("estado")
+      ? Number(searchParams.get("estado"))
+      : null,
+    search: searchParams.get("search") ?? "",
+    fechaPago: searchParams.get("fechaPago") ?? null,
+    fechaInit: searchParams.get("fechaInit") ?? "",
+    fechaFin: searchParams.get("fechaFin") ?? "",
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
     PageSize: 5,
-    fechaInit: "",
-    fechaFin: "",
-  });
+  };
+  //filtros de busqueda
+  const [filters, setFilters] = useState(initialFilters);
 
   //para la bsuqueda de facturas
   let BeforeFilter = useRef<string>("");
@@ -77,6 +119,51 @@ function FacturacionPageContent() {
   const [pagUtilities, setPagUtilities] = useState({
     tableLoader: false,
   });
+
+  const [facturasP, setFacturasP] = useState<PersistenciaFactura[]>([]);
+  const [stockGlobal, setstockGlobal] = useState<productosStock[]>([]);
+  const [facturaPt, setFacturaPT] = useState<PersistenciaFactura>({
+    id: 0,
+    factura: {} as SaveFactura,
+    elements: [],
+  });
+  const count = useRef(1);
+
+  const selectedEstado = filters?.estado
+    ? selectsData?.estados?.find((e) => e.id === filters.estado)
+    : null;
+
+  //creacion de una factura para su persistencia
+  function SaveFactura(params: PersistenciaFactura) {
+    const factura = facturasP.findIndex((el) => el.id == params.id);
+    if (factura != -1) {
+      const newF = [...facturasP];
+      newF[factura] = params;
+      setFacturasP(newF);
+      return;
+    }
+
+    params.id = count.current;
+    setFacturasP((prev) => {
+      return [...prev, params];
+    });
+
+    count.current++;
+  }
+
+  function SaveStock(params: productosStock[]) {
+    setstockGlobal(params);
+  }
+
+  //eliminacion de una factura ccon persistencia
+  function DeleteFactura(id: number) {
+    const factura = facturasP.findIndex((el) => el.id == id);
+    if (factura != -1) {
+      const newF = facturasP.filter((el) => el.id != id);
+      setFacturasP(newF);
+      return;
+    }
+  }
 
   //actualizar los fintros
   function updateFilter(value: string | number | null, key: string) {
@@ -109,15 +196,12 @@ function FacturacionPageContent() {
 
   //funcion para obtener los elementos de la tabla
   function getData(filters: ParamsFacturasRequest) {
-    setPagUtilities((p) => ({ ...p, tableLoader: true }));
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
-      if (pagUtilities.tableLoader) {
-        setPagUtilities((p) => ({ ...p, tableLoader: false }));
-      }
       return;
     }
+    setPagUtilities((p) => ({ ...p, tableLoader: true }));
     BeforeFilter.current = queryString;
     apiRequestThen<DataRequest>({
       url: `api/facturas?${queryString}`,
@@ -178,11 +262,17 @@ function FacturacionPageContent() {
   }, [debouncedSearch, filters.page]);
 
   useEffect(() => {
-    if (!searchParams.get("pag")) {
-      return;
-    }
-    updateFilter(Number(searchParams.get("pag")), "page");
-  }, [searchParams]);
+    const params: any = {};
+
+    if (filters.estado) params.estado = filters.estado;
+    if (filters.search) params.search = filters.search;
+    if (filters.fechaPago) params.fechaPago = filters.fechaPago;
+    if (filters.fechaInit) params.fechaInit = filters.fechaInit;
+    if (filters.fechaFin) params.fechaFin = filters.fechaFin;
+    if (filters.page) params.page = filters.page;
+
+    setSearchParams(params);
+  }, [filters]);
 
   return (
     <>
@@ -192,13 +282,25 @@ function FacturacionPageContent() {
             <h2 className="text-3xl font-bold">Facturacion</h2>
           </div>
           <div className="action-container ml-auto">
+            {facturasP.length > 0 && (
+              <Button
+                size="sm"
+                variant="primary"
+                className="mr-2"
+                onClick={openFacturaP}
+              >
+                Ver facturas pendientes
+              </Button>
+            )}
             <Button size="sm" variant="primary" onClick={openProductModal}>
               Crear factura
             </Button>
+
             <Modal
               isOpen={isProductModalOpen}
               onClose={closeProductModal}
               CloseClickBanner={false}
+              showCloseButton={false}
               className="max-w-[1200px] m-4 p-2"
             >
               <section
@@ -211,6 +313,79 @@ function FacturacionPageContent() {
                 <FormFactutas
                   closeModal={closeProductModal}
                   selectsData={selectsData}
+                  sendFactura={SaveFactura}
+                  sendStock={SaveStock}
+                  stockGlobal={stockGlobal}
+                  facturasP={facturasP}
+                />
+              </section>
+            </Modal>
+            {/* modal de facturas pendientes */}
+            <Modal
+              isOpen={facturaPIsOpen}
+              onClose={closeFacturaP}
+              CloseClickBanner={false}
+              className="max-w-[1200px] m-4 p-4 min-h-[50vh]"
+            >
+              <div className="px-2 pr-14">
+                <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+                  Facturas Pendientes
+                </h4>
+              </div>
+              <section
+                className="overflow-y-scroll max-h-[95vh]
+    [&::-webkit-scrollbar]:w-2 
+    [&::-webkit-scrollbar-track]:bg-gray-200 
+    [&::-webkit-scrollbar-thumb]:bg-blue-500 
+    [&::-webkit-scrollbar-thumb]:rounded-full 
+    [&::-webkit-scrollbar-thumb:hover]:bg-blue-600
+    grid grid-cols-4 gap-3 p-4"
+              >
+                {facturasP.map((el) => (
+                  <div
+                    key={el.id}
+                    className="flex flex-col items-center justify-center 
+      border border-gray-300 rounded-xl shadow-sm
+      p-4 bg-white hover:shadow-md transition cursor-pointer"
+                    onClick={() => {
+                      setFacturaPT(el);
+                      closeFacturaP();
+                      openFacturapersitente();
+                    }}
+                  >
+                    <div className="w-8 h-8 bg-gray-100 border border-gray-300 rounded-md flex items-center justify-center text-gray-600 text-sm">
+                      📄
+                    </div>
+                    <p className="mt-2 text-sm font-medium text-gray-800 text-center line-clamp-2">
+                      {el.factura.nombreCliente}
+                    </p>
+                  </div>
+                ))}
+              </section>
+            </Modal>
+            <Modal
+              isOpen={FacturapersitenteIsOpen}
+              onClose={closeFacturapersitente}
+              showCloseButton={false}
+              CloseClickBanner={false}
+              className="max-w-[1200px] m-4 p-2"
+            >
+              <section
+                className="overflow-y-scroll max-h-[95vh]  [&::-webkit-scrollbar]:w-2 
+         [&::-webkit-scrollbar-track]:bg-gray-200 
+         [&::-webkit-scrollbar-thumb]:bg-blue-500 
+         [&::-webkit-scrollbar-thumb]:rounded-full 
+         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+              >
+                <FormFacturasPersistentes
+                  closeModal={closeFacturapersitente}
+                  selectsData={selectsData}
+                  sendFactura={SaveFactura}
+                  factura={facturaPt}
+                  facturasP={facturasP}
+                  deleteFactura={DeleteFactura}
+                  sendStock={SaveStock}
+                  stockGlobal={stockGlobal}
                 />
               </section>
             </Modal>
@@ -289,10 +464,10 @@ function FacturacionPageContent() {
                         //se hace de esta manera para tener los labels de los selects
                         //para hacer que salga el place holder se hace la verificacion de si hay valor
                         value={
-                          filters?.estado
+                          selectedEstado
                             ? {
-                                label: labelSelects?.estado,
-                                value: filters.estado,
+                                label: selectedEstado.name,
+                                value: selectedEstado.id.toString(),
                               }
                             : null
                         }
@@ -312,106 +487,31 @@ function FacturacionPageContent() {
                         }}
                       />
                     </div>
-                    {/* <div>
-                      <Label htmlFor="inputTwo">Metodo</Label>
-                      <Select<Option, false>
-                        name="colors"
-                        id="category"
-                        styles={customStyles()}
-                        placeholder={"Categoria..."}
-                        //se hace de esta manera para tener los labels de los selects
-                        //para hacer que salga el place holder se hace la verificacion de si hay valor
-                        value={
-                          filters.categoria
-                            ? {
-                                label: labelSelects?.categoria,
-                                value: filters.categoria,
-                              }
-                            : null
-                        }
-                        options={selectsData?.categorias?.map(
-                          (producto: BaseSelecst) => ({
-                            label: producto.name,
-                            value: producto.id.toString(),
-                          })
-                        )}
-                        className="select-custom pl-0"
-                        classNamePrefix="select"
-                        onChange={(e) => {
-                          if (!e) return;
-                          updateFilter(parseInt(e.value), "categoria");
-                          updateLabels(e.label, "categoria");
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="inputTwo">Marca</Label>
-                      <Select
-                        name="colors"
-                        id="brand"
-                        styles={customStyles()}
-                        placeholder={"Marca..."}
-                        //se hace de esta manera para tener los labels de los selects
-                        //para hacer que salga el place holder se hace la verificacion de si hay valor
-                        value={
-                          filters.marca
-                            ? {
-                                label: labelSelects?.marca,
-                                value: filters.marca,
-                              }
-                            : null
-                        }
-                        options={selectsData?.marcas?.map(
-                          (producto: BaseSelecst) => ({
-                            label: producto.name,
-                            value: producto.id.toString(),
-                          })
-                        )}
-                        className="select-custom pl-0"
-                        classNamePrefix="select"
-                        onChange={(e) => {
-                          updateFilter(parseInt(e.value), "marca");
-                          updateLabels(e.label, "marca");
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid-cols-2 grid gap-3">
-                    <div className="col-span-1">
-                      <Label htmlFor="inputTwo">precio minimo</Label>
-                      <Input
-                        type="number"
-                        value={filters.precioVentaMinimo ?? ""}
-                        id="inputTwo"
-                        placeholder="Minimo..."
-                        onChange={(e) => {
-                          updateFilter(
-                            parseFloat(e.target.value),
-                            "precioVentaMinimo"
-                          );
-                        }}
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <Label htmlFor="inputTwo">Precio maximo</Label>
-                      <Input
-                        type="text"
-                        id="inputTwo"
-                        value={filters.precioVentaMaximo ?? ""}
-                        placeholder="Maximo..."
-                        onChange={(e) => {
-                          if (e.target.value == "") {
-                            updateFilter(null, "precioVentaMaximo");
-                            return;
+                    <div className="grid-cols-2 grid gap-3">
+                      <div>
+                        <Label htmlFor="fechaInit">Fecha inicio</Label>
+                        <Input
+                          type="date"
+                          id="fechaInit"
+                          value={filters.fechaInit}
+                          onChange={(e) =>
+                            updateFilter(e.target.value, "fechaInit")
                           }
-                          updateFilter(
-                            parseInt(e.target.value),
-                            "precioVentaMaximo"
-                          );
-                        }}
-                      />
-                    </div> */}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="fechaFin">Fecha fin</Label>
+                        <Input
+                          type="date"
+                          id="fechaFin"
+                          value={filters.fechaFin}
+                          onChange={(e) =>
+                            updateFilter(e.target.value, "fechaFin")
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -427,6 +527,24 @@ function FacturacionPageContent() {
                   }}
                 >
                   Buscar
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-red-500 hover:bg-red-700"
+                  onClick={() => {
+                    setFilters({
+                      estado: null,
+                      search: "",
+                      fechaPago: null,
+                      page: 1,
+                      PageSize: 5,
+                      fechaInit: "",
+                      fechaFin: "",
+                    });
+                    setSearchParams({});
+                  }}
+                >
+                  Reiniciar filtros
                 </Button>
               </div>
             </form>
@@ -461,7 +579,7 @@ function FacturacionPageContent() {
           <EdicionFactura
             closeModal={closeModalEdit}
             selectsData={selectsData?.estados.filter(
-              (el) => ![1, 2, 3].includes(el.id)
+              (el) => ![1, 2, 3, 7].includes(el.id)
             )}
           />
         </section>

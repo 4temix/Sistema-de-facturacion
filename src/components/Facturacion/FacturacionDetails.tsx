@@ -327,7 +327,12 @@ export default function FacturacionDetails({
                   modalEditOpen();
                   AsingFactura(factura);
                 }}
-                className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={factura.estado == "Reembolsada" ? true : false}
+                className={`flex-1 ${
+                  factura.estado != "Reembolsada"
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-300"
+                } py-2 rounded-lg transition-colors`}
               >
                 <span className="flex justify-center items-center">
                   <PencilIcon /> Editar

@@ -54,14 +54,16 @@ type Actions = {
   closeModal: () => void;
   selectsData: SelectsFacturacion | undefined;
   sendFactura: (params: PersistenciaFactura) => void;
+  factura: PersistenciaFactura;
   sendStock: (elements: productosStock[]) => void;
   stockGlobal: productosStock[];
+  deleteFactura: (id: number) => void;
   facturasP: PersistenciaFactura[];
 };
 
 //expresion regular para validar si algo es
 const regexNum = /^-?\d+(\.\d+)?$/;
-export default function FormFactutas(params: Actions) {
+export default function FormFacturasPersistentes(params: Actions) {
   const { closeModal, selectsData } = params;
   //filtros de busqueda
   const [filters, setFilters] = useState({
@@ -101,6 +103,7 @@ export default function FormFactutas(params: Actions) {
     setFieldValue,
     setFieldTouched,
     // handleSubmit,
+    setValues,
     validateForm,
     initialValues,
     setTouched,
@@ -142,6 +145,9 @@ export default function FormFactutas(params: Actions) {
 
   //productos agregados
   const [products, setProducts] = useState<Productos[]>([]);
+
+  //guardar el stock de los productos de manera global
+  const [stockActual, setStockActual] = useState<productosStock[]>([]);
 
   //cargando
   const [isLoading, setIsLoading] = useState(false);
@@ -273,10 +279,15 @@ export default function FormFactutas(params: Actions) {
 
       params.sendStock(cantidades);
     }
-
     RecalcularFactura(elements);
 
     setProducts([...elements]);
+
+    params.sendFactura({
+      id: params.factura.id,
+      factura: values,
+      elements: [...elements],
+    });
 
     const Toast = Swal.mixin({
       toast: true,
@@ -417,6 +428,8 @@ export default function FormFactutas(params: Actions) {
           closeModal();
           return;
         }
+
+        params.deleteFactura(params.factura.id);
         closeModal();
       })
       .finally(() => {
@@ -442,6 +455,15 @@ export default function FormFactutas(params: Actions) {
       const cantidadDisponible = elementoStock.stockActual + cantidadAnterior;
       const cantidadNueva = Number(value) || 0;
 
+      console.log(
+        "anterior",
+        cantidadAnterior,
+        "disponible",
+        cantidadDisponible,
+        "nueva",
+        cantidadNueva
+      );
+
       // 1️⃣ Si la cantidad nueva es 0 → devolver al stock global lo que tenía antes
       if (cantidadNueva === 0) {
         const nuevoStock = elementoStock.stockActual + cantidadAnterior;
@@ -456,6 +478,12 @@ export default function FormFactutas(params: Actions) {
 
         RecalcularFactura(productosUpdate);
         params.sendStock(actualizado);
+        params.sendFactura({
+          id: params.factura.id,
+          factura: values,
+          elements: [...productosUpdate],
+        });
+
         return;
       }
 
@@ -540,6 +568,12 @@ export default function FormFactutas(params: Actions) {
     const nuevosProductos = [...products];
     nuevosProductos[index] = producto;
 
+    params.sendFactura({
+      id: params.factura.id,
+      factura: values,
+      elements: [...nuevosProductos],
+    });
+
     RecalcularFactura(nuevosProductos);
 
     setProducts(nuevosProductos);
@@ -565,31 +599,11 @@ export default function FormFactutas(params: Actions) {
       });
       return;
     }
-
-    if (
-      params.facturasP.some(
-        (el) => el.factura.nombreCliente == values.nombreCliente
-      )
-    ) {
-      const Toast = Swal.mixin({
-        toast: true,
-        position: "bottom-end",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.onmouseenter = Swal.stopTimer;
-          toast.onmouseleave = Swal.resumeTimer;
-        },
-      });
-      Toast.fire({
-        icon: "warning",
-        title: "Ya existe una factura con ese nombre",
-      });
-      return;
-    }
-
-    params.sendFactura({ id: 0, factura: values, elements: products });
+    params.sendFactura({
+      id: params.factura.id,
+      factura: values,
+      elements: products,
+    });
     const Toast = Swal.mixin({
       toast: true,
       position: "bottom-end",
@@ -605,8 +619,6 @@ export default function FormFactutas(params: Actions) {
       icon: "success",
       title: "Factura Guardada",
     });
-
-    closeModal();
   }
 
   //eliminar nulos
@@ -671,6 +683,7 @@ export default function FormFactutas(params: Actions) {
     const nuevos = products.filter((el) => el.id !== id);
     const index = products.findIndex((el) => el.id === id);
     const producto = index !== -1 ? products[index] : null;
+    //para los elementos globales y control del multi factura
 
     if (producto == undefined) {
       return;
@@ -686,12 +699,12 @@ export default function FormFactutas(params: Actions) {
     // 1️⃣ Si la cantidad nueva es 0 → devolver al stock global lo que tenía antes
     if (cantidadNueva === 0) {
       const nuevoStock = elementoStock.stockActual + cantidadAnterior;
-
+      console.log(cantidadAnterior);
       const actualizado = [...params.stockGlobal];
       actualizado[index] = { ...elementoStock, stockActual: nuevoStock };
       params.sendStock(actualizado);
-
       producto.cantidad = 0;
+      //agregacion del producto a los productos globales
     }
 
     const nuevosProductos = [...products];
@@ -699,6 +712,11 @@ export default function FormFactutas(params: Actions) {
     nuevosProductos[index] = producto;
 
     RecalcularFactura(nuevosProductos);
+    params.sendFactura({
+      id: params.factura.id,
+      factura: values,
+      elements: [...nuevosProductos],
+    });
 
     setProducts(nuevos);
   }
@@ -744,6 +762,35 @@ export default function FormFactutas(params: Actions) {
   useEffect(() => {
     setFieldValue("montoPagado", isCheckedTwo ? values.total : 0);
   }, [isCheckedTwo]);
+
+  useEffect(() => {
+    if (params.factura.id == 0) {
+      return;
+    }
+    setValues({
+      clienteId: params.factura.factura.clienteId ?? 0,
+      nombreCliente: params.factura.factura.nombreCliente ?? "",
+      documentoCliente: params.factura.factura.documentoCliente ?? "",
+      telefonoCLiente: params.factura.factura.telefonoCLiente ?? "",
+
+      subtotal: params.factura.factura.subtotal ?? 0,
+      impuestoTotal: params.factura.factura.impuestoTotal ?? 0,
+      descuentoTotal: params.factura.factura.descuentoTotal ?? 0,
+      total: params.factura.factura.total ?? 0,
+      ganancia: params.factura.factura.ganancia ?? 0,
+
+      metodoPagoId: params.factura.factura.metodoPagoId ?? 0,
+      montoPagado: params.factura.factura.montoPagado ?? 0,
+
+      vendedor: params.factura.factura.vendedor ?? 1,
+      sucursal: params.factura.factura.sucursal ?? "Repuesto",
+      moneda: params.factura.factura.moneda ?? "DOP",
+
+      productos: [],
+    });
+
+    setProducts(params.factura.elements);
+  }, [params.factura]);
 
   return (
     <>
@@ -1140,6 +1187,7 @@ export default function FormFactutas(params: Actions) {
             className="bg-green-500 hover:bg-green-600"
             onClick={() => {
               sendFacturaPP();
+              closeModal();
             }}
           >
             Guardar factura temporal
@@ -1148,19 +1196,6 @@ export default function FormFactutas(params: Actions) {
             size="sm"
             variant="outline"
             onClick={() => {
-              if (params.facturasP.length == 0) {
-                params.sendStock([]);
-                closeModal();
-                return;
-              }
-              let elements = [...params.stockGlobal];
-              products.forEach((el) => {
-                let stockEl = elements.find((stEl) => stEl.id == el.id);
-                if (stockEl) {
-                  stockEl.stockActual = el.cantidad + stockEl.stockActual;
-                }
-              });
-
               closeModal();
             }}
           >
@@ -1187,10 +1222,6 @@ export default function FormFactutas(params: Actions) {
                 SaveFactura({ ...values });
               } else {
                 console.log("Errores encontrados:", errors);
-              }
-
-              if (params.facturasP.length == 0) {
-                params.sendStock([]);
               }
             }}
           >

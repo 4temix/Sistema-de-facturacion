@@ -48,26 +48,44 @@ export default function Productos() {
   const [selectsData, setSelectsData] = useState<Selects>();
 
   const [labelSelects, setLabelSelects] = useState({
-    tipo: "",
-    marca: "",
-    categoria: "",
-    estado: "",
+    tipo: searchParams.get("tipoLabel") ?? "",
+    marca: searchParams.get("marcaLabel") ?? "",
+    categoria: searchParams.get("categoriaLabel") ?? "",
+    estado: searchParams.get("estadoLabel") ?? "",
   });
 
-  //filtros de busqueda
-  const [filters, setFilters] = useState({
-    tipo: null,
-    marca: null,
-    categoria: null,
-    estado: null,
-    precioVentaMinimo: null,
-    precioVentaMaximo: null,
-    search: "",
-    stockBajo: false,
-    agotados: false,
-    page: 1,
+  const initialFilters = {
+    tipo: searchParams.get("tipo") ? Number(searchParams.get("tipo")) : null,
+
+    marca: searchParams.get("marca") ? Number(searchParams.get("marca")) : null,
+
+    categoria: searchParams.get("categoria")
+      ? Number(searchParams.get("categoria"))
+      : null,
+
+    estado: searchParams.get("estado")
+      ? Number(searchParams.get("estado"))
+      : null,
+
+    precioVentaMinimo: searchParams.get("precioVentaMinimo")
+      ? Number(searchParams.get("precioVentaMinimo"))
+      : null,
+
+    precioVentaMaximo: searchParams.get("precioVentaMaximo")
+      ? Number(searchParams.get("precioVentaMaximo"))
+      : null,
+
+    search: searchParams.get("search") ?? "",
+    stockBajo: searchParams.get("stockBajo") === "true",
+    agotados: searchParams.get("agotados") === "true",
+
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
+
     PageSize: 5,
-  });
+  };
+
+  //filtros de busqueda
+  const [filters, setFilters] = useState(initialFilters);
 
   //elementos para que funcione el debounce
   const debouncedSearch = useDebounce(filters.search, 600);
@@ -104,7 +122,6 @@ export default function Productos() {
 
   //funcion para obtener los elementos de la tabla
   function getData(filters: ProductoFiltro) {
-    setLoadintComplete(true);
     const queryString = buildQueryString(filters);
 
     if (BeforeFilter.current == queryString) {
@@ -113,6 +130,7 @@ export default function Productos() {
       }
       return;
     }
+    setLoadintComplete(true);
 
     BeforeFilter.current = queryString;
     apiRequestThen<DataRequest>({
@@ -177,11 +195,35 @@ export default function Productos() {
   }, [debouncedSearch]);
 
   useEffect(() => {
-    if (!searchParams.get("pag")) {
-      return;
-    }
-    updateFilter(Number(searchParams.get("pag")), "page");
-  }, [searchParams]);
+    const params: any = {};
+
+    if (filters.tipo) params.tipo = filters.tipo;
+    if (labelSelects.tipo) params.tipoLabel = labelSelects.tipo;
+
+    if (filters.marca) params.marca = filters.marca;
+    if (labelSelects.marca) params.marcaLabel = labelSelects.marca;
+
+    if (filters.categoria) params.categoria = filters.categoria;
+    if (labelSelects.categoria) params.categoriaLabel = labelSelects.categoria;
+
+    if (filters.estado) params.estado = filters.estado;
+    if (labelSelects.estado) params.estadoLabel = labelSelects.estado;
+
+    if (filters.precioVentaMinimo !== null)
+      params.precioVentaMinimo = filters.precioVentaMinimo;
+
+    if (filters.precioVentaMaximo !== null)
+      params.precioVentaMaximo = filters.precioVentaMaximo;
+
+    if (filters.search) params.search = filters.search;
+
+    params.stockBajo = filters.stockBajo;
+    params.agotados = filters.agotados;
+
+    if (filters.page) params.page = filters.page;
+
+    setSearchParams(params);
+  }, [filters, labelSelects]);
 
   return (
     <section>
@@ -289,7 +331,7 @@ export default function Productos() {
                         filters.estado
                           ? {
                               label: labelSelects?.estado,
-                              value: filters.estado,
+                              value: filters.estado.toString(),
                             }
                           : null
                       }
@@ -321,7 +363,7 @@ export default function Productos() {
                         filters.categoria
                           ? {
                               label: labelSelects?.categoria,
-                              value: filters.categoria,
+                              value: filters.categoria.toString(),
                             }
                           : null
                       }
@@ -352,8 +394,8 @@ export default function Productos() {
                       value={
                         filters.marca
                           ? {
-                              label: labelSelects?.marca,
-                              value: filters.marca,
+                              label: labelSelects.marca,
+                              value: filters.marca.toString(),
                             }
                           : null
                       }
@@ -383,6 +425,10 @@ export default function Productos() {
                       id="inputTwo"
                       placeholder="Minimo..."
                       onChange={(e) => {
+                        if (e.target.value === "") {
+                          updateFilter(null, "precioVentaMinimo"); // o 0 si prefieres
+                          return;
+                        }
                         updateFilter(
                           parseFloat(e.target.value),
                           "precioVentaMinimo"
@@ -439,6 +485,37 @@ export default function Productos() {
                 }}
               >
                 Buscar
+              </Button>
+              <Button
+                type="button"
+                className="bg-red-500 hover:bg-red-700"
+                onClick={() => {
+                  setFilters({
+                    tipo: null,
+                    marca: null,
+                    categoria: null,
+                    estado: null,
+
+                    precioVentaMinimo: null,
+                    precioVentaMaximo: null,
+                    search: "",
+
+                    stockBajo: false,
+                    agotados: false,
+
+                    page: 1,
+                    PageSize: 5,
+                  });
+                  setLabelSelects({
+                    tipo: "",
+                    marca: "",
+                    categoria: "",
+                    estado: "",
+                  });
+                  setSearchParams({});
+                }}
+              >
+                Reiniciar filtros
               </Button>
             </div>
           </form>

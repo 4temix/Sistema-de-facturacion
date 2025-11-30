@@ -203,8 +203,17 @@ export default function TableFacturas({
         cell: ({ row }: { row: Row<Factura> }) => (
           <div style={{ display: "flex", gap: "8px" }}>
             <button
-              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb] action_btn"
-              onClick={() => EditFactura(row.original.id)}
+              className={`transition-colors duration-200  ${
+                row.original.estado != "Reembolsada"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-300"
+              } action_btn`}
+              onClick={() => {
+                if (row.original.estado == "Reembolsada") {
+                  return;
+                }
+                EditFactura(row.original.id);
+              }}
               style={{
                 padding: "8px 16px",
                 color: "white",
@@ -214,7 +223,9 @@ export default function TableFacturas({
               <PencilIcon />
             </button>
             <button
-              onClick={() => Impresion(row.original.id)}
+              onClick={() => {
+                Impresion(row.original.id);
+              }}
               className="transition-colors duration-200 hover:bg-green-500 bg-green-400 action_btn"
               style={{
                 padding: "8px 16px",

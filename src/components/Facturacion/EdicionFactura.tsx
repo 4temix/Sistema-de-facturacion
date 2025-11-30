@@ -132,7 +132,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
     elementSelect[producto].cantidad =
       elementSelect[producto].cantidad - cantidad;
 
-    if (existente != -1) {
+    if (existente != -1 && sendData.detalles[existente].tipo == estado) {
       let elementsSend = sendData.detalles;
       elementsSend[existente].cantidad = elementsSend[existente].cantidad + 1;
       setEditData(elementSelect);
@@ -270,6 +270,14 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
     );
   }, [isCheckedTwo]);
 
+  useEffect(() => {
+    if (sendData.estado.value == "5") {
+      editData?.forEach((el) => {
+        aggDetallesDevolucion(el, el.cantidad, "Reintegrable", "");
+      });
+    }
+  }, [sendData.estado]);
+
   return (
     <>
       <div className="relative w-full bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
@@ -310,7 +318,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
           <div className="grid">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-1">
-                <Label htmlFor="status">Estados de facturas</Label>
+                <Label htmlFor="status">Estado de facturas</Label>
                 <Select<Option, false>
                   name="colors"
                   id="status"

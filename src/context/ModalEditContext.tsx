@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useRef, useState } from "react";
 import { useModal } from "../hooks/useModal";
 import { FacturaDetalle } from "../Types/FacturacionTypes";
 
@@ -20,10 +20,13 @@ export function ModalEditProvider({ children }: { children: ReactNode }) {
   } = useModal();
 
   const [facturaDetails, setFacturaDetails] = useState<FacturaDetalle>();
+  const plus = useRef(1);
 
   //funcion para actualizar la factura
   function AsingFactura(factura: FacturaDetalle) {
     setFacturaDetails(factura);
+    plus.current++;
+    console.log(plus.current);
   }
 
   return (
