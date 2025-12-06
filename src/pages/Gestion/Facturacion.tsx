@@ -317,6 +317,19 @@ function FacturacionPageContent() {
                   sendStock={SaveStock}
                   stockGlobal={stockGlobal}
                   facturasP={facturasP}
+                  onSuccess={() => {
+                    // Refrescar datos de la tabla y métricas
+                    BeforeFilter.current = "";
+                    getData(filters);
+                    // Refrescar métricas
+                    apiRequest<MetricasFacturas>({
+                      url: "api/facturas/metricas_facturas",
+                    }).then((request) => {
+                      if (request.success) {
+                        setDataMetricas(request.result ?? dataMetricas);
+                      }
+                    });
+                  }}
                 />
               </section>
             </Modal>
@@ -386,6 +399,19 @@ function FacturacionPageContent() {
                   deleteFactura={DeleteFactura}
                   sendStock={SaveStock}
                   stockGlobal={stockGlobal}
+                  onSuccess={() => {
+                    // Refrescar datos de la tabla y métricas
+                    BeforeFilter.current = "";
+                    getData(filters);
+                    // Refrescar métricas
+                    apiRequest<MetricasFacturas>({
+                      url: "api/facturas/metricas_facturas",
+                    }).then((request) => {
+                      if (request.success) {
+                        setDataMetricas(request.result ?? dataMetricas);
+                      }
+                    });
+                  }}
                 />
               </section>
             </Modal>

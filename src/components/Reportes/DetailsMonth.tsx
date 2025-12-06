@@ -6,6 +6,15 @@ import { useEffect, useState } from "react";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { DataRequest } from "../../Types/FacturacionTypes";
 import { ParamsFacturasRequest } from "../../Types/FacturacionTypes";
+import {
+  TbCurrencyDollar,
+  TbShoppingCart,
+  TbTrendingUp,
+  TbReceiptRefund,
+  TbReportMoney,
+  TbClockDollar,
+  TbReceipt,
+} from "react-icons/tb";
 
 export default function DetailsMonth({ params }: { params: ReporteMensual }) {
   const { fechaInit, fechaFin } = generarRangoFecha(
@@ -131,11 +140,11 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
         </div>
 
         {/* KPIs Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <p className="text-blue-100 text-sm">Ventas Totales</p>
-              {/* Icon: DollarSign */}
+              <TbCurrencyDollar className="text-blue-200 text-2xl" />
             </div>
             <p className="text-3xl font-bold mb-1">
               {new Intl.NumberFormat("es-DO", {
@@ -149,7 +158,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-gray-600 text-sm">Total Pedidos</p>
-              {/* Icon: ShoppingCart */}
+              <TbShoppingCart className="text-purple-500 text-2xl" />
             </div>
             <p className="text-3xl font-bold text-gray-900 mb-1">
               {params.totales.totalFacturas}
@@ -159,7 +168,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-gray-600 text-sm">Ganancias del mes</p>
-              {/* Icon: TrendingUp */}
+              <TbTrendingUp className="text-green-500 text-2xl" />
             </div>
             <p className="text-3xl font-bold text-green-600 mb-1">
               {new Intl.NumberFormat("es-DO", {
@@ -254,7 +263,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Devoluciones</h3>
-              {/* Icon: RotateCcw */}
+              <TbReceiptRefund className="text-red-500 text-2xl" />
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -268,7 +277,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                   <p className="text-lg font-bold text-purple-500">
                     ${params.devoluciones.valorTotal?.toLocaleString()}
                   </p>
-                  <p className="text-xs text-gray-600">reintegrable</p>
+                  <p className="text-xs text-gray-600">total</p>
                 </div>
 
                 <div className="p-3 bg-gray-50 rounded-lg">
@@ -310,6 +319,112 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                   </span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Gastos del Mes */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Gastos del Mes</h3>
+              <TbReportMoney className="text-orange-500 text-2xl" />
+            </div>
+            <div className="space-y-4">
+              {/* Métricas de Gastos */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg text-center">
+                  <TbReportMoney className="text-orange-500 text-xl mx-auto mb-1" />
+                  <p className="text-xs text-gray-600 mb-1">Total Gastado</p>
+                  <p className="text-lg font-bold text-orange-600">
+                    {new Intl.NumberFormat("es-DO", {
+                      style: "currency",
+                      currency: "DOP",
+                      minimumFractionDigits: 0,
+                    }).format(params.gastos?.metrics?.totalGastado ?? 0)}
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg text-center">
+                  <TbReceipt className="text-blue-500 text-xl mx-auto mb-1" />
+                  <p className="text-xs text-gray-600 mb-1">Cantidad</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {params.gastos?.metrics?.cantidadGastos ?? 0}
+                  </p>
+                  <p className="text-xs text-gray-500">gastos</p>
+                </div>
+
+                <div className="p-3 bg-gradient-to-br from-red-50 to-red-100 rounded-lg text-center">
+                  <TbClockDollar className="text-red-500 text-xl mx-auto mb-1" />
+                  <p className="text-xs text-gray-600 mb-1">Pendiente</p>
+                  <p className="text-lg font-bold text-red-600">
+                    {new Intl.NumberFormat("es-DO", {
+                      style: "currency",
+                      currency: "DOP",
+                      minimumFractionDigits: 0,
+                    }).format(params.gastos?.metrics?.totalPendiente ?? 0)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Lista de Gastos Recientes */}
+              {params.gastos?.detalles && params.gastos.detalles.length > 0 && (
+                <div className="pt-3 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Gastos Recientes
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {params.gastos.detalles.slice(0, 5).map((gasto) => (
+                      <div
+                        key={gasto.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {gasto.tipoGasto}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {gasto.proveedor || "Sin proveedor"} •{" "}
+                            {new Date(gasto.fecha).toLocaleDateString("es-DO")}
+                          </p>
+                        </div>
+                        <div className="text-right ml-3">
+                          <p className="text-sm font-bold text-gray-900">
+                            {new Intl.NumberFormat("es-DO", {
+                              style: "currency",
+                              currency: "DOP",
+                              minimumFractionDigits: 0,
+                            }).format(gasto.montoTotal)}
+                          </p>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${
+                              gasto.estado?.toLowerCase() === "pagado"
+                                ? "bg-green-100 text-green-700"
+                                : gasto.estado?.toLowerCase() === "pendiente"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}
+                          >
+                            {gasto.estado}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {params.gastos.detalles.length > 5 && (
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      +{params.gastos.detalles.length - 5} gastos más
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Mensaje si no hay gastos */}
+              {(!params.gastos?.detalles ||
+                params.gastos.detalles.length === 0) && (
+                <div className="text-center py-4 text-gray-500">
+                  <TbReportMoney className="text-4xl mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No hay gastos registrados este mes</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

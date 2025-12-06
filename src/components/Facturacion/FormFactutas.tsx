@@ -57,12 +57,13 @@ type Actions = {
   sendStock: (elements: productosStock[]) => void;
   stockGlobal: productosStock[];
   facturasP: PersistenciaFactura[];
+  onSuccess?: () => void;
 };
 
 //expresion regular para validar si algo es
 const regexNum = /^-?\d+(\.\d+)?$/;
 export default function FormFactutas(params: Actions) {
-  const { closeModal, selectsData } = params;
+  const { closeModal, selectsData, onSuccess } = params;
   //filtros de busqueda
   const [filters, setFilters] = useState({
     tipo: null,
@@ -119,6 +120,9 @@ export default function FormFactutas(params: Actions) {
 
       metodoPagoId: 0,
       montoPagado: 0,
+
+      detalleManoDeObra: "",
+      manoDeObra: 0,
 
       vendedor: 1,
       sucursal: "Repuesto",
@@ -321,15 +325,15 @@ export default function FormFactutas(params: Actions) {
     );
 
     // asigna los valores al estado o formulario
-    setFieldValue("subtotal", resultado.subtotal);
+    setFieldValue("subtotal", resultado.subtotal + values.manoDeObra);
     setFieldValue("descuentoTotal", resultado.descuentoTotal);
     setFieldValue("impuestoTotal", resultado.impuestos);
-    setFieldValue("total", resultado.total);
+    setFieldValue("total", resultado.total + values.manoDeObra);
   }
 
   //guardar los elementos
   function SaveFactura(producto: SaveFactura) {
-    if (products.length == 0) {
+    if (values.total == 0) {
       const Toast = Swal.mixin({
         toast: true,
         position: "bottom-end",
@@ -411,6 +415,11 @@ export default function FormFactutas(params: Actions) {
           icon: "success",
           title: "Factura guardada correctamente",
         });
+
+        // Refrescar datos en la página padre
+        if (onSuccess) {
+          onSuccess();
+        }
 
         if (params.facturasP.length == 1) {
           params.sendStock([]);
@@ -1046,6 +1055,62 @@ export default function FormFactutas(params: Actions) {
                 </div>
               ))}
             </div>
+            {/* mano de obra */}
+            <div>
+              <Label htmlFor="descripcion">Mano de obra</Label>
+              <textarea
+                id="descripcion"
+                rows={3}
+                placeholder="Costo de la accion realizada..."
+                value={values.detalleManoDeObra ?? ""}
+                className={`border rounded-xl w-full p-2 text-sm`}
+                onChange={(e) => {
+                  setFieldValue("detalleManoDeObra", e.target.value);
+                }}
+              ></textarea>
+            </div>
+            <div>
+              <Label htmlFor="telefono">Monto mano de obra</Label>
+              <Input
+                type="text"
+                id="telefono"
+                placeholder="monto de la mano de obra a pagar"
+                hint={
+                  errors.manoDeObra && touched.manoDeObra
+                    ? errors.manoDeObra
+                    : ""
+                }
+                value={values.manoDeObra ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === "") {
+                    setFieldValue("total", values.total - values.manoDeObra);
+                    setFieldValue(
+                      "subtotal",
+                      values.subtotal - values.manoDeObra
+                    );
+                    setFieldValue("manoDeObra", 0);
+                    return;
+                  }
+
+                  if (!regexNum.test(value)) return;
+
+                  const manoDeObra = Number(value);
+
+                  setFieldValue(
+                    "total",
+                    values.total - values.manoDeObra + manoDeObra
+                  );
+                  setFieldValue(
+                    "subtotal",
+                    values.subtotal - values.manoDeObra + manoDeObra
+                  );
+                  setFieldValue("manoDeObra", manoDeObra);
+                }}
+                onBlur={() => setFieldTouched("manoDeObra", true)}
+              />
+            </div>
             {/* 3️⃣ Categoría, Marca y Unidad de medida */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
               <div>
@@ -1108,7 +1173,7 @@ export default function FormFactutas(params: Actions) {
               <Checkbox
                 checked={isCheckedTwo}
                 onChange={setIsCheckedTwo}
-                disabled={products.length == 0 ? true : false}
+                disabled={values.total == 0 ? true : false}
                 label="Todo pagado"
               />
               <div className="rounded-[9px] bg-gray-200 flex flex-col p-3">

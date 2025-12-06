@@ -10,6 +10,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 const Home = lazy(() => import("./pages/Dashboard/Home"));
 const Productos = lazy(() => import("./pages/Gestion/Productos"));
 const Facturacion = lazy(() => import("./pages/Gestion/Facturacion"));
+const Gastos = lazy(() => import("./pages/Gestion/Gastos"));
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
 const SignUp = lazy(() => import("./pages/AuthPages/SignUp"));
 const NotFound = lazy(() => import("./pages/OtherPage/NotFound"));
@@ -51,6 +52,7 @@ const routes = createBrowserRouter([
       { path: "/inventario", element: <Productos /> },
       { path: "/inventario/:id", element: <PageDetailsProductos /> },
       { path: "/facturacion", element: <Facturacion /> },
+      { path: "/gastos", element: <Gastos /> },
       { path: "/mantenimientos", element: <Mantenimientos /> },
       { path: "/reportes", element: <Reportes /> },
       { path: "/reportes/:year", element: <DetailsYearPage /> },

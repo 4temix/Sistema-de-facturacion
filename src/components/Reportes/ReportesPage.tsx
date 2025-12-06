@@ -1,5 +1,6 @@
 import { VentasAnuales } from "../../Types/Reportes";
 import { Link } from "react-router";
+import { TbCalendarStats } from "react-icons/tb";
 
 type Params = {
   data: VentasAnuales[];
@@ -7,7 +8,7 @@ type Params = {
 
 export default function ReportesPage({ data = [] }: Params) {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex bg-gray-50">
       <div className="flex-1">
         {/* Header */}
         <div className="mb-8">
@@ -32,6 +33,7 @@ export default function ReportesPage({ data = [] }: Params) {
                 <h2 className="text-2xl font-bold text-gray-900">
                   {yearData.anio}
                 </h2>
+                <TbCalendarStats className="text-blue-500 text-2xl" />
               </div>
 
               {/* Total Sales */}
@@ -62,7 +64,7 @@ export default function ReportesPage({ data = [] }: Params) {
                     { month: "Nov", value: yearData.ventasMensuales[10] },
                     { month: "Dic", value: yearData.ventasMensuales[11] },
                   ].map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
+                    <div key={`${yearData.anio}-${idx}`} className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 w-8">
                         {item.month}
                       </span>
@@ -91,59 +93,6 @@ export default function ReportesPage({ data = [] }: Params) {
               </div>
             </Link>
           ))}
-        </div>
-
-        {/* Quick Access to Other Reports */}
-        <div className="mt-12">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Otros Reportes
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              to="/reportes/productos-top"
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-50 rounded-lg">
-                  {/* Icon: TrendingUp */}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Productos Top</p>
-                  <p className="text-xs text-gray-600">Rankings y tendencias</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/reportes/categorias"
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 rounded-lg">
-                  {/* Icon: Tag */}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Por Categorías</p>
-                  <p className="text-xs text-gray-600">Análisis detallado</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/reportes/devoluciones"
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-50 rounded-lg">
-                  {/* Icon: RotateCcw */}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Devoluciones</p>
-                  <p className="text-xs text-gray-600">Control de retornos</p>
-                </div>
-              </div>
-            </Link>
-          </div>
         </div>
       </div>
     </div>

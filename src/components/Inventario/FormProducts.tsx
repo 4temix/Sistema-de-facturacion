@@ -5,7 +5,7 @@ import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
 import { ValidationProduct } from "../../Utilities/ValidationProduct";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   BaseSelecst,
   Option,
@@ -13,25 +13,51 @@ import {
   Selects,
 } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import FormGastos from "../Gastos/FormGastos";
+import { GastoFormValues, SaveGasto } from "../../Types/Gastos";
+import { ValidationGasto } from "../Gastos/yup";
+import LoaderFun from "../loader/LoaderFunc";
 
 type Actions = {
   closeModal: () => void;
   selectsData: Selects | undefined;
+  onSuccess?: () => void;
+};
+
+// Regex para validar números (enteros y decimales)
+const regexNum = /^[0-9]*\.?[0-9]*$/;
+
+// Valores default de los gastos
+export const gastosInitialValues: GastoFormValues = {
+  tipoGasto: null,
+  proveedor: "",
+  comprobante: "",
+  fecha: "",
+  montoTotal: null,
+  montoPagado: null,
+  saldoPendiente: null,
+  estado: null,
+  metodoPago: "",
+  fechaPago: "",
+  origenFondo: "",
+  referencia: "",
+  nota: "",
+  cantidad: null,
 };
 
 export default function FormProducts(params: Actions) {
-  const { closeModal, selectsData } = params;
+  const { closeModal, selectsData, onSuccess } = params;
+  
+  // Estado de carga
+  const [isLoading, setIsLoading] = useState(false);
 
-  //formik validation
+  // Formik validation para producto
   const {
     values,
-    // handleBlur,
     touched,
-    // handleChange,
     errors,
     setFieldValue,
     setFieldTouched,
-    // handleSubmit,
     validateForm,
     initialValues,
     setTouched,
@@ -60,8 +86,67 @@ export default function FormProducts(params: Actions) {
     },
   });
 
-  //guardar los elementos
+  // Crear instancia de formik para gastos en el componente padre
+  const formik = useFormik<GastoFormValues>({
+    initialValues: gastosInitialValues,
+    validationSchema: ValidationGasto,
+    onSubmit: (values) => {
+      console.log("Gasto enviado:", values);
+    },
+  });
+
+  const { values: valuesGasto, setFieldValue: setFieldValueGastos } = formik;
+
+  // Función para guardar el gasto
+  const handleSaveGasto = async () => {
+    const errors = await formik.validateForm();
+
+    formik.setTouched(
+      Object.keys(gastosInitialValues).reduce((acc, key) => {
+        acc[key] = true;
+        return acc;
+      }, {} as Record<string, boolean>),
+      true
+    );
+
+    if (Object.keys(errors).length === 0) {
+      const gastoToSave: SaveGasto = {
+        tipoGasto: formik.values.tipoGasto!,
+        proveedor: formik.values.proveedor || undefined,
+        comprobante: formik.values.comprobante || undefined,
+        fecha: formik.values.fecha || undefined,
+        montoTotal: formik.values.montoTotal!,
+        montoPagado: formik.values.montoPagado!,
+        saldoPendiente: formik.values.saldoPendiente || undefined,
+        estado: formik.values.estado!,
+        metodoPago: formik.values.metodoPago || undefined,
+        fechaPago: formik.values.fechaPago || undefined,
+        origenFondo: formik.values.origenFondo || undefined,
+        referencia: formik.values.referencia || undefined,
+        nota: formik.values.nota || undefined,
+      };
+
+      apiRequestThen<boolean>({
+        url: "api/gastos/guardar_gasto",
+        configuration: {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(gastoToSave),
+        },
+      }).then((response) => {
+        if (!response.success) {
+          return;
+        }
+        closeModal();
+      });
+    } else {
+      console.log("Errores encontrados:", errors);
+    }
+  };
+
+  // Guardar producto
   function Saveproducto(producto: SaveProducto) {
+    setIsLoading(true);
     apiRequestThen<boolean>({
       url: "api/productos/guardar_producto",
       configuration: {
@@ -69,21 +154,72 @@ export default function FormProducts(params: Actions) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(producto),
       },
-    }).then((response) => {
-      if (!response.success) {
-        return;
-      }
-      closeModal();
-    });
+    })
+      .then((response) => {
+        if (!response.success) {
+          return;
+        }
+        // Refrescar datos en la página padre
+        if (onSuccess) {
+          onSuccess();
+        }
+        closeModal();
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
+  // 🔄 Calcular montoTotal cuando cambia stockActual o precioCompra
   useEffect(() => {
-    console.log(values);
-  }, [values]);
+    const stock = values.stockActual ?? 0;
+    const precio = values.precioCompra ?? 0;
+
+    if (stock > 0 && precio > 0) {
+      setFieldValueGastos("montoTotal", stock * precio);
+    } else {
+      setFieldValueGastos("montoTotal", null);
+    }
+  }, [values.stockActual, values.precioCompra, setFieldValueGastos]);
+
+  // 🔄 Calcular saldoPendiente cuando cambia montoTotal o montoPagado
+  useEffect(() => {
+    const montoTotal = valuesGasto.montoTotal;
+    const montoPagado = valuesGasto.montoPagado;
+
+    if (montoTotal === null || montoTotal === 0) {
+      setFieldValueGastos("saldoPendiente", null);
+      return;
+    }
+
+    if (montoPagado === null) {
+      setFieldValueGastos("saldoPendiente", montoTotal);
+      return;
+    }
+
+    const saldoPendiente = montoTotal - montoPagado;
+
+    if (saldoPendiente <= 0) {
+      setFieldValueGastos("saldoPendiente", 0);
+    } else {
+      setFieldValueGastos("saldoPendiente", saldoPendiente);
+    }
+  }, [valuesGasto.montoTotal, valuesGasto.montoPagado, setFieldValueGastos]);
+
+  // 🔄 Sincronizar cantidad del gasto con stockActual del producto
+  useEffect(() => {
+    const stock = values.stockActual ?? 0;
+    if (stock > 0) {
+      setFieldValueGastos("cantidad", stock);
+    } else {
+      setFieldValueGastos("cantidad", null);
+    }
+  }, [values.stockActual, setFieldValueGastos]);
 
   return (
     <>
       <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
+        {isLoading && <LoaderFun absolute={false} />}
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
             Agregar un producto
@@ -162,9 +298,9 @@ export default function FormProducts(params: Actions) {
                 />
               </div>
               <div>
-                <Label htmlFor="categoria">Tipo</Label>
+                <Label htmlFor="tipo">Tipo</Label>
                 <Select<Option, false>
-                  id="categoria"
+                  id="tipo"
                   styles={customStyles()}
                   placeholder="Selecciona un tipo..."
                   options={selectsData?.tipos?.map((element: BaseSelecst) => ({
@@ -178,9 +314,9 @@ export default function FormProducts(params: Actions) {
                 />
               </div>
               <div>
-                <Label htmlFor="categoria">Marca</Label>
+                <Label htmlFor="marca">Marca</Label>
                 <Select<Option, false>
-                  id="categoria"
+                  id="marca"
                   styles={customStyles()}
                   placeholder="Selecciona una marca..."
                   options={selectsData?.marcas?.map((element: BaseSelecst) => ({
@@ -193,18 +329,6 @@ export default function FormProducts(params: Actions) {
                   }}
                 />
               </div>
-              {/* <div>
-                <Label htmlFor="unidadMedida">Unidad de medida</Label>
-                <Select
-                  id="unidadMedida"
-                  styles={customStyles}
-                  placeholder="Unidad..."
-                  options={categoriaOptions}
-                  onChange={(e: SingleValue<Option>) => {
-                    setFieldValue("unidadMedida", parseInt(e.value));
-                  }}
-                />
-              </div> */}
             </div>
 
             {/* 4️⃣ Precios */}
@@ -212,7 +336,7 @@ export default function FormProducts(params: Actions) {
               <div>
                 <Label htmlFor="precio_compra">Precio de compra</Label>
                 <Input
-                  type="number"
+                  type="text"
                   id="precio_compra"
                   placeholder="0.00"
                   hint={
@@ -220,16 +344,19 @@ export default function FormProducts(params: Actions) {
                       ? errors.precioCompra
                       : ""
                   }
-                  value={values.precioCompra ?? ""}
+                  value={values.precioCompra === 0 ? "" : values.precioCompra ?? ""}
                   error={
                     errors.precioCompra && touched.precioCompra ? true : false
                   }
                   onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "precioCompra",
-                      val === "" ? null : parseFloat(val)
-                    );
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFieldValue("precioCompra", 0);
+                      return;
+                    }
+                    if (regexNum.test(value)) {
+                      setFieldValue("precioCompra", Number(value));
+                    }
                   }}
                   onBlur={() => setFieldTouched("precioCompra", true)}
                 />
@@ -237,7 +364,7 @@ export default function FormProducts(params: Actions) {
               <div>
                 <Label htmlFor="precio_venta">Precio de venta</Label>
                 <Input
-                  type="number"
+                  type="text"
                   id="precio_venta"
                   placeholder="0.00"
                   hint={
@@ -245,16 +372,19 @@ export default function FormProducts(params: Actions) {
                       ? errors.precioVenta
                       : ""
                   }
-                  value={values.precioVenta ?? ""}
+                  value={values.precioVenta === 0 ? "" : values.precioVenta ?? ""}
                   error={
                     errors.precioVenta && touched.precioVenta ? true : false
                   }
                   onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "precioVenta",
-                      val === "" ? null : parseFloat(val)
-                    );
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFieldValue("precioVenta", 0);
+                      return;
+                    }
+                    if (regexNum.test(value)) {
+                      setFieldValue("precioVenta", Number(value));
+                    }
                   }}
                   onBlur={() => setFieldTouched("precioVenta", true)}
                 />
@@ -262,18 +392,21 @@ export default function FormProducts(params: Actions) {
               <div>
                 <Label htmlFor="precio_minimo">Precio minimo negociable</Label>
                 <Input
-                  type="number"
+                  type="text"
                   id="precio_minimo"
                   placeholder="0.00"
                   hint={errors.precioMinimo}
-                  value={values.precioMinimo ?? ""}
+                  value={values.precioMinimo === 0 ? "" : values.precioMinimo ?? ""}
                   error={errors.precioMinimo ? true : false}
                   onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "precioMinimo",
-                      val === "" ? null : parseFloat(val)
-                    );
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFieldValue("precioMinimo", null);
+                      return;
+                    }
+                    if (regexNum.test(value)) {
+                      setFieldValue("precioMinimo", Number(value));
+                    }
                   }}
                 />
               </div>
@@ -284,7 +417,7 @@ export default function FormProducts(params: Actions) {
               <div>
                 <Label htmlFor="stockActual">Stock actual</Label>
                 <Input
-                  type="number"
+                  type="text"
                   id="stockActual"
                   placeholder="0"
                   hint={
@@ -292,16 +425,19 @@ export default function FormProducts(params: Actions) {
                       ? errors.stockActual
                       : ""
                   }
-                  value={values.stockActual ?? ""}
+                  value={values.stockActual === 0 ? "" : values.stockActual ?? ""}
                   error={
                     errors.stockActual && touched.stockActual ? true : false
                   }
                   onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "stockActual",
-                      val === "" ? null : parseFloat(val)
-                    );
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFieldValue("stockActual", 0);
+                      return;
+                    }
+                    if (regexNum.test(value)) {
+                      setFieldValue("stockActual", Number(value));
+                    }
                   }}
                   onBlur={() => setFieldTouched("stockActual", true)}
                 />
@@ -309,18 +445,21 @@ export default function FormProducts(params: Actions) {
               <div>
                 <Label htmlFor="stock_minimo">Stock mínimo</Label>
                 <Input
-                  type="number"
+                  type="text"
                   id="stock_minimo"
                   placeholder="0"
                   hint={errors.stockMinimo}
-                  value={values.stockMinimo ?? ""}
+                  value={values.stockMinimo === 0 ? "" : values.stockMinimo ?? ""}
                   error={errors.stockMinimo ? true : false}
                   onChange={(e) => {
-                    const val = e.target.value;
-                    setFieldValue(
-                      "stockMinimo",
-                      val === "" ? null : parseFloat(val)
-                    );
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFieldValue("stockMinimo", 0);
+                      return;
+                    }
+                    if (regexNum.test(value)) {
+                      setFieldValue("stockMinimo", Number(value));
+                    }
                   }}
                 />
               </div>
@@ -357,7 +496,7 @@ export default function FormProducts(params: Actions) {
                 />
               </div>
               <div>
-                <Label htmlFor="es_activo">Estado</Label>
+                <Label htmlFor="estado">Estado</Label>
                 <Select<Option, false>
                   id="estado"
                   styles={customStyles(!!errors.estadoId && touched.estadoId)}
@@ -386,18 +525,21 @@ export default function FormProducts(params: Actions) {
             <div>
               <Label htmlFor="impuesto">Impuesto (%)</Label>
               <Input
-                type="number"
+                type="text"
                 id="impuesto"
                 placeholder="Ej: 18"
                 hint={errors.impuesto}
-                value={values.impuesto ?? ""}
+                value={values.impuesto === 0 ? "" : values.impuesto ?? ""}
                 error={errors.impuesto ? true : false}
                 onChange={(e) => {
-                  const val = e.target.value;
-                  setFieldValue(
-                    "impuesto",
-                    val === "" ? null : parseFloat(val)
-                  );
+                  const value = e.target.value;
+                  if (value === "") {
+                    setFieldValue("impuesto", 0);
+                    return;
+                  }
+                  if (regexNum.test(value)) {
+                    setFieldValue("impuesto", Number(value));
+                  }
                 }}
               />
             </div>
@@ -413,10 +555,8 @@ export default function FormProducts(params: Actions) {
             size="sm"
             onClick={async (e?: React.MouseEvent<HTMLButtonElement>) => {
               e?.preventDefault();
-              // Valida todos los campos
               const errors = await validateForm();
 
-              // Marca todos los campos como tocados
               setTouched(
                 Object.keys(initialValues).reduce((acc, key) => {
                   acc[key] = true;
@@ -424,7 +564,7 @@ export default function FormProducts(params: Actions) {
                 }, {} as Record<string, boolean>),
                 true
               );
-              // Si no hay errores
+
               if (Object.keys(errors).length === 0) {
                 console.log("todo bien");
                 Saveproducto(values);
@@ -437,6 +577,15 @@ export default function FormProducts(params: Actions) {
           </Button>
         </div>
       </form>
+
+      <FormGastos
+        formik={formik}
+        selectsData={selectsData}
+        onCancel={closeModal}
+        onSubmit={handleSaveGasto}
+        submitLabel="Guardar gasto"
+        title="Registrar nuevo gasto"
+      />
     </>
   );
 }

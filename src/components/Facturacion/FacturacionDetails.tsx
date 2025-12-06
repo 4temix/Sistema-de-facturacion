@@ -1,9 +1,22 @@
 import { useModalEdit } from "../../context/ModalEditContext";
 import { useFacturaColor } from "../../hooks/useFacturaColor";
 import { handlePrintFactura } from "../../hooks/useImpresion";
-import { DownloadIcon, PencilIcon } from "../../icons";
+import { PencilIcon } from "../../icons";
 import { FacturaDetalle, ProductoVenta } from "../../Types/FacturacionTypes";
 import { FacturaSkeleton } from "./FacturaSkeleton";
+import { LuPrinter } from "react-icons/lu";
+import {
+  TbFileInvoice,
+  TbUser,
+  TbCalendar,
+  TbPackage,
+  TbTool,
+  TbTrendingUp,
+  TbPercentage,
+  TbCash,
+  TbCreditCard,
+  TbReceiptRefund,
+} from "react-icons/tb";
 
 interface FacturaDetailsDrawerProps {
   isOpen: boolean;
@@ -48,11 +61,12 @@ export default function FacturacionDetails({
           {/* 🔹 Header */}
           <div className="flex justify-between items-start mb-6">
             <div>
-              {/* 🧾 Icono factura */}
-              {/* <FileTextIcon /> */}
-              <h2 className="text-2xl font-bold text-gray-900">
-                Factura #{factura.numeroFactura}
-              </h2>
+              <div className="flex items-center gap-2 mb-1">
+                <TbFileInvoice className="text-blue-600 text-2xl" />
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Factura #{factura.numeroFactura}
+                </h2>
+              </div>
               <p className="text-gray-600 text-sm">
                 Emitida el {formatDate(factura.fechaEmision)}
               </p>
@@ -134,7 +148,7 @@ export default function FacturacionDetails({
           {/* 🔹 Cliente */}
           <div className="mb-6 border rounded-lg p-4 bg-blue-50 border-blue-200">
             <div className="flex items-center gap-2 mb-2">
-              {/* <UserIcon /> */}
+              <TbUser className="text-blue-600 text-xl" />
               <h3 className="font-semibold text-gray-900">Cliente</h3>
             </div>
             <p className="text-gray-800 font-medium">{factura.nombreCliente}</p>
@@ -153,19 +167,25 @@ export default function FacturacionDetails({
           {/* 🔹 Fechas */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white border p-3 rounded-lg">
-              {/* <CalendarIcon /> */}
-              <p className="text-xs text-gray-500">Emisión</p>
+              <div className="flex items-center gap-2 mb-1">
+                <TbCalendar className="text-gray-500 text-lg" />
+                <p className="text-xs text-gray-500">Emisión</p>
+              </div>
               <p className="font-medium">{formatDate(factura.fechaEmision)}</p>
             </div>
             <div className="bg-white border p-3 rounded-lg">
-              {/* <CalendarIcon /> */}
-              <p className="text-xs text-gray-500">Fecha de pago</p>
+              <div className="flex items-center gap-2 mb-1">
+                <TbCalendar className="text-gray-500 text-lg" />
+                <p className="text-xs text-gray-500">Fecha de pago</p>
+              </div>
               <p className="font-medium">{formatDate(factura.fechaPago)}</p>
             </div>
             {factura.estado === "Parcialmente pagada" && (
               <div className="bg-white border p-3 rounded-lg">
-                {/* <CalendarIcon /> */}
-                <p className="text-xs text-gray-500">Ultima fecha de pago</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <TbCalendar className="text-gray-500 text-lg" />
+                  <p className="text-xs text-gray-500">Ultima fecha de pago</p>
+                </div>
                 <p className="font-medium">
                   {formatDate(factura.actualizacionPago)}
                 </p>
@@ -176,7 +196,7 @@ export default function FacturacionDetails({
           {/* 🔹 Productos */}
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              {/* <PackageIcon /> */}
+              <TbPackage className="text-gray-600 text-xl" />
               Productos
             </h3>
             {factura.productos && factura.productos.length > 0 ? (
@@ -190,7 +210,8 @@ export default function FacturacionDetails({
                         {p.impuestos.toFixed(2)} %
                       </p>
                       {p.cantidadDevuelta > 0 && (
-                        <p className="text-red-600 text-xs mt-1">
+                        <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                          <TbReceiptRefund className="text-sm" />
                           Devuelto: {p.cantidadDevuelta} | Monto:{" "}
                           {p.montoDevuelto.toLocaleString("es-DO", {
                             style: "currency",
@@ -249,11 +270,33 @@ export default function FacturacionDetails({
             )}
           </div>
 
+          {factura.manoDeObra > 0 && (
+            <div className="mb-6 border rounded-lg p-4 bg-blue-50 border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <TbTool className="text-blue-600 text-xl" />
+                <h3 className="font-semibold text-gray-900">Mano de obra</h3>
+              </div>
+              <p className="text-gray-800 font-medium">
+                {factura.manoDeObra.toLocaleString("es-DO", {
+                  style: "currency",
+                  currency: "DOP",
+                })}
+              </p>
+              {factura.documentoCliente && (
+                <p className="text-gray-600 text-sm">
+                  Realizado:{factura.detalleManoDeObra}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* 🔹 Ganancia y Margen */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-white border p-3 rounded-lg">
-              {/* <CalendarIcon /> */}
-              <p className="text-xs text-gray-500">Monto pagado</p>
+              <div className="flex items-center gap-2 mb-1">
+                <TbCash className="text-gray-500 text-lg" />
+                <p className="text-xs text-gray-500">Monto pagado</p>
+              </div>
               <p className="font-medium">
                 {factura.montoPagado.toLocaleString("es-DO", {
                   style: "currency",
@@ -262,8 +305,10 @@ export default function FacturacionDetails({
               </p>
             </div>
             <div className="bg-white border p-3 rounded-lg">
-              {/* <CalendarIcon /> */}
-              <p className="text-xs text-gray-500">Metodo de pago</p>
+              <div className="flex items-center gap-2 mb-1">
+                <TbCreditCard className="text-gray-500 text-lg" />
+                <p className="text-xs text-gray-500">Metodo de pago</p>
+              </div>
               <p className="font-medium">{factura.metodoPago}</p>
             </div>
           </div>
@@ -275,8 +320,14 @@ export default function FacturacionDetails({
                   : "bg-error-50 border-error-200"
               }`}
             >
-              {/* <TrendingUpIcon /> */}
-              <p className="text-xs text-gray-600">Ganancia</p>
+              <div className="flex items-center gap-2 mb-1">
+                <TbTrendingUp
+                  className={`text-lg ${
+                    factura.ganancia > 0 ? "text-green-600" : "text-error-500"
+                  }`}
+                />
+                <p className="text-xs text-gray-600">Ganancia</p>
+              </div>
               <p
                 className={`text-lg font-bold ${
                   factura.ganancia > 0 ? " text-green-700" : "text-error-500"
@@ -289,8 +340,10 @@ export default function FacturacionDetails({
               </p>
             </div>
             <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-              {/* <PercentIcon /> */}
-              <p className="text-xs text-gray-600">Margen</p>
+              <div className="flex items-center gap-2 mb-1">
+                <TbPercentage className="text-purple-600 text-lg" />
+                <p className="text-xs text-gray-600">Margen</p>
+              </div>
               <p className="text-lg font-bold text-purple-700">
                 {factura.margen.toFixed(2)}%
               </p>
@@ -303,8 +356,14 @@ export default function FacturacionDetails({
                 : "bg-error-50 border-error-200"
             }`}
           >
-            {/* <TrendingUpIcon /> */}
-            <p className="text-xs text-gray-600">Ganancia actual</p>
+            <div className="flex items-center gap-2 mb-1">
+              <TbTrendingUp
+                className={`text-lg ${
+                  factura.gananciaActual > 0 ? "text-green-600" : "text-error-500"
+                }`}
+              />
+              <p className="text-xs text-gray-600">Ganancia actual</p>
+            </div>
             <p
               className={`text-lg font-bold ${
                 factura.gananciaActual > 0
@@ -334,7 +393,7 @@ export default function FacturacionDetails({
                     : "bg-gray-300"
                 } py-2 rounded-lg transition-colors`}
               >
-                <span className="flex justify-center items-center">
+                <span className="flex justify-center items-center gap-2">
                   <PencilIcon /> Editar
                 </span>
               </button>
@@ -345,8 +404,8 @@ export default function FacturacionDetails({
                 handlePrintFactura(factura);
               }}
             >
-              <span className="flex justify-center items-center">
-                <DownloadIcon /> Imprimir
+              <span className="flex justify-center items-center gap-2">
+                <LuPrinter className="text-lg" /> Imprimir
               </span>
             </button>
           </div>

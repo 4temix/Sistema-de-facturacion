@@ -30,4 +30,52 @@ export const customStyles = (hasError?: boolean): StylesConfig<Option> => ({
       borderColor: hasError ? "#ef4444" : "#93c5fd",
     },
   }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "#ffffff",
+    borderRadius: "0.5rem",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    border: "1px solid #e5e7eb",
+    zIndex: 9999,
+  }),
+  menuPortal: (base) => ({
+    ...base,
+    zIndex: 9999,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#3b82f6"
+      : state.isFocused
+      ? "#eff6ff"
+      : "#ffffff",
+    color: state.isSelected ? "#ffffff" : "#374151",
+    padding: "0.5rem 1rem",
+    cursor: "pointer",
+    "&:active": {
+      backgroundColor: "#dbeafe",
+    },
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#374151",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#9ca3af",
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: "#374151",
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    color: "#9ca3af",
+    "&:hover": {
+      color: "#6b7280",
+    },
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
 });

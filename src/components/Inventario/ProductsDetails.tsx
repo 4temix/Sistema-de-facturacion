@@ -1,4 +1,20 @@
 import { ProductoDetalles } from "../../Types/ProductTypes";
+import {
+  TbFileDescription,
+  TbMapPin,
+  TbCurrencyDollar,
+  TbPackage,
+  TbTrendingUp,
+  TbPercentage,
+  TbWallet,
+  TbShoppingCart,
+  TbCalendar,
+  TbAward,
+  TbCategory,
+  TbTag,
+  TbRuler,
+  TbBuildingStore,
+} from "react-icons/tb";
 
 interface ProductoDetallesScreenProps {
   producto: ProductoDetalles;
@@ -55,12 +71,13 @@ export default function ProductoDetallesScreen({
             {/* Información Básica */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                {/* ICONO: Info/Document icon */}
+                <TbFileDescription className="text-blue-600 text-xl" />
                 Información Básica
               </h2>
               <div className="space-y-3">
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <TbCategory className="text-sm" />
                     Categoría
                   </p>
                   <p className="text-sm font-medium text-slate-900">
@@ -68,7 +85,8 @@ export default function ProductoDetallesScreen({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <TbBuildingStore className="text-sm" />
                     Marca
                   </p>
                   <p className="text-sm font-medium text-slate-900">
@@ -76,7 +94,8 @@ export default function ProductoDetallesScreen({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <TbTag className="text-sm" />
                     Tipo
                   </p>
                   <p className="text-sm font-medium text-slate-900">
@@ -84,7 +103,8 @@ export default function ProductoDetallesScreen({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <TbRuler className="text-sm" />
                     Unidad de Medida
                   </p>
                   <p className="text-sm font-medium text-slate-900">
@@ -92,11 +112,11 @@ export default function ProductoDetallesScreen({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+                    <TbMapPin className="text-sm" />
                     Ubicación
                   </p>
                   <p className="text-sm font-medium text-slate-900 flex items-center gap-1">
-                    {/* ICONO: Location/MapPin icon */}
                     {producto.ubicacion}
                   </p>
                 </div>
@@ -106,7 +126,7 @@ export default function ProductoDetallesScreen({
             {/* Detalles Financieros */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                {/* ICONO: Dollar/Currency icon */}
+                <TbCurrencyDollar className="text-green-600 text-xl" />
                 Detalles Financieros
               </h2>
               <div className="space-y-3">
@@ -150,7 +170,7 @@ export default function ProductoDetallesScreen({
             {/* Inventario y Riesgo */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                {/* ICONO: Package/Box icon */}
+                <TbPackage className="text-purple-600 text-xl" />
                 Inventario y Riesgo
               </h2>
               <div className="space-y-3">
@@ -189,7 +209,7 @@ export default function ProductoDetallesScreen({
             {/* Métricas de Rentabilidad */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                {/* ICONO: TrendingUp/Chart icon */}
+                <TbTrendingUp className="text-emerald-600 text-xl" />
                 Métricas de Rentabilidad
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -198,7 +218,7 @@ export default function ProductoDetallesScreen({
                     <p className="text-sm text-emerald-700 font-medium">
                       Ganancia por Unidad
                     </p>
-                    {/* ICONO: DollarSign icon */}
+                    <TbCurrencyDollar className="text-emerald-600 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-emerald-900">
                     {producto.gananciaPorUnidadBruta}
@@ -213,7 +233,7 @@ export default function ProductoDetallesScreen({
                     <p className="text-sm text-blue-700 font-medium">
                       Margen de Ganancia
                     </p>
-                    {/* ICONO: Percent icon */}
+                    <TbPercentage className="text-blue-600 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-blue-900">
                     {producto.margenGananciaBrutoPorcentaje} %
@@ -224,7 +244,7 @@ export default function ProductoDetallesScreen({
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-purple-700 font-medium">ROI</p>
-                    {/* ICONO: TrendingUp icon */}
+                    <TbTrendingUp className="text-purple-600 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-purple-900">
                     {producto.roiPorcentaje} %
@@ -239,7 +259,7 @@ export default function ProductoDetallesScreen({
                     <p className="text-sm text-amber-700 font-medium">
                       Ganancia Total
                     </p>
-                    {/* ICONO: Wallet icon */}
+                    <TbWallet className="text-amber-600 text-xl" />
                   </div>
                   <p className="text-2xl font-bold text-amber-900">
                     {producto.gananciaTotalHistorica}
@@ -254,13 +274,13 @@ export default function ProductoDetallesScreen({
             {/* Métricas de Ventas */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                {/* ICONO: ShoppingCart/BarChart icon */}
+                <TbShoppingCart className="text-indigo-600 text-xl" />
                 Métricas de Ventas y Popularidad
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <div className="flex items-center gap-2 mb-2">
-                    {/* ICONO: Package icon */}
+                    <TbPackage className="text-slate-500" />
                     <p className="text-sm text-slate-600 font-medium">
                       Total Vendido
                     </p>
@@ -273,7 +293,7 @@ export default function ProductoDetallesScreen({
 
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <div className="flex items-center gap-2 mb-2">
-                    {/* ICONO: Calendar icon */}
+                    <TbCalendar className="text-slate-500" />
                     <p className="text-sm text-slate-600 font-medium">
                       Últimos 30 Días
                     </p>
@@ -286,7 +306,7 @@ export default function ProductoDetallesScreen({
 
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <div className="flex items-center gap-2 mb-2">
-                    {/* ICONO: DollarSign icon */}
+                    <TbCurrencyDollar className="text-slate-500" />
                     <p className="text-sm text-slate-600 font-medium">
                       Venta Neta
                     </p>
@@ -302,7 +322,7 @@ export default function ProductoDetallesScreen({
             {/* Resumen Rápido */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-lg shadow-sm p-6 text-white">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                {/* ICONO: Star/Award icon */}
+                <TbAward className="text-yellow-400 text-xl" />
                 Resumen de Rendimiento
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

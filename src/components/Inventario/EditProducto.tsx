@@ -19,6 +19,7 @@ type Actions = {
   closeModal: () => void;
   selectsData: Selects | undefined;
   id: number;
+  onSuccess?: () => void;
 };
 
 const SkeletonBox = ({ height = "h-10", width = "w-full" }) => (
@@ -26,7 +27,7 @@ const SkeletonBox = ({ height = "h-10", width = "w-full" }) => (
 );
 
 export default function EditProducto(params: Actions) {
-  const { closeModal, selectsData, id } = params;
+  const { closeModal, selectsData, id, onSuccess } = params;
   const [dataSelect, setDataSelect] = useState({
     categoria: { value: 0, label: "" },
     tipo: { value: 0, label: "" },
@@ -90,6 +91,10 @@ export default function EditProducto(params: Actions) {
       .then((response) => {
         if (!response.success) {
           return;
+        }
+        // Refrescar datos en la página padre
+        if (onSuccess) {
+          onSuccess();
         }
         closeModal();
       })

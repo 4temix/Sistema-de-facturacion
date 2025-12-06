@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { DetailsYearType, VentaMensual } from "../../Types/Reportes";
 import { Link } from "react-router";
+import {
+  TbCurrencyDollar,
+  TbChartBar,
+  TbTrophy,
+} from "react-icons/tb";
+
 type Params = {
   data: DetailsYearType;
 };
@@ -39,19 +45,21 @@ export default function DetailsYear({ data }: Params) {
         </div>
 
         {/* Year Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
-            <p className="text-blue-100 text-sm mb-1">
-              Ventas Totales {data.anio}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-blue-100 text-sm">Ventas Totales {data.anio}</p>
+              <TbCurrencyDollar className="text-blue-200 text-2xl" />
+            </div>
             <p className="text-3xl font-bold">
               RD${data.totalAnual.toLocaleString()}
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <p className="text-gray-600 text-sm mb-1">
-              Comparacion con el año anterior
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-gray-600 text-sm">Comparación año anterior</p>
+              <TbChartBar className="text-green-500 text-2xl" />
+            </div>
             <p className="text-3xl font-bold text-green-600">
               +
               {data.comparacionAnioAnterior == null
@@ -61,7 +69,10 @@ export default function DetailsYear({ data }: Params) {
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <p className="text-gray-600 text-sm mb-1">Mejor Mes</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-gray-600 text-sm">Mejor Mes</p>
+              <TbTrophy className="text-yellow-500 text-2xl" />
+            </div>
             <p className="text-2xl font-bold text-gray-900">
               {mejorMes?.mesNombre}
             </p>
@@ -117,7 +128,7 @@ export default function DetailsYear({ data }: Params) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-600 mb-1">Pedidos</p>
+                    <p className="text-xs text-gray-600 mb-1">Facturas</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {monthData.cantidadFacturas}
                     </p>

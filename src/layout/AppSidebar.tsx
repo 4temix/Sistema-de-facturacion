@@ -37,6 +37,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Inventario", path: "/inventario", pro: false },
       { name: "Facturacion", path: "/facturacion", pro: false },
+      { name: "Gastos", path: "/gastos", pro: false },
     ],
   },
 

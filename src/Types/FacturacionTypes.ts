@@ -50,6 +50,9 @@ export type SaveFactura = {
   total: number;
   ganancia: number;
 
+  detalleManoDeObra: string;
+  manoDeObra: number;
+
   metodoPagoId: number;
   montoPagado: number;
 
@@ -133,6 +136,9 @@ export interface FacturaDetalle {
 
   //totales
   totales: Totales;
+
+  detalleManoDeObra: string;
+  manoDeObra: number;
 
   //devoluciones
   devoluciones: DevolucionDetalle[];

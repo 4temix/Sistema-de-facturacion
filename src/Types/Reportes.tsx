@@ -1,4 +1,5 @@
 import { DataRequest } from "./FacturacionTypes";
+import { GastoList } from "./Gastos";
 
 export type VentasAnuales = {
   anio: number;
@@ -27,6 +28,7 @@ export type ReporteMensual = {
   anio: number;
   semanas: Semana[];
   totales: Totales;
+  gastos: GastosReportDto;
   mesNumber: number;
   devoluciones: Devoluciones;
   facturasMes: DataRequest; // <-- LO RELLENAS TÚ
@@ -61,3 +63,15 @@ export type TopProducto = {
   totalVendido: number;
   cantidadVendida: number;
 };
+
+//gastos
+export interface GastosReportDto {
+  metrics: Metrics;
+  detalles: GastoList[];
+}
+
+export interface Metrics {
+  totalGastado: number;
+  cantidadGastos: number;
+  totalPendiente: number;
+}

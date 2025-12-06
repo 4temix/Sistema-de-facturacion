@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { LuPrinter } from "react-icons/lu";
 import {
   useReactTable,
   getCoreRowModel,
@@ -7,7 +8,7 @@ import {
   Cell,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { PencilIcon, DownloadIcon } from "../../icons";
+import { PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
 import {
@@ -24,6 +25,7 @@ import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { useModalEdit } from "../../context/ModalEditContext";
 import { handlePrintFactura } from "../../hooks/useImpresion";
 import LoaderFun from "../loader/LoaderFunc";
+import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
@@ -57,9 +59,22 @@ export default function TableFacturas({
   const { modalEditOpen, AsingFactura } = useModalEdit();
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    fechaPago: false,
+    metodoPago: false,
     ...showColum,
-  }); // ✅ aquí
-  // Columnas
+  });
+
+  // Configuración de columnas para el toggle
+  const columnConfig = [
+    { id: "nombre", label: "Factura" },
+    { id: "cliente", label: "Cliente" },
+    { id: "fechaEmision", label: "Fecha Emisión" },
+    { id: "fechaPago", label: "Fecha Pago" },
+    { id: "monto", label: "Monto" },
+    { id: "estado", label: "Estado" },
+    { id: "metodoPago", label: "Método Pago" },
+    { id: "actions", label: "Acciones" },
+  ];
 
   const [DetailsFactura, setDetailsFactura] = useState<FacturaDetalle>({
     id: 0,
@@ -101,6 +116,9 @@ export default function TableFacturas({
     // Productos
     productos: [],
 
+    detalleManoDeObra: "",
+    manoDeObra: 0,
+
     totales: {} as Totales,
 
     devoluciones: [],
@@ -131,6 +149,7 @@ export default function TableFacturas({
   const columns = useMemo(() => {
     return [
       {
+        id: "nombre",
         accessorKey: "nombre",
         header: "Factura",
         cell: ({ row }: { row: Row<Factura> }) => (
@@ -141,6 +160,7 @@ export default function TableFacturas({
         ),
       },
       {
+        id: "cliente",
         accessorKey: "cliente",
         header: "Cliente",
         cell: ({ getValue }: { getValue: () => string }) => (
@@ -148,6 +168,7 @@ export default function TableFacturas({
         ),
       },
       {
+        id: "fechaEmision",
         accessorKey: "fechaEmision",
         header: "Fecha emision",
         cell: ({ getValue }: { getValue: () => string }) => (
@@ -157,6 +178,7 @@ export default function TableFacturas({
         ),
       },
       {
+        id: "fechaPago",
         accessorKey: "fechaPago",
         header: "Fecha pago",
         cell: ({ getValue }: { getValue: () => string }) => (
@@ -168,6 +190,7 @@ export default function TableFacturas({
         ),
       },
       {
+        id: "monto",
         accessorKey: "monto",
         header: "Monto",
         cell: ({ getValue }: { getValue: () => number }) =>
@@ -178,6 +201,7 @@ export default function TableFacturas({
           }).format(getValue()),
       },
       {
+        id: "estado",
         accessorKey: "estado",
         header: "Estado",
         cell: ({ getValue }: { getValue: () => string }) => (
@@ -191,6 +215,7 @@ export default function TableFacturas({
         ),
       },
       {
+        id: "metodoPago",
         accessorKey: "metodoPago",
         header: "Metodo de pago",
         cell: ({ getValue }: { getValue: () => string }) => (
@@ -233,7 +258,7 @@ export default function TableFacturas({
                 borderRadius: "6px",
               }}
             >
-              <DownloadIcon />
+              <LuPrinter />
             </button>
           </div>
         ),
@@ -287,7 +312,19 @@ export default function TableFacturas({
   return (
     <>
       {loadintComplete && <LoaderFun absolute={false} />}
-      <div className="overflow-x-scroll">
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+        {/* Header con toggle de columnas */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {data.length} factura{data.length !== 1 ? "s" : ""}
+          </span>
+          <ColumnVisibilityToggle
+            columns={columnConfig}
+            columnVisibility={columnVisibility}
+            onColumnVisibilityChange={setColumnVisibility}
+          />
+        </div>
+
         <Drawer isOpen={IsDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
           <FacturacionDetails
             isOpen={IsDetailsOpen}
@@ -300,80 +337,102 @@ export default function TableFacturas({
         {loader ? (
           <LoadingTable columns={7} />
         ) : (
-          <table className="md:table-fixed w-[120%] border-collapse">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="border-b-[1px] border-solid borde-b-[#ccc] p-4 text-left"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="transition-colors duration-200 hover:bg-gray-200 cursor-pointer"
-                  onClick={(e) => {
-                    const target = e.target as HTMLElement;
-
-                    // Si el click viene de un botón o un hijo con la clase .action_btn, no abrir el modal
-                    if (target.closest(".action_btn")) {
-                      return;
-                    }
-
-                    getData(row.original.id);
-                    setIsDetailsOpen(true);
-                  }}
-                >
-                  {row.getVisibleCells().map((cell: Cell<Factura, unknown>) => (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr
+                    key={headerGroup.id}
+                    className="border-b border-gray-100 dark:border-gray-800"
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                {table.getRowModel().rows.length === 0 ? (
+                  <tr>
                     <td
-                      key={cell.id}
-                      className="p-4 border-b-[1px] border-solid borde-b-[#ccc]"
+                      colSpan={columns.length}
+                      className="px-4 py-12 text-center text-gray-400"
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      No hay facturas registradas
                     </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement;
+
+                        // Si el click viene de un botón o un hijo con la clase .action_btn, no abrir el modal
+                        if (target.closest(".action_btn")) {
+                          return;
+                        }
+
+                        getData(row.original.id);
+                        setIsDetailsOpen(true);
+                      }}
+                    >
+                      {row
+                        .getVisibleCells()
+                        .map((cell: Cell<Factura, unknown>) => (
+                          <td
+                            key={cell.id}
+                            className="px-4 py-3 text-gray-700 dark:text-gray-300"
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {showPag && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Mostrar:</span>
+              <Input
+                type="number"
+                id="size"
+                placeholder="5"
+                className="max-w-[70px]"
+                value={pageSize ?? ""}
+                onChange={(e) => {
+                  if (e.target.value == "e") {
+                    return;
+                  }
+                  updateSize(parseInt(e.target.value), "PageSize");
+                }}
+              />
+            </div>
+            <Pagination
+              totalPages={total_pages}
+              currentPage={pageNUmber}
+              onPageChange={setPage}
+            />
+          </div>
         )}
       </div>
-      {showPag && (
-        <div className="flex justify-center flex-col sm:flex-row">
-          <Input
-            type="number"
-            id="size"
-            placeholder="Ej: 18"
-            className="max-w-[100px]"
-            value={pageSize ?? ""}
-            onChange={(e) => {
-              if (e.target.value == "e") {
-                return;
-              }
-              updateSize(parseInt(e.target.value), "PageSize");
-            }}
-          />
-          <Pagination
-            totalPages={total_pages}
-            currentPage={pageNUmber}
-            onPageChange={setPage}
-          />
-        </div>
-      )}
     </>
   );
 }
