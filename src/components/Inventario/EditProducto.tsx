@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import {
   BaseSelecst,
   Option,
-  SaveProducto,
   Selects,
   UpdateProducto,
 } from "../../Types/ProductTypes";
@@ -28,12 +27,12 @@ const SkeletonBox = ({ height = "h-10", width = "w-full" }) => (
 
 export default function EditProducto(params: Actions) {
   const { closeModal, selectsData, id, onSuccess } = params;
-  const [dataSelect, setDataSelect] = useState({
-    categoria: { value: 0, label: "" },
-    tipo: { value: 0, label: "" },
-    marca: { value: 0, label: "" },
-    estado: { value: 0, label: "" },
-  });
+  // const [dataSelect, setDataSelect] = useState({
+  //   categoria: { value: 0, label: "" },
+  //   tipo: { value: 0, label: "" },
+  //   marca: { value: 0, label: "" },
+  //   estado: { value: 0, label: "" },
+  // });
 
   const [isLoading, setIsloading] = useState(false);
 
@@ -78,7 +77,7 @@ export default function EditProducto(params: Actions) {
   });
 
   //guardar los elementos
-  function Saveproducto(producto: SaveProducto) {
+  function Saveproducto(producto: any) {
     setIsloading(true);
     apiRequestThen<boolean>({
       url: "api/productos/detalles-update",

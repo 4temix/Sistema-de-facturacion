@@ -27,6 +27,7 @@ type FormGastosProps = {
   onSubmit: () => void;
   submitLabel?: string;
   title?: string;
+  showTipoGasto?: boolean;
 };
 
 export default function FormGastos({
@@ -36,6 +37,7 @@ export default function FormGastos({
   onSubmit,
   submitLabel = "Guardar gasto",
   title = "Registrar gasto",
+  showTipoGasto = true,
 }: FormGastosProps) {
   const { values, touched, errors, setFieldValue, setFieldTouched } = formik;
 
@@ -53,33 +55,35 @@ export default function FormGastos({
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Tipo de gasto y Estado */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="tipoGasto">Tipo de gasto</Label>
-                <Select<Option, false>
-                  id="tipoGasto"
-                  styles={customStyles(
-                    !!errors.tipoGasto && touched.tipoGasto
+              {showTipoGasto && (
+                <div>
+                  <Label htmlFor="tipoGasto">Tipo de gasto</Label>
+                  <Select<Option, false>
+                    id="tipoGasto"
+                    styles={customStyles(
+                      !!errors.tipoGasto && touched.tipoGasto
+                    )}
+                    placeholder="Selecciona un tipo..."
+                    menuPortalTarget={document.body}
+                    options={(selectsData as SelectsGastos)?.tiposGasto?.map(
+                      (element: BaseSelecst) => ({
+                        value: element.id.toString(),
+                        label: element.name,
+                      })
+                    )}
+                    onChange={(e: SingleValue<Option>) => {
+                      if (!e) return;
+                      setFieldValue("tipoGasto", parseInt(e.value));
+                    }}
+                    onBlur={() => setFieldTouched("tipoGasto", true)}
+                  />
+                  {errors.tipoGasto && touched.tipoGasto && (
+                    <p className="mt-1.5 text-xs text-error-500">
+                      {errors.tipoGasto}
+                    </p>
                   )}
-                  placeholder="Selecciona un tipo..."
-                  menuPortalTarget={document.body}
-                  options={(selectsData as SelectsGastos)?.tiposGasto?.map(
-                    (element: BaseSelecst) => ({
-                      value: element.id.toString(),
-                      label: element.name,
-                    })
-                  )}
-                  onChange={(e: SingleValue<Option>) => {
-                    if (!e) return;
-                    setFieldValue("tipoGasto", parseInt(e.value));
-                  }}
-                  onBlur={() => setFieldTouched("tipoGasto", true)}
-                />
-                {errors.tipoGasto && touched.tipoGasto && (
-                  <p className="mt-1.5 text-xs text-error-500">
-                    {errors.tipoGasto}
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
               <div>
                 <Label htmlFor="estado">Estado</Label>
                 <Select<Option, false>
@@ -165,9 +169,7 @@ export default function FormGastos({
                       : ""
                   }
                   value={values.montoTotal === 0 ? "" : values.montoTotal ?? ""}
-                  error={
-                    errors.montoTotal && touched.montoTotal ? true : false
-                  }
+                  error={errors.montoTotal && touched.montoTotal ? true : false}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === "") {
@@ -192,7 +194,9 @@ export default function FormGastos({
                       ? errors.montoPagado
                       : ""
                   }
-                  value={values.montoPagado === 0 ? "" : values.montoPagado ?? ""}
+                  value={
+                    values.montoPagado === 0 ? "" : values.montoPagado ?? ""
+                  }
                   error={
                     errors.montoPagado && touched.montoPagado ? true : false
                   }
@@ -216,7 +220,11 @@ export default function FormGastos({
                   id="saldoPendiente"
                   placeholder="0.00"
                   hint={errors.saldoPendiente}
-                  value={values.saldoPendiente === 0 ? "" : values.saldoPendiente ?? ""}
+                  value={
+                    values.saldoPendiente === 0
+                      ? ""
+                      : values.saldoPendiente ?? ""
+                  }
                   error={errors.saldoPendiente ? true : false}
                   disabled
                   onChange={(e) => {
@@ -272,7 +280,9 @@ export default function FormGastos({
                 <Label htmlFor="metodoPago">Método de pago</Label>
                 <Select<Option, false>
                   id="metodoPago"
-                  styles={customStyles(!!errors.metodoPago && touched.metodoPago)}
+                  styles={customStyles(
+                    !!errors.metodoPago && touched.metodoPago
+                  )}
                   placeholder="Selecciona método de pago..."
                   menuPortalTarget={document.body}
                   value={
@@ -301,7 +311,9 @@ export default function FormGastos({
                 <Label htmlFor="origenFondo">Origen del fondo</Label>
                 <Select<Option, false>
                   id="origenFondo"
-                  styles={customStyles(!!errors.origenFondo && touched.origenFondo)}
+                  styles={customStyles(
+                    !!errors.origenFondo && touched.origenFondo
+                  )}
                   placeholder="Selecciona origen del fondo..."
                   menuPortalTarget={document.body}
                   value={

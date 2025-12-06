@@ -5,7 +5,7 @@ import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
 import { ValidationProduct } from "../../Utilities/ValidationProduct";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   BaseSelecst,
   Option,
@@ -13,10 +13,10 @@ import {
   Selects,
 } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
-import FormGastos from "../Gastos/FormGastos";
 import { GastoFormValues, SaveGasto } from "../../Types/Gastos";
 import { ValidationGasto } from "../Gastos/yup";
 import LoaderFun from "../loader/LoaderFunc";
+import { useState } from "react";
 
 type Actions = {
   closeModal: () => void;
@@ -27,9 +27,19 @@ type Actions = {
 // Regex para validar números (enteros y decimales)
 const regexNum = /^[0-9]*\.?[0-9]*$/;
 
+// Estados de pago locales
+const ESTADOS_PAGO = [
+  { id: 1, name: "Pagado" },
+  { id: 2, name: "Parcial" },
+  { id: 3, name: "Pendiente" },
+];
+
+// Tipo de gasto por defecto (Compra de inventario)
+const TIPO_GASTO_DEFAULT = 1;
+
 // Valores default de los gastos
 export const gastosInitialValues: GastoFormValues = {
-  tipoGasto: null,
+  tipoGasto: TIPO_GASTO_DEFAULT,
   proveedor: "",
   comprobante: "",
   fecha: "",
@@ -45,11 +55,21 @@ export const gastosInitialValues: GastoFormValues = {
   cantidad: null,
 };
 
+// Tipo para enviar al backend
+type ProductoData = {
+  producto: SaveProducto;
+  gastos: SaveGasto;
+};
+
 export default function FormProducts(params: Actions) {
   const { closeModal, selectsData, onSuccess } = params;
-  
+
   // Estado de carga
   const [isLoading, setIsLoading] = useState(false);
+
+  // Referencias para evitar ciclos infinitos
+  const isUpdatingFromEstado = useRef(false);
+  const isUpdatingFromMonto = useRef(false);
 
   // Formik validation para producto
   const {
@@ -87,7 +107,7 @@ export default function FormProducts(params: Actions) {
   });
 
   // Crear instancia de formik para gastos en el componente padre
-  const formik = useFormik<GastoFormValues>({
+  const formikGasto = useFormik<GastoFormValues>({
     initialValues: gastosInitialValues,
     validationSchema: ValidationGasto,
     onSubmit: (values) => {
@@ -95,64 +115,29 @@ export default function FormProducts(params: Actions) {
     },
   });
 
-  const { values: valuesGasto, setFieldValue: setFieldValueGastos } = formik;
+  const {
+    values: valuesGasto,
+    setFieldValue: setFieldValueGastos,
+    touched: touchedGasto,
+    errors: errorsGasto,
+    setFieldTouched: setFieldTouchedGasto,
+  } = formikGasto;
 
-  // Función para guardar el gasto
-  const handleSaveGasto = async () => {
-    const errors = await formik.validateForm();
-
-    formik.setTouched(
-      Object.keys(gastosInitialValues).reduce((acc, key) => {
-        acc[key] = true;
-        return acc;
-      }, {} as Record<string, boolean>),
-      true
-    );
-
-    if (Object.keys(errors).length === 0) {
-      const gastoToSave: SaveGasto = {
-        tipoGasto: formik.values.tipoGasto!,
-        proveedor: formik.values.proveedor || undefined,
-        comprobante: formik.values.comprobante || undefined,
-        fecha: formik.values.fecha || undefined,
-        montoTotal: formik.values.montoTotal!,
-        montoPagado: formik.values.montoPagado!,
-        saldoPendiente: formik.values.saldoPendiente || undefined,
-        estado: formik.values.estado!,
-        metodoPago: formik.values.metodoPago || undefined,
-        fechaPago: formik.values.fechaPago || undefined,
-        origenFondo: formik.values.origenFondo || undefined,
-        referencia: formik.values.referencia || undefined,
-        nota: formik.values.nota || undefined,
-      };
-
-      apiRequestThen<boolean>({
-        url: "api/gastos/guardar_gasto",
-        configuration: {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(gastoToSave),
-        },
-      }).then((response) => {
-        if (!response.success) {
-          return;
-        }
-        closeModal();
-      });
-    } else {
-      console.log("Errores encontrados:", errors);
-    }
-  };
-
-  // Guardar producto
-  function Saveproducto(producto: SaveProducto) {
+  // Guardar producto y gasto juntos
+  function SaveProductoConGasto(producto: SaveProducto, gasto: SaveGasto) {
     setIsLoading(true);
+
+    const data: ProductoData = {
+      producto: producto,
+      gastos: gasto,
+    };
+
     apiRequestThen<boolean>({
       url: "api/productos/guardar_producto",
       configuration: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(producto),
+        body: JSON.stringify(data),
       },
     })
       .then((response) => {
@@ -215,6 +200,57 @@ export default function FormProducts(params: Actions) {
       setFieldValueGastos("cantidad", null);
     }
   }, [values.stockActual, setFieldValueGastos]);
+
+  // 🔄 Seleccionar estado automáticamente según el pago
+  useEffect(() => {
+    if (isUpdatingFromEstado.current) {
+      isUpdatingFromEstado.current = false;
+      return;
+    }
+
+    const montoTotal = valuesGasto.montoTotal;
+    const montoPagado = valuesGasto.montoPagado;
+
+    if (montoTotal === null || montoTotal === 0) return;
+
+    isUpdatingFromMonto.current = true;
+
+    if (montoPagado === null || montoPagado === 0) {
+      // Pendiente = 3
+      setFieldValueGastos("estado", 3);
+    } else if (montoPagado >= montoTotal) {
+      // Pagado = 1
+      setFieldValueGastos("estado", 1);
+    } else {
+      // Parcial = 2
+      setFieldValueGastos("estado", 2);
+    }
+  }, [valuesGasto.montoTotal, valuesGasto.montoPagado, setFieldValueGastos]);
+
+  // 🔄 Actualizar montoPagado cuando se selecciona un estado manualmente
+  useEffect(() => {
+    if (isUpdatingFromMonto.current) {
+      isUpdatingFromMonto.current = false;
+      return;
+    }
+
+    const estado = valuesGasto.estado;
+    const montoTotal = valuesGasto.montoTotal;
+
+    if (estado === null || montoTotal === null || montoTotal === 0) return;
+
+    isUpdatingFromEstado.current = true;
+
+    // Pagado = 1 → poner montoPagado = montoTotal
+    if (estado === 1) {
+      setFieldValueGastos("montoPagado", montoTotal);
+    }
+    // Pendiente = 3 → poner montoPagado = 0
+    else if (estado === 3) {
+      setFieldValueGastos("montoPagado", 0);
+    }
+    // Parcial = 2 → no cambiar montoPagado
+  }, [valuesGasto.estado, valuesGasto.montoTotal, setFieldValueGastos]);
 
   return (
     <>
@@ -285,6 +321,7 @@ export default function FormProducts(params: Actions) {
                   id="categoria"
                   styles={customStyles()}
                   placeholder="Selecciona una categoría..."
+                  menuPortalTarget={document.body}
                   options={selectsData?.categorias?.map(
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
@@ -303,6 +340,7 @@ export default function FormProducts(params: Actions) {
                   id="tipo"
                   styles={customStyles()}
                   placeholder="Selecciona un tipo..."
+                  menuPortalTarget={document.body}
                   options={selectsData?.tipos?.map((element: BaseSelecst) => ({
                     value: element.id.toString(),
                     label: element.name,
@@ -319,6 +357,7 @@ export default function FormProducts(params: Actions) {
                   id="marca"
                   styles={customStyles()}
                   placeholder="Selecciona una marca..."
+                  menuPortalTarget={document.body}
                   options={selectsData?.marcas?.map((element: BaseSelecst) => ({
                     value: element.id.toString(),
                     label: element.name,
@@ -344,7 +383,9 @@ export default function FormProducts(params: Actions) {
                       ? errors.precioCompra
                       : ""
                   }
-                  value={values.precioCompra === 0 ? "" : values.precioCompra ?? ""}
+                  value={
+                    values.precioCompra === 0 ? "" : values.precioCompra ?? ""
+                  }
                   error={
                     errors.precioCompra && touched.precioCompra ? true : false
                   }
@@ -372,7 +413,9 @@ export default function FormProducts(params: Actions) {
                       ? errors.precioVenta
                       : ""
                   }
-                  value={values.precioVenta === 0 ? "" : values.precioVenta ?? ""}
+                  value={
+                    values.precioVenta === 0 ? "" : values.precioVenta ?? ""
+                  }
                   error={
                     errors.precioVenta && touched.precioVenta ? true : false
                   }
@@ -396,7 +439,9 @@ export default function FormProducts(params: Actions) {
                   id="precio_minimo"
                   placeholder="0.00"
                   hint={errors.precioMinimo}
-                  value={values.precioMinimo === 0 ? "" : values.precioMinimo ?? ""}
+                  value={
+                    values.precioMinimo === 0 ? "" : values.precioMinimo ?? ""
+                  }
                   error={errors.precioMinimo ? true : false}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -425,7 +470,9 @@ export default function FormProducts(params: Actions) {
                       ? errors.stockActual
                       : ""
                   }
-                  value={values.stockActual === 0 ? "" : values.stockActual ?? ""}
+                  value={
+                    values.stockActual === 0 ? "" : values.stockActual ?? ""
+                  }
                   error={
                     errors.stockActual && touched.stockActual ? true : false
                   }
@@ -449,7 +496,9 @@ export default function FormProducts(params: Actions) {
                   id="stock_minimo"
                   placeholder="0"
                   hint={errors.stockMinimo}
-                  value={values.stockMinimo === 0 ? "" : values.stockMinimo ?? ""}
+                  value={
+                    values.stockMinimo === 0 ? "" : values.stockMinimo ?? ""
+                  }
                   error={errors.stockMinimo ? true : false}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -501,6 +550,7 @@ export default function FormProducts(params: Actions) {
                   id="estado"
                   styles={customStyles(!!errors.estadoId && touched.estadoId)}
                   placeholder="Seleccione un estado.."
+                  menuPortalTarget={document.body}
                   options={selectsData?.estados?.map(
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
@@ -543,6 +593,233 @@ export default function FormProducts(params: Actions) {
                 }}
               />
             </div>
+
+            {/* 8️⃣ Sección de Gastos */}
+            <div className="border-t border-gray-200 pt-5 mt-2">
+              <h5 className="text-lg font-semibold text-gray-700 dark:text-white/80 mb-4">
+                Información del Gasto
+              </h5>
+
+              {/* Montos calculados automáticamente */}
+              <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+                <div>
+                  <Label htmlFor="montoTotal">Monto total</Label>
+                  <Input
+                    type="text"
+                    id="montoTotal"
+                    placeholder="0.00"
+                    value={valuesGasto.montoTotal ?? ""}
+                    disabled
+                    hint="Calculado: Stock × Precio compra"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="montoPagado">Monto pagado</Label>
+                  <Input
+                    type="text"
+                    id="montoPagado"
+                    placeholder="0.00"
+                    hint={
+                      errorsGasto.montoPagado && touchedGasto.montoPagado
+                        ? errorsGasto.montoPagado
+                        : ""
+                    }
+                    value={
+                      valuesGasto.montoPagado === 0
+                        ? ""
+                        : valuesGasto.montoPagado ?? ""
+                    }
+                    error={
+                      errorsGasto.montoPagado && touchedGasto.montoPagado
+                        ? true
+                        : false
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        setFieldValueGastos("montoPagado", 0);
+                        return;
+                      }
+                      if (regexNum.test(value)) {
+                        setFieldValueGastos("montoPagado", Number(value));
+                      }
+                    }}
+                    onBlur={() => setFieldTouchedGasto("montoPagado", true)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="saldoPendiente">Saldo pendiente</Label>
+                  <Input
+                    type="text"
+                    id="saldoPendiente"
+                    placeholder="0.00"
+                    value={valuesGasto.saldoPendiente ?? ""}
+                    disabled
+                    hint="Calculado automáticamente"
+                  />
+                </div>
+              </div>
+
+              {/* Estado de pago y método */}
+              <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <Label htmlFor="estadoGasto">Estado de pago</Label>
+                  <Select<Option, false>
+                    id="estadoGasto"
+                    styles={customStyles(
+                      !!errorsGasto.estado && touchedGasto.estado
+                    )}
+                    placeholder="Selecciona un estado..."
+                    menuPortalTarget={document.body}
+                    value={
+                      valuesGasto.estado
+                        ? {
+                            value: valuesGasto.estado.toString(),
+                            label:
+                              ESTADOS_PAGO.find(
+                                (e) => e.id === valuesGasto.estado
+                              )?.name ?? "",
+                          }
+                        : null
+                    }
+                    options={ESTADOS_PAGO.map((estado) => ({
+                      value: estado.id.toString(),
+                      label: estado.name,
+                    }))}
+                    onChange={(e: SingleValue<Option>) => {
+                      if (!e) return;
+                      setFieldValueGastos("estado", parseInt(e.value));
+                    }}
+                    onBlur={() => setFieldTouchedGasto("estado", true)}
+                  />
+                  {errorsGasto.estado && touchedGasto.estado && (
+                    <p className="mt-1.5 text-xs text-error-500">
+                      {errorsGasto.estado}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="metodoPagoGasto">Método de pago</Label>
+                  <Select<Option, false>
+                    id="metodoPagoGasto"
+                    styles={customStyles()}
+                    placeholder="Selecciona método..."
+                    menuPortalTarget={document.body}
+                    value={
+                      valuesGasto.metodoPago
+                        ? {
+                            value: valuesGasto.metodoPago,
+                            label: valuesGasto.metodoPago,
+                          }
+                        : null
+                    }
+                    options={[
+                      { value: "Efectivo", label: "Efectivo" },
+                      { value: "Transferencia", label: "Transferencia" },
+                      { value: "Tarjeta", label: "Tarjeta" },
+                    ]}
+                    onChange={(e: SingleValue<Option>) => {
+                      if (!e) return;
+                      setFieldValueGastos("metodoPago", e.value);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Proveedor y fechas */}
+              <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+                <div>
+                  <Label htmlFor="proveedorGasto">Proveedor</Label>
+                  <Input
+                    type="text"
+                    id="proveedorGasto"
+                    placeholder="Nombre del proveedor"
+                    value={valuesGasto.proveedor ?? ""}
+                    onChange={(e) => {
+                      setFieldValueGastos("proveedor", e.target.value);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fechaGasto">Fecha del gasto</Label>
+                  <Input
+                    type="date"
+                    id="fechaGasto"
+                    value={valuesGasto.fecha ?? ""}
+                    onChange={(e) => {
+                      setFieldValueGastos("fecha", e.target.value);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fechaPagoGasto">Fecha de pago</Label>
+                  <Input
+                    type="date"
+                    id="fechaPagoGasto"
+                    value={valuesGasto.fechaPago ?? ""}
+                    onChange={(e) => {
+                      setFieldValueGastos("fechaPago", e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Origen de fondo y comprobante */}
+              <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <Label htmlFor="origenFondoGasto">Origen del fondo</Label>
+                  <Select<Option, false>
+                    id="origenFondoGasto"
+                    styles={customStyles()}
+                    placeholder="Selecciona origen..."
+                    menuPortalTarget={document.body}
+                    value={
+                      valuesGasto.origenFondo
+                        ? {
+                            value: valuesGasto.origenFondo,
+                            label: valuesGasto.origenFondo,
+                          }
+                        : null
+                    }
+                    options={[
+                      { value: "Efectivo", label: "Efectivo" },
+                      { value: "Cuenta de banco", label: "Cuenta de banco" },
+                    ]}
+                    onChange={(e: SingleValue<Option>) => {
+                      if (!e) return;
+                      setFieldValueGastos("origenFondo", e.value);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="comprobanteGasto">Comprobante</Label>
+                  <Input
+                    type="text"
+                    id="comprobanteGasto"
+                    placeholder="Número de comprobante"
+                    value={valuesGasto.comprobante ?? ""}
+                    onChange={(e) => {
+                      setFieldValueGastos("comprobante", e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Nota */}
+              <div>
+                <Label htmlFor="notaGasto">Nota</Label>
+                <textarea
+                  id="notaGasto"
+                  rows={2}
+                  placeholder="Observaciones adicionales..."
+                  value={valuesGasto.nota ?? ""}
+                  className="border rounded-xl w-full p-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  onChange={(e) => {
+                    setFieldValueGastos("nota", e.target.value);
+                  }}
+                ></textarea>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -555,8 +832,9 @@ export default function FormProducts(params: Actions) {
             size="sm"
             onClick={async (e?: React.MouseEvent<HTMLButtonElement>) => {
               e?.preventDefault();
-              const errors = await validateForm();
 
+              // Validar producto
+              const errorsProducto = await validateForm();
               setTouched(
                 Object.keys(initialValues).reduce((acc, key) => {
                   acc[key] = true;
@@ -565,11 +843,41 @@ export default function FormProducts(params: Actions) {
                 true
               );
 
-              if (Object.keys(errors).length === 0) {
-                console.log("todo bien");
-                Saveproducto(values);
+              // Validar gasto
+              const errorsGastoForm = await formikGasto.validateForm();
+              formikGasto.setTouched(
+                Object.keys(gastosInitialValues).reduce((acc, key) => {
+                  acc[key] = true;
+                  return acc;
+                }, {} as Record<string, boolean>),
+                true
+              );
+
+              // Si no hay errores en ninguno, guardar
+              if (
+                Object.keys(errorsProducto).length === 0 &&
+                Object.keys(errorsGastoForm).length === 0
+              ) {
+                const gastoToSave: SaveGasto = {
+                  tipoGasto: valuesGasto.tipoGasto ?? TIPO_GASTO_DEFAULT,
+                  proveedor: valuesGasto.proveedor || undefined,
+                  comprobante: valuesGasto.comprobante || undefined,
+                  fecha: valuesGasto.fecha || undefined,
+                  montoTotal: valuesGasto.montoTotal!,
+                  montoPagado: valuesGasto.montoPagado ?? 0,
+                  saldoPendiente: valuesGasto.saldoPendiente || undefined,
+                  estado: valuesGasto.estado!,
+                  metodoPago: valuesGasto.metodoPago || undefined,
+                  fechaPago: valuesGasto.fechaPago || undefined,
+                  origenFondo: valuesGasto.origenFondo || undefined,
+                  referencia: valuesGasto.referencia || undefined,
+                  nota: valuesGasto.nota || undefined,
+                };
+
+                SaveProductoConGasto(values, gastoToSave);
               } else {
-                console.log("Errores encontrados:", errors);
+                console.log("Errores producto:", errorsProducto);
+                console.log("Errores gasto:", errorsGastoForm);
               }
             }}
           >
@@ -577,15 +885,6 @@ export default function FormProducts(params: Actions) {
           </Button>
         </div>
       </form>
-
-      <FormGastos
-        formik={formik}
-        selectsData={selectsData}
-        onCancel={closeModal}
-        onSubmit={handleSaveGasto}
-        submitLabel="Guardar gasto"
-        title="Registrar nuevo gasto"
-      />
     </>
   );
 }

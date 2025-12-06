@@ -93,9 +93,9 @@ function FacturacionPageContent() {
   //selects para crear y filtrar productos
   const [selectsData, setSelectsData] = useState<SelectsFacturacion>();
 
-  const [labelSelects, setLabelSelects] = useState({
-    estado: "",
-  });
+  // const [labelSelects, setLabelSelects] = useState({
+  //   estado: "",
+  // });
 
   const initialFilters = {
     estado: searchParams.get("estado")
@@ -176,14 +176,14 @@ function FacturacionPageContent() {
   }
 
   //actualizar los labels de los filtros
-  function updateLabels(value: string | null, key: string) {
-    setLabelSelects((prev) => {
-      return {
-        ...prev,
-        [key]: value,
-      };
-    });
-  }
+  // function updateLabels(value: string | null, key: string) {
+  //   setLabelSelects((prev) => {
+  //     return {
+  //       ...prev,
+  //       [key]: value,
+  //     };
+  //   });
+  // }
 
   //eliminar nulos
   function buildQueryString<T extends Record<string, any>>(filters: T): string {
