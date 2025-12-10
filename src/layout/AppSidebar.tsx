@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
       { name: "Inventario", path: "/inventario", pro: false },
       { name: "Facturacion", path: "/facturacion", pro: false },
       { name: "Gastos", path: "/gastos", pro: false },
+      { name: "Empleados", path: "/empleados", pro: false },
     ],
   },
 

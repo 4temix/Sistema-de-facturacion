@@ -240,7 +240,7 @@ export default function PropertyDataTable({
             columnVisibility={columnVisibility}
             onColumnVisibilityChange={setColumnVisibility}
           />
-        </div>
+        </div>t
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">

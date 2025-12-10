@@ -11,6 +11,7 @@ const Home = lazy(() => import("./pages/Dashboard/Home"));
 const Productos = lazy(() => import("./pages/Gestion/Productos"));
 const Facturacion = lazy(() => import("./pages/Gestion/Facturacion"));
 const Gastos = lazy(() => import("./pages/Gestion/Gastos"));
+const Empleados = lazy(() => import("./pages/Gestion/Empleados"));
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
 const SignUp = lazy(() => import("./pages/AuthPages/SignUp"));
 const NotFound = lazy(() => import("./pages/OtherPage/NotFound"));
@@ -53,6 +54,7 @@ const routes = createBrowserRouter([
       { path: "/inventario/:id", element: <PageDetailsProductos /> },
       { path: "/facturacion", element: <Facturacion /> },
       { path: "/gastos", element: <Gastos /> },
+      { path: "/empleados", element: <Empleados /> },
       { path: "/mantenimientos", element: <Mantenimientos /> },
       { path: "/reportes", element: <Reportes /> },
       { path: "/reportes/:year", element: <DetailsYearPage /> },

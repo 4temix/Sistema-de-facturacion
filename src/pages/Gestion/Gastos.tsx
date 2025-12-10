@@ -689,7 +689,10 @@ export default function Gastos() {
               <Button
                 size="sm"
                 onClick={() => {
-                  getData(filters);
+                  // Resetear página a 1 al buscar con filtros
+                  const filtersWithPageReset = { ...filters, pPage: 1 };
+                  setFilters(filtersWithPageReset);
+                  getData(filtersWithPageReset);
                   closeModal();
                 }}
               >

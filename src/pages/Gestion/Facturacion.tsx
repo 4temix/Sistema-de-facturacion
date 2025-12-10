@@ -545,15 +545,18 @@ function FacturacionPageContent() {
                 <Button size="sm" variant="outline" onClick={closeModal}>
                   Close
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    getData(filters);
-                    closeModal();
-                  }}
-                >
-                  Buscar
-                </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  // Resetear página a 1 al buscar con filtros
+                  const filtersWithPageReset = { ...filters, page: 1 };
+                  setFilters(filtersWithPageReset);
+                  getData(filtersWithPageReset);
+                  closeModal();
+                }}
+              >
+                Buscar
+              </Button>
                 <Button
                   size="sm"
                   className="bg-red-500 hover:bg-red-700"

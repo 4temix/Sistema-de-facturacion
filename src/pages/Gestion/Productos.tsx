@@ -493,7 +493,10 @@ export default function Productos() {
               <Button
                 size="sm"
                 onClick={() => {
-                  getData(filters);
+                  // Resetear página a 1 al buscar con filtros
+                  const filtersWithPageReset = { ...filters, page: 1 };
+                  setFilters(filtersWithPageReset);
+                  getData(filtersWithPageReset);
                   closeModal();
                 }}
               >
