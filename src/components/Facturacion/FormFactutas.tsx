@@ -1121,7 +1121,7 @@ export default function FormFactutas(params: Actions) {
                     !!errors.metodoPagoId && touched.metodoPagoId
                   )}
                   placeholder="Método de pago..."
-                  menuPosition="fixed"
+                  menuPortalTarget={document.body}
                   options={selectsData?.metodoPago?.map(
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),

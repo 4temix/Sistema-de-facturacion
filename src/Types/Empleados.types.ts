@@ -95,3 +95,27 @@ export interface EmpleadosMetrics {
   empleadosActivos: number;
   empleadosInactivos: number;
 }
+
+// DTO para detalles de empleado (getById)
+export interface EmpleadoDetailsDto {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  fechaNacimiento?: string;
+  telefono: string;
+  email: string;
+  provincia: string;
+  municipio: string;
+  direccion: string;
+  fechaIngreso: string;
+  puesto: string;
+  tipoContrato: string;
+  salarioBase: number;
+  salarioPorHora?: number;
+  arsId?: number;
+  afpId?: number;
+  banco: string;
+  cuentaBancaria: string;
+  fechaSalida?: string;
+}

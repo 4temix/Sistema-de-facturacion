@@ -12,6 +12,7 @@ import EditGasto from "../../components/Gastos/EditGasto";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import { Option, BaseSelecst } from "../../Types/ProductTypes";
+import type { VisibilityState } from "@tanstack/react-table";
 import {
   GastoMetrics,
   DataGastoResponse,
@@ -83,6 +84,14 @@ export default function Gastos() {
     estado: "",
     metodoPago: "",
     origenFondo: "",
+  });
+
+  // Estado de visibilidad de columnas (persistente en la página)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    id: false,
+    comprobante: false,
+    metodoPago: false,
+    montoPagado: false,
   });
 
   const initialFilters: GetGastosParams = {
@@ -744,6 +753,8 @@ export default function Gastos() {
           onDelete={(id) => {
             console.log("Eliminar gasto:", id);
           }}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
         />
       ) : (
         <LoadingTable columns={10} />

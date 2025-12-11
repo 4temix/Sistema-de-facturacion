@@ -6,21 +6,53 @@ import {
   Row,
   Cell,
   type VisibilityState,
+  type OnChangeFn,
 } from "@tanstack/react-table";
 import {
   EmpleadoListItem,
   EmpleadosListResponse,
+  EmpleadoDetailsDto,
 } from "../../Types/Empleados.types";
 import { FiEdit2 } from "react-icons/fi";
 import { TbUserCheck, TbUserX } from "react-icons/tb";
 import { Pagination } from "../Inventario/pagination";
 import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
+import Drawer from "../ui/modal/Drawer";
+import EmpleadoDetails from "./EmpleadoDetails";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 
 type Props = EmpleadosListResponse & {
   setPage: (page: number) => void;
   pageNumber: number;
   pageSize: number;
   onEdit: (id: number) => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+};
+
+// Valor por defecto para visibilidad de columnas
+const defaultColumnVisibility: VisibilityState = {
+  id: false,
+  email: false,
+};
+
+// Estado inicial para detalles de empleado
+const initialEmpleadoDetails: EmpleadoDetailsDto = {
+  id: 0,
+  nombres: "",
+  apellidos: "",
+  cedula: "",
+  telefono: "",
+  email: "",
+  provincia: "",
+  municipio: "",
+  direccion: "",
+  fechaIngreso: "",
+  puesto: "",
+  tipoContrato: "",
+  salarioBase: 0,
+  banco: "",
+  cuentaBancaria: "",
 };
 
 export default function TableEmpleados({
@@ -29,12 +61,46 @@ export default function TableEmpleados({
   setPage,
   pageNumber,
   onEdit,
+  columnVisibility: columnVisibilityProp,
+  onColumnVisibilityChange: onColumnVisibilityChangeProp,
 }: Props) {
-  // Estado de visibilidad de columnas
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    id: false,
-    email: false,
-  });
+  // Estado interno para cuando no se pasan las props
+  const [internalColumnVisibility, setInternalColumnVisibility] =
+    useState<VisibilityState>(defaultColumnVisibility);
+
+  // Usar props si se pasan, sino usar estado interno
+  const columnVisibility = columnVisibilityProp ?? internalColumnVisibility;
+  const onColumnVisibilityChange =
+    onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
+
+  // Estado para el drawer de detalles
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [empleadoDetails, setEmpleadoDetails] = useState<EmpleadoDetailsDto>(
+    initialEmpleadoDetails
+  );
+
+  // Función para cargar los detalles del empleado
+  function loadEmpleadoDetails(id: number) {
+    setIsDetailsOpen(true);
+    setIsLoadingDetails(true);
+
+    apiRequestThen<EmpleadoDetailsDto>({
+      url: `api/empleados/get-empleado/${id}`,
+    })
+      .then((response) => {
+        if (!response.success) {
+          console.error("Error:", response.errorMessage);
+          return;
+        }
+        if (response.result) {
+          setEmpleadoDetails(response.result);
+        }
+      })
+      .finally(() => {
+        setIsLoadingDetails(false);
+      });
+  }
 
   // Configuración de columnas para el toggle
   const columnConfig = [
@@ -115,32 +181,37 @@ export default function TableEmpleados({
         cell: ({ getValue }: { getValue: () => boolean }) => {
           const activo = getValue();
           return (
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-                activo ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+            <div
+              className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full border text-sm font-medium ${
+                activo 
+                  ? "bg-green-100 text-green-800 border-green-300" 
+                  : "bg-red-100 text-red-800 border-red-300"
               }`}
             >
               {activo ? (
                 <>
-                  <TbUserCheck className="w-3.5 h-3.5" /> Activo
+                  <TbUserCheck className="w-4 h-4" /> Activo
                 </>
               ) : (
                 <>
-                  <TbUserX className="w-3.5 h-3.5" /> Inactivo
+                  <TbUserX className="w-4 h-4" /> Inactivo
                 </>
               )}
-            </span>
+            </div>
           );
         },
       },
       {
         id: "actions",
-        header: "",
+        header: "Acciones",
         cell: ({ row }: { row: Row<EmpleadoListItem> }) => (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
-              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors action_btn"
-              onClick={() => onEdit(row.original.id)}
+              className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(row.original.id);
+              }}
               title="Editar"
             >
               <FiEdit2 className="w-4 h-4" />
@@ -157,12 +228,12 @@ export default function TableEmpleados({
     state: {
       columnVisibility,
     },
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
-    <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+    <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       {/* Header con toggle de columnas */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -171,9 +242,23 @@ export default function TableEmpleados({
         <ColumnVisibilityToggle
           columns={columnConfig}
           columnVisibility={columnVisibility}
-          onColumnVisibilityChange={setColumnVisibility}
+          onColumnVisibilityChange={onColumnVisibilityChange}
         />
       </div>
+
+      {/* Drawer de detalles */}
+      <Drawer isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
+        <EmpleadoDetails
+          isOpen={isDetailsOpen}
+          onClose={() => setIsDetailsOpen(false)}
+          empleado={empleadoDetails}
+          isLoading={isLoadingDetails}
+          onEditar={(id) => {
+            setIsDetailsOpen(false);
+            onEdit(id);
+          }}
+        />
+      </Drawer>
 
       {/* Tabla */}
       <div className="overflow-x-auto">
@@ -212,7 +297,8 @@ export default function TableEmpleados({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                  onClick={() => loadEmpleadoDetails(row.original.id)}
                 >
                   {row
                     .getVisibleCells()

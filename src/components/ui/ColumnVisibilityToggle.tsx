@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { TbColumns3, TbCheck } from "react-icons/tb";
-import type { VisibilityState } from "@tanstack/react-table";
+import type { VisibilityState, OnChangeFn } from "@tanstack/react-table";
 
 type ColumnConfig = {
   id: string;
@@ -10,7 +10,7 @@ type ColumnConfig = {
 type Props = {
   columns: ColumnConfig[];
   columnVisibility: VisibilityState;
-  onColumnVisibilityChange: (visibility: VisibilityState) => void;
+  onColumnVisibilityChange: OnChangeFn<VisibilityState>;
 };
 
 export default function ColumnVisibilityToggle({
@@ -65,7 +65,7 @@ export default function ColumnVisibilityToggle({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div className="absolute right-0 z-[9999] mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700" style={{ position: 'absolute' }}>
           <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Mostrar columnas

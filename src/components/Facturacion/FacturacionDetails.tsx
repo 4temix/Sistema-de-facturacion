@@ -55,9 +55,7 @@ export default function FacturacionDetails({
   };
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/50 flex justify-end">
-        <div className="bg-white w-full max-w-[600px] h-full overflow-y-auto shadow-xl p-6">
+    <div className="bg-white w-full h-full overflow-y-auto p-6">
           {/* 🔹 Header */}
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -410,15 +408,13 @@ export default function FacturacionDetails({
             </button>
           </div>
 
-          {/* 🔹 Cerrar */}
-          <button
-            onClick={onClose}
-            className="mt-4 w-full bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </>
+        {/* 🔹 Cerrar */}
+        <button
+          onClick={onClose}
+          className="mt-4 w-full bg-gray-200 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+        >
+          Cerrar
+        </button>
+    </div>
   );
 }

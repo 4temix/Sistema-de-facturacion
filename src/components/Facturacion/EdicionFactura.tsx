@@ -324,8 +324,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                   id="status"
                   styles={customStyles()}
                   placeholder={"Estado..."}
-                  //se hace de esta manera para tener los labels de los selects
-                  // para hacer que salga el place holder se hace la verificacion de si hay valor
+                  menuPortalTarget={document.body}
                   value={
                     sendData?.estado.label != ""
                       ? {
@@ -342,7 +341,6 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                     if (!e) return;
                     updateFields({ value: e.value, label: e.label }, "estado");
                   }}
-                  menuPosition="fixed"
                   className="select-custom pl-0"
                   classNamePrefix="select"
                 />
@@ -471,6 +469,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                                 id="status"
                                 styles={customStyles()}
                                 placeholder={"Estado..."}
+                                menuPortalTarget={document.body}
                                 value={
                                   elementSelect
                                     ? {
@@ -490,7 +489,6 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                                   if (!e) return;
                                   updateDevolution(e.value, "tipo");
                                 }}
-                                menuPosition="fixed"
                                 className="select-custom pl-0"
                                 classNamePrefix="select"
                               />

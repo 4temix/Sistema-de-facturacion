@@ -11,6 +11,7 @@ import FormProducts from "../../components/Inventario/FormProducts";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import { Option } from "../../Types/ProductTypes";
+import type { VisibilityState } from "@tanstack/react-table";
 import {
   BaseSelecst,
   DataRequest,
@@ -86,6 +87,13 @@ export default function Productos() {
 
   //filtros de busqueda
   const [filters, setFilters] = useState(initialFilters);
+
+  // Estado de visibilidad de columnas (persistente en la página)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    porsentaje: false,
+    categoria: false,
+    estado: false,
+  });
 
   //elementos para que funcione el debounce
   const debouncedSearch = useDebounce(filters.search, 600);
@@ -338,8 +346,7 @@ export default function Productos() {
                       id="status"
                       styles={customStyles()}
                       placeholder={"Estado..."}
-                      //se hace de esta manera para tener los labels de los selects
-                      //para hacer que salga el place holder se hace la verificacion de si hay valor
+                      menuPortalTarget={document.body}
                       value={
                         filters.estado
                           ? {
@@ -370,8 +377,7 @@ export default function Productos() {
                       id="category"
                       styles={customStyles()}
                       placeholder={"Categoria..."}
-                      //se hace de esta manera para tener los labels de los selects
-                      //para hacer que salga el place holder se hace la verificacion de si hay valor
+                      menuPortalTarget={document.body}
                       value={
                         filters.categoria
                           ? {
@@ -402,8 +408,7 @@ export default function Productos() {
                       id="brand"
                       styles={customStyles()}
                       placeholder={"Marca..."}
-                      //se hace de esta manera para tener los labels de los selects
-                      //para hacer que salga el place holder se hace la verificacion de si hay valor
+                      menuPortalTarget={document.body}
                       value={
                         filters.marca
                           ? {
@@ -559,6 +564,8 @@ export default function Productos() {
               }
             });
           }}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
         />
       ) : (
         <LoadingTable columns={7} />

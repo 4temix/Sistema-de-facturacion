@@ -1,7 +1,6 @@
 export function FacturaSkeleton() {
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-end z-50">
-      <div className="bg-white w-full sm:w-[600px] h-full overflow-y-auto shadow-xl p-6 space-y-6">
+    <div className="bg-white w-full h-full overflow-y-auto p-6 space-y-6 animate-pulse">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div className="space-y-2">
@@ -76,7 +75,6 @@ export function FacturaSkeleton() {
         </div>
 
         <div className="shimmer h-9 w-full rounded-lg"></div>
-      </div>
     </div>
   );
 }

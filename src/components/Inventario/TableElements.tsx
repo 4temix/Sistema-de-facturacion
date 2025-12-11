@@ -6,6 +6,7 @@ import {
   Row,
   Cell,
   type VisibilityState,
+  type OnChangeFn,
 } from "@tanstack/react-table";
 import { DataRequest, Producto, Selects } from "../../Types/ProductTypes";
 import { TrashBinIcon, PencilIcon } from "../../icons";
@@ -24,11 +25,20 @@ type internalProps = DataRequest & {
   selects: Selects;
   updateSize: (value: number, key: string) => void;
   onUpdateSuccess?: () => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
 };
 
 type idActual = {
   id: number;
   refreshKey: string;
+};
+
+// Valor por defecto para visibilidad de columnas
+const defaultColumnVisibility: VisibilityState = {
+  porsentaje: false,
+  categoria: false,
+  estado: false,
 };
 
 export default function PropertyDataTable({
@@ -40,6 +50,8 @@ export default function PropertyDataTable({
   updateSize,
   selects,
   onUpdateSuccess,
+  columnVisibility: columnVisibilityProp,
+  onColumnVisibilityChange: onColumnVisibilityChangeProp,
 }: internalProps) {
   const route = useNavigate();
 
@@ -47,12 +59,14 @@ export default function PropertyDataTable({
 
   const { isOpen, openModal, closeModal } = useModal();
 
-  // Estado de visibilidad de columnas
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    porsentaje: false,
-    categoria: false,
-    estado: false,
-  });
+  // Estado interno para cuando no se pasan las props
+  const [internalColumnVisibility, setInternalColumnVisibility] =
+    useState<VisibilityState>(defaultColumnVisibility);
+
+  // Usar props si se pasan, sino usar estado interno
+  const columnVisibility = columnVisibilityProp ?? internalColumnVisibility;
+  const onColumnVisibilityChange =
+    onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
 
   // Configuración de columnas para el toggle
   const columnConfig = [
@@ -126,9 +140,28 @@ export default function PropertyDataTable({
         id: "estado",
         accessorKey: "estado",
         header: "Estado",
-        cell: ({ getValue }: { getValue: () => string }) => (
-          <span>{getValue() ?? "Sin estado"}</span>
-        ),
+        cell: ({ getValue }: { getValue: () => string }) => {
+          const estado = getValue();
+          let styles = "bg-slate-100 text-slate-800 border-slate-300";
+          
+          if (estado?.toLowerCase() === "disponible" || estado?.toLowerCase() === "activo") {
+            styles = "bg-green-100 text-green-800 border-green-300";
+          } else if (estado?.toLowerCase() === "agotado") {
+            styles = "bg-red-100 text-red-800 border-red-300";
+          } else if (estado?.toLowerCase() === "bajo stock" || estado?.toLowerCase().includes("bajo")) {
+            styles = "bg-yellow-100 text-yellow-800 border-yellow-300";
+          } else if (estado?.toLowerCase() === "descontinuado" || estado?.toLowerCase() === "inactivo") {
+            styles = "bg-gray-200 text-gray-800 border-gray-300";
+          }
+          
+          return (
+            <div
+              className={`px-3 py-1 rounded-full border text-sm font-medium text-center ${styles}`}
+            >
+              {estado ?? "Sin estado"}
+            </div>
+          );
+        },
       },
       {
         id: "precioCompra",
@@ -177,31 +210,27 @@ export default function PropertyDataTable({
         id: "actions",
         header: "Acciones",
         cell: ({ row }: { row: Row<Producto> }) => (
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="flex items-center gap-2">
             <button
-              className="transition-colors duration-200 hover:bg-[#1642a1] bg-[#2563eb] action_btn"
-              onClick={() => {
+              className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
                 setIdUpdate({
                   id: row.original.id,
                   refreshKey: Date.now().toString(),
                 });
               }}
-              style={{
-                padding: "8px 16px",
-                color: "white",
-                borderRadius: "6px",
-              }}
+              title="Editar"
             >
               <PencilIcon />
             </button>
             <button
-              onClick={() => alert(`Eliminar ${row.original.nombre}`)}
-              className="transition-colors duration-200 hover:bg-[#a52424] bg-[#dc2626] action_btn"
-              style={{
-                padding: "8px 16px",
-                color: "white",
-                borderRadius: "6px",
+              onClick={(e) => {
+                e.stopPropagation();
+                alert(`Eliminar ${row.original.nombre}`);
               }}
+              className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+              title="Eliminar"
             >
               <TrashBinIcon />
             </button>
@@ -223,13 +252,13 @@ export default function PropertyDataTable({
     state: {
       columnVisibility,
     },
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
     <>
-      <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+        <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         {/* Header con toggle de columnas */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -238,9 +267,9 @@ export default function PropertyDataTable({
           <ColumnVisibilityToggle
             columns={columnConfig}
             columnVisibility={columnVisibility}
-            onColumnVisibilityChange={setColumnVisibility}
+            onColumnVisibilityChange={onColumnVisibilityChange}
           />
-        </div>t
+        </div>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
@@ -279,12 +308,7 @@ export default function PropertyDataTable({
                   <tr
                     key={row.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-                    onClick={(e) => {
-                      const target = e.target as HTMLElement;
-
-                      if (target.closest(".action_btn")) {
-                        return;
-                      }
+                    onClick={() => {
                       route(`${row.original.id}`);
                     }}
                   >

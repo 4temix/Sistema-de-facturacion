@@ -8,6 +8,7 @@ import { customStyles } from "../../Utilities/StyleForReactSelect";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import { BaseSelecst, Option } from "../../Types/ProductTypes";
+import type { VisibilityState } from "@tanstack/react-table";
 import CardsFacturacion from "../../components/Facturacion/CardsFacturacion";
 import TableFacturas from "../../components/Facturacion/TableFacturas";
 import {
@@ -110,6 +111,12 @@ function FacturacionPageContent() {
   };
   //filtros de busqueda
   const [filters, setFilters] = useState(initialFilters);
+
+  // Estado de visibilidad de columnas (persistente en la página)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    fechaPago: false,
+    metodoPago: false,
+  });
 
   //para la bsuqueda de facturas
   let BeforeFilter = useRef<string>("");
@@ -487,8 +494,7 @@ function FacturacionPageContent() {
                         id="status"
                         styles={customStyles()}
                         placeholder={"Estados..."}
-                        //se hace de esta manera para tener los labels de los selects
-                        //para hacer que salga el place holder se hace la verificacion de si hay valor
+                        menuPortalTarget={document.body}
                         value={
                           selectedEstado
                             ? {
@@ -503,13 +509,11 @@ function FacturacionPageContent() {
                             value: producto.id.toString(),
                           })
                         )}
-                        menuPosition="fixed"
                         className="select-custom pl-0"
                         classNamePrefix="select"
                         onChange={(e) => {
                           if (!e) return;
                           updateFilter(parseInt(e.value), "estado");
-                          updateLabels(e.label, "estado");
                         }}
                       />
                     </div>
@@ -588,6 +592,8 @@ function FacturacionPageContent() {
             pageNUmber={filters.page}
             pageSize={filters.PageSize}
             updateSize={updateFilter}
+            columnVisibility={columnVisibility}
+            onColumnVisibilityChange={setColumnVisibility}
           />
         </article>
       </section>

@@ -9,6 +9,7 @@ import FormEmpleados from "../../components/Empleados/FormEmpleados";
 import EditEmpleado from "../../components/Empleados/EditEmpleado";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import type { VisibilityState } from "@tanstack/react-table";
 import {
   EmpleadoFormValues,
   EmpleadoCreateDto,
@@ -88,6 +89,12 @@ export default function Empleados() {
 
   // Filtros de búsqueda
   const [filters, setFilters] = useState(initialFilters);
+
+  // Estado de visibilidad de columnas (persistente en la página)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    id: false,
+    email: false,
+  });
 
   // Elementos para que funcione el debounce
   const debouncedSearch = useDebounce(filters.search ?? "", 600);
@@ -362,6 +369,8 @@ export default function Empleados() {
             setEditEmpleadoId(id);
             openEditModal();
           }}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={setColumnVisibility}
         />
       ) : (
         <LoadingTable columns={7} />

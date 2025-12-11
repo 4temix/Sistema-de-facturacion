@@ -7,6 +7,7 @@ import {
   Row,
   Cell,
   type VisibilityState,
+  type OnChangeFn,
 } from "@tanstack/react-table";
 import { PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
@@ -31,11 +32,18 @@ type internalProps = DataRequest & {
   setPage: (page: number) => void;
   pageNUmber: number;
   pageSize?: number;
-  updateSize: (value: number, key: string) => void;
+  updateSize?: (value: number, key: string) => void;
   loader: boolean;
   showPag?: boolean;
-  showColum?: VisibilityState;
   btnEdit?: boolean;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+};
+
+// Valor por defecto para visibilidad de columnas
+const defaultColumnVisibility: VisibilityState = {
+  fechaPago: false,
+  metodoPago: false,
 };
 
 export default function TableFacturas({
@@ -47,8 +55,9 @@ export default function TableFacturas({
   updateSize,
   loader,
   showPag = true,
-  showColum,
   btnEdit = true,
+  columnVisibility: columnVisibilityProp,
+  onColumnVisibilityChange: onColumnVisibilityChangeProp,
 }: internalProps) {
   const getFacturaColor = useFacturaColor();
   const [isLoading, setIsLoading] = useState(false);
@@ -58,11 +67,14 @@ export default function TableFacturas({
 
   const { modalEditOpen, AsingFactura } = useModalEdit();
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    fechaPago: false,
-    metodoPago: false,
-    ...showColum,
-  });
+  // Estado interno para cuando no se pasan las props
+  const [internalColumnVisibility, setInternalColumnVisibility] =
+    useState<VisibilityState>(defaultColumnVisibility);
+
+  // Usar props si se pasan, sino usar estado interno
+  const columnVisibility = columnVisibilityProp ?? internalColumnVisibility;
+  const onColumnVisibilityChange =
+    onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
 
   // Configuración de columnas para el toggle
   const columnConfig = [
@@ -226,39 +238,35 @@ export default function TableFacturas({
         id: "actions",
         header: "Acciones",
         cell: ({ row }: { row: Row<Factura> }) => (
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="flex items-center gap-2">
+            {btnEdit && (
+              <button
+                className={`p-2 rounded-lg transition-colors ${
+                  row.original.estado != "Reembolsada"
+                    ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (row.original.estado == "Reembolsada") {
+                    return;
+                  }
+                  EditFactura(row.original.id);
+                }}
+                title="Editar"
+              >
+                <PencilIcon />
+              </button>
+            )}
             <button
-              className={`transition-colors duration-200  ${
-                row.original.estado != "Reembolsada"
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-300"
-              } action_btn`}
-              onClick={() => {
-                if (row.original.estado == "Reembolsada") {
-                  return;
-                }
-                EditFactura(row.original.id);
-              }}
-              style={{
-                padding: "8px 16px",
-                color: "white",
-                borderRadius: "6px",
-              }}
-            >
-              <PencilIcon />
-            </button>
-            <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 Impresion(row.original.id);
               }}
-              className="transition-colors duration-200 hover:bg-green-500 bg-green-400 action_btn"
-              style={{
-                padding: "8px 16px",
-                color: "white",
-                borderRadius: "6px",
-              }}
+              className="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+              title="Imprimir"
             >
-              <LuPrinter />
+              <LuPrinter className="w-4 h-4" />
             </button>
           </div>
         ),
@@ -305,14 +313,14 @@ export default function TableFacturas({
     state: {
       columnVisibility,
     },
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
     <>
       {loadintComplete && <LoaderFun absolute={false} />}
-      <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         {/* Header con toggle de columnas */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -321,7 +329,7 @@ export default function TableFacturas({
           <ColumnVisibilityToggle
             columns={columnConfig}
             columnVisibility={columnVisibility}
-            onColumnVisibilityChange={setColumnVisibility}
+            onColumnVisibilityChange={onColumnVisibilityChange}
           />
         </div>
 
@@ -374,14 +382,7 @@ export default function TableFacturas({
                     <tr
                       key={row.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-                      onClick={(e) => {
-                        const target = e.target as HTMLElement;
-
-                        // Si el click viene de un botón o un hijo con la clase .action_btn, no abrir el modal
-                        if (target.closest(".action_btn")) {
-                          return;
-                        }
-
+                      onClick={() => {
                         getData(row.original.id);
                         setIsDetailsOpen(true);
                       }}

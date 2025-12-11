@@ -6,6 +6,7 @@ import {
   Row,
   Cell,
   type VisibilityState,
+  type OnChangeFn,
 } from "@tanstack/react-table";
 import { GastoList, DataGastoResponse } from "../../Types/Gastos";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
@@ -19,6 +20,16 @@ type Props = DataGastoResponse & {
   updateSize: (value: string | number | null | undefined, key: string) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+};
+
+// Valor por defecto para visibilidad de columnas
+const defaultColumnVisibility: VisibilityState = {
+  id: false,
+  comprobante: false,
+  metodoPago: false,
+  montoPagado: false,
 };
 
 export default function TableGastos({
@@ -28,14 +39,17 @@ export default function TableGastos({
   pageNumber,
   onEdit,
   onDelete,
+  columnVisibility: columnVisibilityProp,
+  onColumnVisibilityChange: onColumnVisibilityChangeProp,
 }: Props) {
-  // Estado de visibilidad de columnas - algunas ocultas por defecto
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    id: false,
-    comprobante: false,
-    metodoPago: false,
-    montoPagado: false,
-  });
+  // Estado interno para cuando no se pasan las props
+  const [internalColumnVisibility, setInternalColumnVisibility] =
+    useState<VisibilityState>(defaultColumnVisibility);
+
+  // Usar props si se pasan, sino usar estado interno
+  const columnVisibility = columnVisibilityProp ?? internalColumnVisibility;
+  const onColumnVisibilityChange =
+    onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
 
   // Configuración de columnas para el toggle
   const columnConfig = [
@@ -174,38 +188,46 @@ export default function TableGastos({
         header: "Estado",
         cell: ({ getValue }: { getValue: () => string }) => {
           const estado = getValue();
-          let styles = "bg-gray-100 text-gray-700";
+          let styles = "bg-slate-100 text-slate-800 border-slate-300";
+          
           if (estado?.toLowerCase() === "pagado") {
-            styles = "bg-green-50 text-green-700";
+            styles = "bg-green-100 text-green-800 border-green-300";
           } else if (estado?.toLowerCase() === "pendiente") {
-            styles = "bg-red-50 text-red-700";
+            styles = "bg-red-100 text-red-800 border-red-300";
           } else if (estado?.toLowerCase().includes("parcial")) {
-            styles = "bg-amber-50 text-amber-700";
+            styles = "bg-yellow-100 text-yellow-800 border-yellow-300";
           }
+          
           return (
-            <span
-              className={`px-2 py-0.5 rounded text-xs font-medium ${styles}`}
+            <div
+              className={`px-3 py-1 rounded-full border text-sm font-medium text-center ${styles}`}
             >
               {estado || "-"}
-            </span>
+            </div>
           );
         },
       },
       {
         id: "actions",
-        header: "",
+        header: "Acciones",
         cell: ({ row }: { row: Row<GastoList> }) => (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
-              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors action_btn"
-              onClick={() => onEdit(row.original.id)}
+              className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(row.original.id);
+              }}
               title="Editar"
             >
               <FiEdit2 className="w-4 h-4" />
             </button>
             <button
-              onClick={() => onDelete(row.original.id)}
-              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors action_btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(row.original.id);
+              }}
+              className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
               title="Eliminar"
             >
               <FiTrash2 className="w-4 h-4" />
@@ -222,12 +244,12 @@ export default function TableGastos({
     state: {
       columnVisibility,
     },
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
-    <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden">
+    <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       {/* Header con toggle de columnas */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -236,7 +258,7 @@ export default function TableGastos({
         <ColumnVisibilityToggle
           columns={columnConfig}
           columnVisibility={columnVisibility}
-          onColumnVisibilityChange={setColumnVisibility}
+          onColumnVisibilityChange={onColumnVisibilityChange}
         />
       </div>
 
@@ -278,11 +300,6 @@ export default function TableGastos({
                 <tr
                   key={row.id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  onClick={(e) => {
-                    const target = e.target as HTMLElement;
-                    if (target.closest(".action_btn")) return;
-                    // Click en la fila para ver detalles
-                  }}
                 >
                   {row
                     .getVisibleCells()

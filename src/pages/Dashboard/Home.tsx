@@ -81,7 +81,6 @@ function Pts() {
               pageSize={6}
               updateSize={() => {}}
               showPag={false}
-              showColum={{ actions: false, metodoPago: false }}
               btnEdit={false}
             />
           </div>

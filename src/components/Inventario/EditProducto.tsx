@@ -206,6 +206,7 @@ export default function EditProducto(params: Actions) {
                       id="categoria"
                       styles={customStyles()}
                       placeholder="Selecciona una categoría..."
+                      menuPortalTarget={document.body}
                       value={
                         selectsData?.categorias
                           ?.map((element) => ({
@@ -235,6 +236,7 @@ export default function EditProducto(params: Actions) {
                       id="categoria"
                       styles={customStyles()}
                       placeholder="Selecciona un tipo..."
+                      menuPortalTarget={document.body}
                       value={
                         selectsData?.tipos
                           ?.map((element) => ({
@@ -263,6 +265,7 @@ export default function EditProducto(params: Actions) {
                       id="categoria"
                       styles={customStyles()}
                       placeholder="Selecciona una marca..."
+                      menuPortalTarget={document.body}
                       value={
                         selectsData?.marcas
                           ?.map((element) => ({
@@ -461,6 +464,7 @@ export default function EditProducto(params: Actions) {
                         !!errors.estadoId && touched.estadoId
                       )}
                       placeholder="Seleccione un estado.."
+                      menuPortalTarget={document.body}
                       value={
                         selectsData?.estados
                           ?.map((element) => ({
