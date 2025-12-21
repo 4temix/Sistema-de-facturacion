@@ -5,6 +5,8 @@ import { lazy } from "react";
 // Layout principal
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
+import { AuthProvider } from "./context/GlobalUserContext";
+import { ProtectedRoute } from "./Utilities/ProtectedRouteProps";
 
 // lazy loading para cada página
 const Home = lazy(() => import("./pages/Dashboard/Home"));
@@ -49,22 +51,114 @@ const routes = createBrowserRouter([
       </>
     ),
     children: [
-      { index: true, path: "/", element: <Home /> },
+      {
+        index: true,
+        path: "/",
+        element: (
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        ),
+      },
       //principal
-      { path: "/inventario", element: <Productos /> },
-      { path: "/inventario/:id", element: <PageDetailsProductos /> },
-      { path: "/facturacion", element: <Facturacion /> },
-      { path: "/gastos", element: <Gastos /> },
-      { path: "/empleados", element: <Empleados /> },
-      { path: "/nominas", element: <Nominas /> },
-      { path: "/nominas/:id", element: <Nominas /> },
-      { path: "/mantenimientos", element: <Mantenimientos /> },
-      { path: "/reportes", element: <Reportes /> },
-      { path: "/reportes/:year", element: <DetailsYearPage /> },
-      { path: "/reportes/:year/:month", element: <DetailsMonth /> },
+      {
+        path: "/inventario",
+        element: (
+          <ProtectedRoute>
+            <Productos />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/inventario/:id",
+        element: (
+          <ProtectedRoute>
+            <PageDetailsProductos />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/facturacion",
+        element: (
+          <ProtectedRoute>
+            <Facturacion />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/gastos",
+        element: (
+          <ProtectedRoute>
+            <Gastos />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/empleados",
+        element: (
+          <ProtectedRoute>
+            <Empleados />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/nominas",
+        element: (
+          <ProtectedRoute>
+            <Nominas />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/nominas/:id",
+        element: (
+          <ProtectedRoute>
+            <Nominas />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/mantenimientos",
+        element: (
+          <ProtectedRoute>
+            <Mantenimientos />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/reportes",
+        element: (
+          <ProtectedRoute>
+            <Reportes />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/reportes/:year",
+        element: (
+          <ProtectedRoute>
+            <DetailsYearPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/reportes/:year/:month",
+        element: (
+          <ProtectedRoute>
+            <DetailsMonth />
+          </ProtectedRoute>
+        ),
+      },
 
       // Others Page
-      { path: "/profile", element: <UserProfiles /> },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <UserProfiles />
+          </ProtectedRoute>
+        ),
+      },
       { path: "/calendar", element: <Calendar /> },
       { path: "/blank", element: <Blank /> },
 
@@ -92,6 +186,9 @@ const routes = createBrowserRouter([
   { path: "/signin", element: <SignIn /> },
   { path: "/signup", element: <SignUp /> },
 
+  // 404 Page
+  { path: "/404", element: <NotFound /> },
+
   // Fallback 404
   { path: "*", element: <NotFound /> },
 ]);
@@ -99,7 +196,9 @@ const routes = createBrowserRouter([
 function App() {
   return (
     <HelmetProvider>
-      <RouterProvider router={routes} />
+      <AuthProvider>
+        <RouterProvider router={routes} />
+      </AuthProvider>
     </HelmetProvider>
   );
 }

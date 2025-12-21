@@ -24,12 +24,14 @@ interface NominaDetalleProps {
   nomina: NominaCompletaDto;
   onBack: () => void;
   onAprobar: () => void;
+  onUpdate?: () => void;
 }
 
 export default function NominaDetalle({
   nomina,
   onBack,
   onAprobar,
+  onUpdate,
 }: NominaDetalleProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedDetalle, setSelectedDetalle] =
@@ -81,8 +83,8 @@ export default function NominaDetalle({
         ),
       },
       {
-        id: "salarioBase",
-        accessorKey: "salarioBase",
+        id: "pagado",
+        accessorKey: "pagado",
         header: "Salario Base",
         cell: ({ getValue }: { getValue: () => number }) => (
           <span>{formatCurrency(getValue())}</span>
@@ -137,6 +139,12 @@ export default function NominaDetalle({
           <NominaEmpleadoDetails
             detalle={selectedDetalle}
             onClose={() => setIsDetailsOpen(false)}
+            onUpdate={() => {
+              if (onUpdate) {
+                onUpdate();
+              }
+              setIsDetailsOpen(false);
+            }}
           />
         )}
       </Drawer>

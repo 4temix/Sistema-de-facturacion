@@ -4,13 +4,19 @@ import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 import { ScrollToTop } from "../components/common/ScrollToTop";
+import { useUserData } from "../context/GlobalUserContext";
+import LoaderFun from "../components/loader/LoaderFunc";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { isLoading } = useUserData();
+
+  if (isLoading) {
+    return <LoaderFun />;
+  }
 
   return (
     <div className="min-h-screen xl:flex">
-      {/* <LoaderFun /> */}
       {/* Sidebar + Backdrop */}
       <div>
         <AppSidebar />

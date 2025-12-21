@@ -13,6 +13,9 @@ import { Option } from "../../Types/ProductTypes";
 // Regex para validar números
 const regexNum = /^[0-9]*\.?[0-9]*$/;
 
+// Horas laborables por mes (8 horas/día × 22 días laborables)
+const HORAS_POR_MES = 176;
+
 // Tipos de contrato predefinidos
 const TIPOS_CONTRATO = [
   { value: "Indefinido", label: "Indefinido" },
@@ -321,10 +324,17 @@ export default function FormEmpleados({
                       const value = e.target.value;
                       if (value === "") {
                         setFieldValue("salarioBase", null);
+                        setFieldValue("salarioPorHora", null);
                         return;
                       }
                       if (regexNum.test(value)) {
-                        setFieldValue("salarioBase", Number(value));
+                        const salarioBase = Number(value);
+                        setFieldValue("salarioBase", salarioBase);
+                        // Calcular salario por hora automáticamente
+                        if (salarioBase > 0) {
+                          const salarioPorHora = salarioBase / HORAS_POR_MES;
+                          setFieldValue("salarioPorHora", Number(salarioPorHora.toFixed(2)));
+                        }
                       }
                     }}
                     onBlur={() => setFieldTouched("salarioBase", true)}
@@ -345,10 +355,18 @@ export default function FormEmpleados({
                       const value = e.target.value;
                       if (value === "") {
                         setFieldValue("salarioPorHora", null);
+                        setFieldValue("salarioBase", null);
                         return;
                       }
                       if (regexNum.test(value)) {
-                        setFieldValue("salarioPorHora", Number(value));
+                        const salarioPorHora = Number(value);
+                        setFieldValue("salarioPorHora", salarioPorHora);
+                        // Calcular salario base automáticamente
+                        if (salarioPorHora > 0) {
+                          const salarioBase = salarioPorHora * HORAS_POR_MES;
+                          setFieldValue("salarioBase", Number(salarioBase.toFixed(2)));
+                          setFieldTouched("salarioBase", true);
+                        }
                       }
                     }}
                   />

@@ -1,14 +1,99 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
+import { useUserData } from "../../context/GlobalUserContext";
+import { baseUrl } from "../../Utilities/FetchFuntions";
+import { LoginResponse, User } from "../../Types/Usuario";
+import { Menu } from "../../Types/Menu";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useUserData();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Por favor, completa todos los campos");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${baseUrl}api/user/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Email: email,
+          Paassword: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.errorMessage ||
+            errorData?.error ||
+            "Error al iniciar sesión"
+        );
+      }
+
+      const responseData: any = await response.json();
+
+      // La respuesta viene como { success: true, result: { token, refreshToken, userData: { usuario, menus } } }
+      const result = responseData.result;
+      if (!result) {
+        setError("Error al procesar la respuesta del servidor");
+        setIsLoading(false);
+        return;
+      }
+
+      const token = result.token;
+      const refreshToken = result.refreshToken;
+      const user = result.userData?.usuario;
+      const menu = result.userData?.menus || [];
+
+      // Si no hay datos esenciales, mostrar error y no redirigir
+      if (!token || !refreshToken || !user) {
+        setError("Error al procesar la respuesta del servidor");
+        setIsLoading(false);
+        return;
+      }
+
+      const loginData: LoginResponse = {
+        token: token as string,
+        refreshToken: refreshToken as string,
+        user: user as User,
+        menu: (Array.isArray(menu) ? menu : []) as Menu,
+      };
+
+      // Guardar datos en el contexto
+      login(loginData);
+
+      // Redirigir solo si todo salió bien
+      setIsLoading(false);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      setIsLoading(false);
+      // No redirigir en caso de error
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
@@ -83,13 +168,25 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
+                {error && (
+                  <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+                    {error}
+                  </div>
+                )}
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" />
+                  <Input
+                    type="email"
+                    placeholder="info@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                    required
+                  />
                 </div>
                 <div>
                   <Label>
@@ -99,6 +196,10 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                      required
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -127,8 +228,13 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="sm"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Iniciando sesión..." : "Sign in"}
                   </Button>
                 </div>
               </div>

@@ -262,6 +262,11 @@ export default function Nominas() {
             nomina={selectedNomina}
             onBack={handleBack}
             onAprobar={handleAprobar}
+            onUpdate={() => {
+              if (id) {
+                getNominaDetalle(parseInt(id));
+              }
+            }}
           />
         )
       )}

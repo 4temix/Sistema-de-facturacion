@@ -19,10 +19,18 @@ export const baseUrl = "https://localhost:7114/";
  */
 export async function apiRequest<T>({
   url,
-  configuration,
+  configuration = {},
 }: FetchParams): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(baseUrl + url, configuration);
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...configuration.headers,
+    };
+
+    const res = await fetch(baseUrl + url, {
+      ...configuration,
+      headers,
+    });
 
     // Manejo de códigos de estado HTTP
     if (res.status === 401) {
@@ -77,42 +85,19 @@ export async function apiRequest<T>({
 
 export function apiRequestThen<T>({
   url,
-  configuration,
+  configuration = {},
 }: FetchParams): Promise<ApiResponse<T>> {
-  console.log(configuration);
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(configuration.headers as HeadersInit),
+  };
 
-  return fetch(baseUrl + url, configuration)
+  return fetch(baseUrl + url, {
+    ...configuration,
+    headers,
+  })
     .then(async (res): Promise<ApiResponse<T>> => {
-      // Manejo de errores HTTP
-      if (res.status === 401) {
-        return { success: false, errorMessage: "Token inválido o expirado" };
-      }
-      if (res.status === 403) {
-        return { success: false, errorMessage: "No autorizado" };
-      }
-
-      // Si la respuesta tiene un cuerpo JSON
-      const json = await res.json().catch(() => null);
-
-      if (res.status === 400 || res.status === 500) {
-        const errorMsg =
-          json?.error ||
-          json?.errorMessage ||
-          json?.detail ||
-          "Error inesperado";
-        return { success: false, errorMessage: errorMsg };
-      }
-
-      // Caso normal (200 OK)
-      const data = json as ApiResponse<T>;
-      if (data?.success === false) {
-        return { success: false, errorMessage: data.errorMessage };
-      }
-
-      return {
-        success: true,
-        result: data?.result ?? (data as unknown as T),
-      };
+      return processResponse<T>(res);
     })
     .catch(
       (error): ApiResponse<T> => ({
@@ -120,4 +105,37 @@ export function apiRequestThen<T>({
         errorMessage: error instanceof Error ? error.message : String(error),
       })
     );
+}
+
+/**
+ * Función auxiliar para procesar respuestas HTTP
+ */
+async function processResponse<T>(res: Response): Promise<ApiResponse<T>> {
+  // Manejo de errores HTTP
+  if (res.status === 401) {
+    return { success: false, errorMessage: "Token inválido o expirado" };
+  }
+  if (res.status === 403) {
+    return { success: false, errorMessage: "No autorizado" };
+  }
+
+  // Si la respuesta tiene un cuerpo JSON
+  const json = await res.json().catch(() => null);
+
+  if (res.status === 400 || res.status === 500) {
+    const errorMsg =
+      json?.error || json?.errorMessage || json?.detail || "Error inesperado";
+    return { success: false, errorMessage: errorMsg };
+  }
+
+  // Caso normal (200 OK)
+  const data = json as ApiResponse<T>;
+  if (data?.success === false) {
+    return { success: false, errorMessage: data.errorMessage };
+  }
+
+  return {
+    success: true,
+    result: data?.result ?? (data as unknown as T),
+  };
 }

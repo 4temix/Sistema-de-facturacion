@@ -7,7 +7,7 @@ import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import FormEmpleados from "../../components/Empleados/FormEmpleados";
 import EditEmpleado from "../../components/Empleados/EditEmpleado";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import type { VisibilityState } from "@tanstack/react-table";
 import {
@@ -24,6 +24,7 @@ import { LoadingTable } from "../../components/loader/LoadingTable";
 import { useFormik } from "formik";
 import { ValidationEmpleado } from "../../components/Empleados/yup";
 import LoaderFun from "../../components/loader/LoaderFunc";
+import { useUserData } from "../../context/GlobalUserContext";
 
 // Valores iniciales del formulario
 const initialFormValues: EmpleadoFormValues = {
@@ -58,6 +59,8 @@ export default function Empleados() {
     openModal: openEditModal,
     closeModal: closeEditModal,
   } = useModal();
+
+  const { user } = useUserData();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -232,20 +235,20 @@ export default function Empleados() {
   // Cargar selects y datos iniciales
   useEffect(() => {
     // Petición para los selects del formulario
-    apiRequestThen<{
-      puestos: { id: number; nombre: string }[];
-      ars: { id: number; nombre: string }[];
-      afp: { id: number; nombre: string }[];
-    }>({
-      url: "api/empleados/selects-form",
+    apiRequestThen<{ id: number; nombre: string }[]>({
+      url: "api/empleados/selects",
     }).then((response) => {
       if (!response.success) {
         console.error("Error:", response.errorMessage);
         return;
       }
+
+      console.log(response);
       if (response.result) {
         setSelectsData({
-          ...response.result,
+          puestos: response.result,
+          ars: [],
+          afp: [],
           tiposContrato: [],
         });
       }

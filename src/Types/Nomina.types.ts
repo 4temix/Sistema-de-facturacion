@@ -40,7 +40,8 @@ export interface NominaDetalleDto {
   nominaId: number;
   empleadoId: number;
   empleadoNombre: string;
-  salarioBase: number;
+  pagado: number; // Salario pagado (editable)
+  salarioBase: number; // Salario base del empleado (del registro, no editable)
   horasExtras: number;
   montoHorasExtras: number;
   otrosIngresos: number;
@@ -107,5 +108,14 @@ export interface NominaFormValues {
   periodoInicio: string;
   periodoFin: string;
   tipo: string;
+}
+
+// DTO para actualizar detalles de nómina
+export interface NominaDetailsUpdate {
+  id: number;
+  salarioBase: number;
+  horasExtras: number;
+  montoHorasExtras: number;
+  otrosIngresos: number;
 }
 
