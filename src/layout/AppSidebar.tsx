@@ -28,47 +28,94 @@ const getIconForMenu = (menuName: string) => {
   const name = menuName.toLowerCase().trim();
 
   // Dashboard / Inicio
-  if (name.includes("dashboard") || name.includes("inicio") || name.includes("home")) {
+  if (
+    name.includes("dashboard") ||
+    name.includes("inicio") ||
+    name.includes("home")
+  ) {
     return <GridIcon />;
   }
 
   // Gestión / Administración
-  if (name.includes("gestion") || name.includes("gestión") || name.includes("administracion") || name.includes("admin")) {
+  if (
+    name.includes("gestion") ||
+    name.includes("gestión") ||
+    name.includes("administracion") ||
+    name.includes("admin")
+  ) {
     return <BoxCubeIcon />;
   }
 
   // Reportes / Estadísticas
-  if (name.includes("reporte") || name.includes("estadistica") || name.includes("estadística") || name.includes("analisis") || name.includes("análisis")) {
+  if (
+    name.includes("reporte") ||
+    name.includes("estadistica") ||
+    name.includes("estadística") ||
+    name.includes("analisis") ||
+    name.includes("análisis")
+  ) {
     return <PieChartIcon />;
   }
 
   // Calendario
-  if (name.includes("calendario") || name.includes("calendar") || name.includes("evento")) {
+  if (
+    name.includes("calendario") ||
+    name.includes("calendar") ||
+    name.includes("evento")
+  ) {
     return <CalenderIcon />;
   }
 
   // Usuarios / Perfiles / Empleados
-  if (name.includes("usuario") || name.includes("user") || name.includes("perfil") || name.includes("empleado") || name.includes("personal")) {
+  if (
+    name.includes("usuario") ||
+    name.includes("user") ||
+    name.includes("perfil") ||
+    name.includes("empleado") ||
+    name.includes("personal")
+  ) {
     return <UserCircleIcon />;
   }
 
   // Facturación / Ventas / Compras
-  if (name.includes("facturacion") || name.includes("facturación") || name.includes("venta") || name.includes("compra") || name.includes("invoice")) {
+  if (
+    name.includes("facturacion") ||
+    name.includes("facturación") ||
+    name.includes("venta") ||
+    name.includes("compra") ||
+    name.includes("invoice")
+  ) {
     return <DollarLineIcon />;
   }
 
   // Inventario / Productos / Stock
-  if (name.includes("inventario") || name.includes("producto") || name.includes("stock") || name.includes("almacen") || name.includes("almacén")) {
+  if (
+    name.includes("inventario") ||
+    name.includes("producto") ||
+    name.includes("stock") ||
+    name.includes("almacen") ||
+    name.includes("almacén")
+  ) {
     return <BoxIcon />;
   }
 
   // Gastos / Egresos
-  if (name.includes("gasto") || name.includes("egreso") || name.includes("pago") || name.includes("expense")) {
+  if (
+    name.includes("gasto") ||
+    name.includes("egreso") ||
+    name.includes("pago") ||
+    name.includes("expense")
+  ) {
     return <DollarLineIcon />;
   }
 
   // Nóminas / Salarios
-  if (name.includes("nomina") || name.includes("nómina") || name.includes("salario") || name.includes("payroll")) {
+  if (
+    name.includes("nomina") ||
+    name.includes("nómina") ||
+    name.includes("salario") ||
+    name.includes("payroll")
+  ) {
     return <DollarLineIcon />;
   }
 
@@ -78,32 +125,61 @@ const getIconForMenu = (menuName: string) => {
   }
 
   // Tablas / Listados
-  if (name.includes("tabla") || name.includes("table") || name.includes("listado") || name.includes("lista")) {
+  if (
+    name.includes("tabla") ||
+    name.includes("table") ||
+    name.includes("listado") ||
+    name.includes("lista")
+  ) {
     return <TableIcon />;
   }
 
   // Configuración / Mantenimiento / Settings
-  if (name.includes("configuracion") || name.includes("configuración") || name.includes("mantenimiento") || name.includes("setting") || name.includes("ajuste")) {
+  if (
+    name.includes("configuracion") ||
+    name.includes("configuración") ||
+    name.includes("mantenimiento") ||
+    name.includes("setting") ||
+    name.includes("ajuste")
+  ) {
     return <PageIcon />;
   }
 
   // Documentos / Archivos
-  if (name.includes("documento") || name.includes("archivo") || name.includes("file") || name.includes("doc")) {
+  if (
+    name.includes("documento") ||
+    name.includes("archivo") ||
+    name.includes("file") ||
+    name.includes("doc")
+  ) {
     return <FileIcon />;
   }
 
   // Tareas / Actividades
-  if (name.includes("tarea") || name.includes("actividad") || name.includes("task")) {
+  if (
+    name.includes("tarea") ||
+    name.includes("actividad") ||
+    name.includes("task")
+  ) {
     return <TaskIcon />;
   }
 
   // Grupos / Equipos
-  if (name.includes("grupo") || name.includes("equipo") || name.includes("team")) {
+  if (
+    name.includes("grupo") ||
+    name.includes("equipo") ||
+    name.includes("team")
+  ) {
     return <GroupIcon />;
   }
 
   // Carpetas / Categorías
-  if (name.includes("carpeta") || name.includes("categoria") || name.includes("categoría") || name.includes("folder")) {
+  if (
+    name.includes("carpeta") ||
+    name.includes("categoria") ||
+    name.includes("categoría") ||
+    name.includes("folder")
+  ) {
     return <FolderIcon />;
   }
 
@@ -115,7 +191,6 @@ const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const { menu } = useUserData();
   const location = useLocation();
-
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main";
@@ -254,86 +329,93 @@ const AppSidebar = () => {
                 )}
               </h2>
               <ul className="flex flex-col gap-4">
-                {menu.map((section: MenuSection, index: number) => (
-                  <li key={`${section.id}-${index}`}>
-                    {section.submenus && section.submenus.length > 0 ? (
-                      <>
-                        <button
-                          onClick={() => handleSubmenuToggle(index)}
-                          className={`menu-item group ${
-                            openSubmenu?.type === "main" &&
-                            openSubmenu?.index === index
-                              ? "menu-item-active"
-                              : "menu-item-inactive"
-                          } cursor-pointer ${
-                            !isExpanded && !isHovered
-                              ? "lg:justify-center"
-                              : "lg:justify-start"
-                          }`}
-                        >
-                          <span
-                            className={`menu-item-icon-size ${
+                {menu.map((section: MenuSection, index: number) => {
+                  return (
+                    <li key={`${section.id}-${index}`}>
+                      {section.submenus && section.submenus.length > 0 ? (
+                        <>
+                          <button
+                            onClick={() => handleSubmenuToggle(index)}
+                            className={`menu-item group ${
                               openSubmenu?.type === "main" &&
                               openSubmenu?.index === index
-                                ? "menu-item-icon-active"
-                                : "menu-item-icon-inactive"
+                                ? "menu-item-active"
+                                : "menu-item-inactive"
+                            } cursor-pointer ${
+                              !isExpanded && !isHovered
+                                ? "lg:justify-center"
+                                : "lg:justify-start"
                             }`}
                           >
-                            {getIconForMenu(section.seccion)}
-                          </span>
-                          {(isExpanded || isHovered || isMobileOpen) && (
-                            <span className="menu-item-text">
-                              {section.seccion}
-                            </span>
-                          )}
-                          {(isExpanded || isHovered || isMobileOpen) && (
-                            <ChevronDownIcon
-                              className={`ml-auto w-5 h-5 transition-transform duration-200 ${
+                            <span
+                              className={`menu-item-icon-size ${
                                 openSubmenu?.type === "main" &&
                                 openSubmenu?.index === index
-                                  ? "rotate-180 text-brand-500"
-                                  : ""
+                                  ? "menu-item-icon-active"
+                                  : "menu-item-icon-inactive"
                               }`}
-                            />
-                          )}
-                        </button>
-                        {section.submenus &&
-                          (isExpanded || isHovered || isMobileOpen) && (
-                            <div
-                              ref={(el) => {
-                                subMenuRefs.current[`main-${index}`] = el;
-                              }}
-                              className="overflow-hidden transition-all duration-300"
-                              style={{
-                                height:
+                            >
+                              {getIconForMenu(section.seccion)}
+                            </span>
+                            {(isExpanded || isHovered || isMobileOpen) && (
+                              <span className="menu-item-text">
+                                {section.seccion}
+                              </span>
+                            )}
+                            {(isExpanded || isHovered || isMobileOpen) && (
+                              <ChevronDownIcon
+                                className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                                   openSubmenu?.type === "main" &&
                                   openSubmenu?.index === index
-                                    ? `${subMenuHeight[`main-${index}`]}px`
-                                    : "0px",
-                              }}
-                            >
-                              <ul className="mt-2 space-y-1 ml-9">
-                                {section.submenus.map((submenu: SubMenu) => (
-                                  <li key={submenu.id}>
-                                    <Link
-                                      to={submenu.url}
-                                      className={`menu-dropdown-item ${
-                                        isActive(submenu.url)
-                                          ? "menu-dropdown-item-active"
-                                          : "menu-dropdown-item-inactive"
-                                      }`}
-                                    >
-                                      {submenu.text}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                      </>
-                    ) : null}
-                  </li>
-                ))}
+                                    ? "rotate-180 text-brand-500"
+                                    : ""
+                                }`}
+                              />
+                            )}
+                          </button>
+                          {section.submenus &&
+                            (isExpanded || isHovered || isMobileOpen) && (
+                              <div
+                                ref={(el) => {
+                                  subMenuRefs.current[`main-${index}`] = el;
+                                }}
+                                className="overflow-hidden transition-all duration-300"
+                                style={{
+                                  height:
+                                    openSubmenu?.type === "main" &&
+                                    openSubmenu?.index === index
+                                      ? `${subMenuHeight[`main-${index}`]}px`
+                                      : "0px",
+                                }}
+                              >
+                                <ul className="mt-2 space-y-1 ml-9">
+                                  {section.submenus.map((submenu: SubMenu) => {
+                                    if (submenu.text == "Perfil") {
+                                      return "";
+                                    }
+                                    return (
+                                      <li key={submenu.id}>
+                                        <Link
+                                          to={submenu.url}
+                                          className={`menu-dropdown-item ${
+                                            isActive(submenu.url)
+                                              ? "menu-dropdown-item-active"
+                                              : "menu-dropdown-item-inactive"
+                                          }`}
+                                        >
+                                          {submenu.text}
+                                        </Link>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            )}
+                        </>
+                      ) : null}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ) : (
