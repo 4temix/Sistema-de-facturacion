@@ -8,7 +8,7 @@ import NominaCard from "../../components/Nominas/NominaCard";
 import NominaDetalle from "../../components/Nominas/NominaDetalle";
 import FormNomina from "../../components/Nominas/FormNomina";
 import { ValidationNomina } from "../../components/Nominas/yup";
-import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import {
   NominaListItem,
   NominaListResponse,
@@ -232,7 +232,7 @@ export default function Nominas() {
             </div>
           ) : (
             <>
-              <article className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+              <article className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 mb-6">
                 {nominasData.data.map((nomina: NominaListItem) => (
                   <NominaCard
                     key={nomina.id}

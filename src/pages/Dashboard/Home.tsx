@@ -48,7 +48,6 @@ function Pts() {
     getData();
   }, []);
 
-  console.log(dataRequest);
   return (
     <>
       <PageMeta

@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { DetailsYearType, VentaMensual } from "../../Types/Reportes";
 import { Link } from "react-router";
-import {
-  TbCurrencyDollar,
-  TbChartBar,
-  TbTrophy,
-} from "react-icons/tb";
+import { TbCurrencyDollar, TbChartBar, TbTrophy } from "react-icons/tb";
 
 type Params = {
   data: DetailsYearType;
@@ -15,6 +11,12 @@ export default function DetailsYear({ data }: Params) {
   console.log(data);
 
   const [mejorMes, setMejorMes] = useState<VentaMensual | null>(null);
+
+  let comp = parseFloat(
+    data.comparacionAnioAnterior != null
+      ? data.comparacionAnioAnterior.toFixed(2)
+      : "100"
+  );
 
   useEffect(() => {
     if (data.ventasMensuales.length > 0) {
@@ -48,7 +50,9 @@ export default function DetailsYear({ data }: Params) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-blue-100 text-sm">Ventas Totales {data.anio}</p>
+              <p className="text-blue-100 text-sm">
+                Ventas Totales {data.anio}
+              </p>
               <TbCurrencyDollar className="text-blue-200 text-2xl" />
             </div>
             <p className="text-3xl font-bold">
@@ -60,12 +64,12 @@ export default function DetailsYear({ data }: Params) {
               <p className="text-gray-600 text-sm">Comparación año anterior</p>
               <TbChartBar className="text-green-500 text-2xl" />
             </div>
-            <p className="text-3xl font-bold text-green-600">
-              +
-              {data.comparacionAnioAnterior == null
-                ? "100"
-                : data.comparacionAnioAnterior}
-              %
+            <p
+              className={`text-3xl font-bold text-${
+                comp < 0 ? "error" : "green"
+              }-600`}
+            >
+              {comp > 0 ? "+" + comp : comp < 0 ? comp : 0}%
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

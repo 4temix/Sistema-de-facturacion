@@ -7,7 +7,7 @@ import { ApexOptions } from "apexcharts";
 type Properties = {
   variacionSemanal: number;
 };
-export default function MonthlyTarget({ variacionSemanal = 0 }: Properties) {
+export default function MonthlyTarget({ variacionSemanal }: Properties) {
   const series = [variacionSemanal];
   const options: ApexOptions = {
     colors: ["#465FFF"],
@@ -21,15 +21,15 @@ export default function MonthlyTarget({ variacionSemanal = 0 }: Properties) {
     },
     plotOptions: {
       radialBar: {
-        startAngle: -85,
-        endAngle: 85,
+        startAngle: -90,
+        endAngle: 90,
         hollow: {
           size: "80%",
         },
         track: {
           background: "#E4E7EC",
           strokeWidth: "100%",
-          margin: 5, // margin is in pixels
+          margin: 5,
         },
         dataLabels: {
           name: {
@@ -38,11 +38,9 @@ export default function MonthlyTarget({ variacionSemanal = 0 }: Properties) {
           value: {
             fontSize: "36px",
             fontWeight: "600",
-            offsetY: -40,
+            offsetY: -20, // ajuste para semicirculo
             color: "#1D2939",
-            formatter: function (val) {
-              return val + "%";
-            },
+            formatter: (val) => `${Math.round(val)}%`,
           },
         },
       },
@@ -71,6 +69,7 @@ export default function MonthlyTarget({ variacionSemanal = 0 }: Properties) {
         <div className="relative ">
           <div className="max-h-[330px]" id="chartDarkStyle">
             <Chart
+              key={variacionSemanal}
               options={options}
               series={series}
               type="radialBar"

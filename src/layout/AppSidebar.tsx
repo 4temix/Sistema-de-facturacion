@@ -426,7 +426,6 @@ const AppSidebar = () => {
             </div>
           )}
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
     </aside>
   );
