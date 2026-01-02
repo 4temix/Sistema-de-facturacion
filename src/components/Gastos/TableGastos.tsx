@@ -189,7 +189,7 @@ export default function TableGastos({
         cell: ({ getValue }: { getValue: () => string }) => {
           const estado = getValue();
           let styles = "bg-slate-100 text-slate-800 border-slate-300";
-          
+
           if (estado?.toLowerCase() === "pagado") {
             styles = "bg-green-100 text-green-800 border-green-300";
           } else if (estado?.toLowerCase() === "pendiente") {
@@ -197,7 +197,7 @@ export default function TableGastos({
           } else if (estado?.toLowerCase().includes("parcial")) {
             styles = "bg-yellow-100 text-yellow-800 border-yellow-300";
           }
-          
+
           return (
             <div
               className={`px-3 py-1 rounded-full border text-sm font-medium text-center ${styles}`}
@@ -221,16 +221,6 @@ export default function TableGastos({
               title="Editar"
             >
               <FiEdit2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(row.original.id);
-              }}
-              className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-              title="Eliminar"
-            >
-              <FiTrash2 className="w-4 h-4" />
             </button>
           </div>
         ),

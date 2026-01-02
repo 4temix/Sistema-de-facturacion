@@ -1,10 +1,10 @@
 import { FormikProps } from "formik";
 import { NominaFormValues } from "../../Types/Nomina.types";
 import Label from "../form/Label";
-import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import Select from "react-select";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
+import DatePickerFormik from "../form/DatePickerFormik";
 
 interface FormNominaProps {
   formik: FormikProps<NominaFormValues>;
@@ -65,36 +65,30 @@ export default function FormNomina({
         {/* Período */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="periodoInicio">Fecha Inicio</Label>
-            <Input
-              type="date"
+            <DatePickerFormik
               id="periodoInicio"
+              name="periodoInicio"
+              label="Fecha Inicio"
+              placeholder="Seleccione la fecha de inicio"
               value={values.periodoInicio}
-              onChange={(e) => setFieldValue("periodoInicio", e.target.value)}
+              onChange={(value) => setFieldValue("periodoInicio", value)}
               onBlur={() => setFieldTouched("periodoInicio", true)}
               error={!!errors.periodoInicio && touched.periodoInicio}
+              errorMessage={errors.periodoInicio}
             />
-            {errors.periodoInicio && touched.periodoInicio && (
-              <p className="mt-1.5 text-xs text-error-500">
-                {errors.periodoInicio}
-              </p>
-            )}
           </div>
           <div>
-            <Label htmlFor="periodoFin">Fecha Fin</Label>
-            <Input
-              type="date"
+            <DatePickerFormik
               id="periodoFin"
+              name="periodoFin"
+              label="Fecha Fin"
+              placeholder="Seleccione la fecha de fin"
               value={values.periodoFin}
-              onChange={(e) => setFieldValue("periodoFin", e.target.value)}
+              onChange={(value) => setFieldValue("periodoFin", value)}
               onBlur={() => setFieldTouched("periodoFin", true)}
               error={!!errors.periodoFin && touched.periodoFin}
+              errorMessage={errors.periodoFin}
             />
-            {errors.periodoFin && touched.periodoFin && (
-              <p className="mt-1.5 text-xs text-error-500">
-                {errors.periodoFin}
-              </p>
-            )}
           </div>
         </div>
 

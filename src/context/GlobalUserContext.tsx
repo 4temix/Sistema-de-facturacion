@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect } from "react";
 import { LoginResponse, User } from "../Types/Usuario";
 import { Menu } from "../Types/Menu";
 import { useState, useCallback } from "react";
-import { apiRequest } from "../Utilities/FetchFuntions";
+import { apiRequest, refreshAccessToken } from "../Utilities/FetchFuntions";
 
 export interface AuthContextType {
   user: User | null;
@@ -36,7 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const validateTokenAndLoadUser = async () => {
       // Si estamos en la página de login o signup, no validar token
-      if (window.location.pathname === "/signin" || window.location.pathname === "/signup") {
+      if (
+        window.location.pathname === "/signin" ||
+        window.location.pathname === "/signup"
+      ) {
         setIsLoading(false);
         return;
       }
@@ -70,8 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         });
 
+        let responseData = response.result;
         if (!response.success || !response.result) {
           // Si la respuesta no es exitosa, limpiar tokens y redirigir al login
+          let data = await refreshAccessToken();
+          responseData = data;
+        }
+
+        if (!responseData) {
           localStorage.removeItem("token");
           localStorage.removeItem("refreshToken");
           setAuth({
@@ -83,8 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           window.location.href = "/signin";
           return;
         }
-
-        const responseData = response.result;
 
         // La respuesta viene como { token, refreshToken, userData: { usuario, menus } }
         const responseToken = responseData.token;

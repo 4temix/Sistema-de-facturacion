@@ -354,7 +354,7 @@ export default function Gastos() {
 
   // Función para obtener las métricas
   function getMetrics() {
-    apiRequest<GastoMetrics>({
+    apiRequestThen<GastoMetrics>({
       url: "api/gastos/metrics",
     }).then((request) => {
       if (request.success) {

@@ -131,7 +131,7 @@ export default function Empleados() {
 
       setIsSaving(true);
       try {
-        const response = await apiRequest({
+        const response = await apiRequestThen({
           url: "api/empleados/crear_empleado",
           configuration: {
             method: "POST",

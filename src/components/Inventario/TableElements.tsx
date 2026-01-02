@@ -143,17 +143,26 @@ export default function PropertyDataTable({
         cell: ({ getValue }: { getValue: () => string }) => {
           const estado = getValue();
           let styles = "bg-slate-100 text-slate-800 border-slate-300";
-          
-          if (estado?.toLowerCase() === "disponible" || estado?.toLowerCase() === "activo") {
+
+          if (
+            estado?.toLowerCase() === "disponible" ||
+            estado?.toLowerCase() === "activo"
+          ) {
             styles = "bg-green-100 text-green-800 border-green-300";
           } else if (estado?.toLowerCase() === "agotado") {
             styles = "bg-red-100 text-red-800 border-red-300";
-          } else if (estado?.toLowerCase() === "bajo stock" || estado?.toLowerCase().includes("bajo")) {
+          } else if (
+            estado?.toLowerCase() === "bajo stock" ||
+            estado?.toLowerCase().includes("bajo")
+          ) {
             styles = "bg-yellow-100 text-yellow-800 border-yellow-300";
-          } else if (estado?.toLowerCase() === "descontinuado" || estado?.toLowerCase() === "inactivo") {
+          } else if (
+            estado?.toLowerCase() === "descontinuado" ||
+            estado?.toLowerCase() === "inactivo"
+          ) {
             styles = "bg-gray-200 text-gray-800 border-gray-300";
           }
-          
+
           return (
             <div
               className={`px-3 py-1 rounded-full border text-sm font-medium text-center ${styles}`}
@@ -224,16 +233,6 @@ export default function PropertyDataTable({
             >
               <PencilIcon />
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                alert(`Eliminar ${row.original.nombre}`);
-              }}
-              className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-              title="Eliminar"
-            >
-              <TrashBinIcon />
-            </button>
           </div>
         ),
       },
@@ -258,7 +257,7 @@ export default function PropertyDataTable({
 
   return (
     <>
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         {/* Header con toggle de columnas */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">

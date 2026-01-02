@@ -76,7 +76,7 @@ export default function EditEmpleado({ id, closeModal, onSuccess }: Props) {
       };
 
       try {
-        const response = await apiRequest({
+        const response = await apiRequestThen({
           url: "api/empleados/actualizar_empleado",
           configuration: {
             method: "PUT",

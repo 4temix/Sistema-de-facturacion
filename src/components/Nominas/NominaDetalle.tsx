@@ -17,7 +17,7 @@ import {
 import Drawer from "../ui/modal/Drawer";
 import NominaEmpleadoDetails from "./NominaEmpleadoDetails";
 import Button from "../ui/button/Button";
-import { apiRequest } from "../../Utilities/FetchFuntions";
+import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
 import LoaderFun from "../loader/LoaderFunc";
 
 interface NominaDetalleProps {
@@ -58,7 +58,7 @@ export default function NominaDetalle({
   const handleAprobar = async () => {
     setIsAprobando(true);
     try {
-      const response = await apiRequest({
+      const response = await apiRequestThen({
         url: `api/nomina/aprobar/${nomina.id}`,
         configuration: { method: "POST" },
       });
@@ -299,4 +299,3 @@ export default function NominaDetalle({
     </div>
   );
 }
-

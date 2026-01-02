@@ -1,5 +1,7 @@
 // utils/apiRequest.ts
 
+import { LoginResponse } from "../Types/Usuario";
+
 export interface ApiResponse<T> {
   success: boolean;
   errorMessage?: string;
@@ -83,28 +85,66 @@ export async function apiRequest<T>({
   }
 }
 
-export function apiRequestThen<T>({
+export async function apiRequestThen<T>({
   url,
   configuration = {},
 }: FetchParams): Promise<ApiResponse<T>> {
+  const accessToken = localStorage.getItem("token");
+
   const headers: HeadersInit = {
     "Content-Type": "application/json",
+    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
     ...(configuration.headers as HeadersInit),
   };
 
-  return fetch(baseUrl + url, {
+  const response = await fetch(baseUrl + url, {
     ...configuration,
     headers,
-  })
-    .then(async (res): Promise<ApiResponse<T>> => {
-      return processResponse<T>(res);
-    })
-    .catch(
-      (error): ApiResponse<T> => ({
+  });
+
+  // ⛔ Token expirado
+  if (response.status === 401) {
+    const newToken = await refreshAccessToken();
+
+    if (!newToken) {
+      return {
         success: false,
-        errorMessage: error instanceof Error ? error.message : String(error),
-      })
-    );
+        errorMessage: "Sesión expirada",
+      };
+    }
+
+    // 🔁 Reintento automático
+    return apiRequestThen<T>({
+      url,
+      configuration,
+    });
+  }
+
+  return processResponse<T>(response);
+}
+
+export async function refreshAccessToken(): Promise<LoginResponse | null> {
+  const peticion = await fetch(baseUrl + "api/user/refresh", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("refreshToken")}`,
+    },
+  });
+
+  const data: ApiResponse<LoginResponse> = await peticion.json();
+
+  if (!data.success) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    window.location.href = "/signin";
+    return null;
+  }
+
+  localStorage.setItem("token", data.result?.token ?? "");
+  localStorage.setItem("refreshToken", data.result?.refreshToken ?? "");
+
+  return data.result ?? null;
 }
 
 /**

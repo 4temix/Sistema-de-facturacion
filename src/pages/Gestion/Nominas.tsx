@@ -43,9 +43,8 @@ export default function Nominas() {
   });
 
   // Nómina seleccionada para ver detalle
-  const [selectedNomina, setSelectedNomina] = useState<NominaCompletaDto | null>(
-    null
-  );
+  const [selectedNomina, setSelectedNomina] =
+    useState<NominaCompletaDto | null>(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
 
   // Paginación
@@ -67,7 +66,7 @@ export default function Nominas() {
 
       setIsSaving(true);
       try {
-        const response = await apiRequest({
+        const response = await apiRequestThen({
           url: "api/nomina/crear",
           configuration: {
             method: "POST",
@@ -203,6 +202,7 @@ export default function Nominas() {
               isOpen={isOpen}
               onClose={closeModal}
               className="max-w-[500px] m-4"
+              CloseClickBanner={false}
             >
               {isSaving && <LoaderFun absolute={false} />}
               <FormNomina
@@ -273,4 +273,3 @@ export default function Nominas() {
     </section>
   );
 }
-

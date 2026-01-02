@@ -164,7 +164,7 @@ export default function Productos() {
 
   useEffect(() => {
     async function Data() {
-      const request = await apiRequest<Metricas>({
+      const request = await apiRequestThen<Metricas>({
         url: "api/productos/metricas_productos",
       });
 
