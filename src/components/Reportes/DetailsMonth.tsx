@@ -178,6 +178,34 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
               }).format(params.totales.totalGanancia)}
             </p>
           </div>
+
+          <div className="bg-gradient-to-br from-blue-500 to-blue-300 rounded-xl shadow-sm p-6 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-blue-100 text-sm">Nomina total</p>
+              <TbReceipt className="text-2xl" />
+            </div>
+            <p className="text-3xl font-bold mb-1">
+              {new Intl.NumberFormat("es-DO", {
+                style: "currency",
+                currency: "DOP",
+                minimumFractionDigits: 2,
+              }).format(params.totalNomina)}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-error-500 to-error-300 rounded-xl shadow-sm p-6 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-blue-100 text-sm">Total gastos</p>
+              <TbReportMoney className="text-2xl" />
+            </div>
+            <p className="text-3xl font-bold mb-1">
+              {new Intl.NumberFormat("es-DO", {
+                style: "currency",
+                currency: "DOP",
+                minimumFractionDigits: 2,
+              }).format(params.gastos.metrics.totalGastado)}
+            </p>
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -325,7 +353,9 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           {/* Gastos del Mes */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Gastos del Mes</h3>
+              <h3 className="text-lg font-bold text-gray-900">
+                Gastos del Mes
+              </h3>
               <TbReportMoney className="text-orange-500 text-2xl" />
             </div>
             <div className="space-y-4">

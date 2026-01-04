@@ -7,7 +7,11 @@ import { useFormik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import { BaseSelecst, Option } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
-import { GastoUpdate, SelectsGastos, SelectsGastosTable } from "../../Types/Gastos";
+import {
+  GastoUpdate,
+  SelectsGastos,
+  SelectsGastosTable,
+} from "../../Types/Gastos";
 import * as Yup from "yup";
 
 type Actions = {
@@ -75,7 +79,16 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     },
   });
 
-  const { values, touched, errors, setFieldValue, setFieldTouched, setValues, validateForm, setTouched } = formik;
+  const {
+    values,
+    touched,
+    errors,
+    setFieldValue,
+    setFieldTouched,
+    setValues,
+    validateForm,
+    setTouched,
+  } = formik;
 
   // Cargar selects de gastos
   useEffect(() => {
@@ -107,7 +120,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     })
       .then((response) => {
         if (!response.success || !response.result) return;
-        
+
         const data = response.result;
         // Guardar el monto que ya estaba pagado
         setMontoPagadoAnterior(data.montoPagado);
@@ -115,7 +128,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
         setMontoPendiente(data.montoTotal - data.montoPagado);
         // El nuevo pago empieza en 0
         setNuevoPago(0);
-        
+
         setValues(data);
       })
       .finally(() => {
@@ -125,16 +138,16 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
 
   function SaveGasto(gasto: GastoUpdate) {
     setIsSaving(true);
-    
+
     // Calcular el monto pagado total: lo anterior + el nuevo pago
     const montoTotalPagado = montoPagadoAnterior + nuevoPago;
-    
+
     // Crear el objeto a enviar con el monto pagado calculado
     const gastoToSend: GastoUpdate = {
       ...gasto,
       montoPagado: montoTotalPagado,
     };
-    
+
     apiRequestThen<boolean>({
       url: "api/gastos/update",
       configuration: {
@@ -196,7 +209,12 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
         setFieldValue("estado", estadoParcial.id);
       }
     }
-  }, [values.montoTotal, nuevoPago, montoPagadoAnterior, gastosSelects.estados]);
+  }, [
+    values.montoTotal,
+    nuevoPago,
+    montoPagadoAnterior,
+    gastosSelects.estados,
+  ]);
 
   // 🔄 Actualizar nuevoPago cuando se selecciona un estado manualmente
   useEffect(() => {
@@ -208,7 +226,13 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     const estado = values.estado;
     const montoTotal = values.montoTotal;
 
-    if (estado === null || estado === 0 || montoTotal === null || montoTotal === 0) return;
+    if (
+      estado === null ||
+      estado === 0 ||
+      montoTotal === null ||
+      montoTotal === 0
+    )
+      return;
 
     const estadoPagado = gastosSelects.estados?.find(
       (e) => e.name.toLowerCase() === "pagado"
@@ -255,6 +279,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     return <GastoFormUpdateSkeleton />;
   }
 
+  console.log(values);
   return (
     <>
       <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
@@ -283,12 +308,16 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                         value: element.id.toString(),
                         label: element.name,
                       }))
-                      .find((opt) => opt.value === values.tipoGasto?.toString()) || null
+                      .find(
+                        (opt) => opt.value === values.tipoGasto?.toString()
+                      ) || null
                   }
-                  options={gastosSelects.tiposGasto?.map((element: BaseSelecst) => ({
-                    value: element.id.toString(),
-                    label: element.name,
-                  }))}
+                  options={gastosSelects.tiposGasto?.map(
+                    (element: BaseSelecst) => ({
+                      value: element.id.toString(),
+                      label: element.name,
+                    })
+                  )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
                     setFieldValue("tipoGasto", parseInt(e.value));
@@ -296,7 +325,9 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                   onBlur={() => setFieldTouched("tipoGasto", true)}
                 />
                 {errors.tipoGasto && touched.tipoGasto && (
-                  <p className="mt-1.5 text-xs text-error-500">{errors.tipoGasto}</p>
+                  <p className="mt-1.5 text-xs text-error-500">
+                    {errors.tipoGasto}
+                  </p>
                 )}
               </div>
               <div>
@@ -312,12 +343,15 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                         value: element.id.toString(),
                         label: element.name,
                       }))
-                      .find((opt) => opt.value === values.estado?.toString()) || null
+                      .find((opt) => opt.value === values.estado?.toString()) ||
+                    null
                   }
-                  options={gastosSelects.estados?.map((element: BaseSelecst) => ({
-                    value: element.id.toString(),
-                    label: element.name,
-                  }))}
+                  options={gastosSelects.estados?.map(
+                    (element: BaseSelecst) => ({
+                      value: element.id.toString(),
+                      label: element.name,
+                    })
+                  )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
                     setFieldValue("estado", parseInt(e.value));
@@ -325,7 +359,9 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                   onBlur={() => setFieldTouched("estado", true)}
                 />
                 {errors.estado && touched.estado && (
-                  <p className="mt-1.5 text-xs text-error-500">{errors.estado}</p>
+                  <p className="mt-1.5 text-xs text-error-500">
+                    {errors.estado}
+                  </p>
                 )}
               </div>
             </div>
@@ -361,27 +397,47 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
               </h3>
               <div className="grid grid-cols-4 gap-4">
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Monto Total</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Monto Total
+                  </p>
                   <p className="text-lg font-bold text-gray-800 dark:text-white">
-                    ${(values.montoTotal ?? 0).toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+                    $
+                    {(values.montoTotal ?? 0).toLocaleString("es-DO", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Ya Pagado</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Ya Pagado
+                  </p>
                   <p className="text-lg font-bold text-green-600">
-                    ${montoPagadoAnterior.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+                    $
+                    {montoPagadoAnterior.toLocaleString("es-DO", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Nuevo Pago</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Nuevo Pago
+                  </p>
                   <p className="text-lg font-bold text-blue-600">
-                    ${nuevoPago.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+                    $
+                    {nuevoPago.toLocaleString("es-DO", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Quedará Pendiente</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Quedará Pendiente
+                  </p>
                   <p className="text-lg font-bold text-red-500">
-                    ${montoPendiente.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+                    $
+                    {montoPendiente.toLocaleString("es-DO", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 </div>
               </div>
@@ -395,7 +451,11 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                   type="number"
                   id="montoTotal"
                   placeholder="0.00"
-                  hint={errors.montoTotal && touched.montoTotal ? errors.montoTotal : ""}
+                  hint={
+                    errors.montoTotal && touched.montoTotal
+                      ? errors.montoTotal
+                      : ""
+                  }
                   value={values.montoTotal ?? ""}
                   error={!!errors.montoTotal && touched.montoTotal}
                   onChange={(e) => {
@@ -405,7 +465,9 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                     // Recalcular pendiente cuando cambia el total
                     const pendienteOriginal = nuevoTotal - montoPagadoAnterior;
                     if (nuevoPago > pendienteOriginal) {
-                      setNuevoPago(pendienteOriginal > 0 ? pendienteOriginal : 0);
+                      setNuevoPago(
+                        pendienteOriginal > 0 ? pendienteOriginal : 0
+                      );
                     }
                   }}
                   onBlur={() => setFieldTouched("montoTotal", true)}
@@ -419,16 +481,23 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                   placeholder="0.00"
                   hint={
                     nuevoPago > (values.montoTotal ?? 0) - montoPagadoAnterior
-                      ? `Máximo permitido: ${((values.montoTotal ?? 0) - montoPagadoAnterior).toFixed(2)}`
-                      : `Pendiente por pagar: ${((values.montoTotal ?? 0) - montoPagadoAnterior).toFixed(2)}`
+                      ? `Máximo permitido: ${(
+                          (values.montoTotal ?? 0) - montoPagadoAnterior
+                        ).toFixed(2)}`
+                      : `Pendiente por pagar: ${(
+                          (values.montoTotal ?? 0) - montoPagadoAnterior
+                        ).toFixed(2)}`
                   }
                   value={nuevoPago || ""}
-                  error={nuevoPago > (values.montoTotal ?? 0) - montoPagadoAnterior}
+                  error={
+                    nuevoPago > (values.montoTotal ?? 0) - montoPagadoAnterior
+                  }
                   onChange={(e) => {
                     const val = e.target.value;
                     const nuevoValor = val === "" ? 0 : parseFloat(val);
-                    const maxPermitido = (values.montoTotal ?? 0) - montoPagadoAnterior;
-                    
+                    const maxPermitido =
+                      (values.montoTotal ?? 0) - montoPagadoAnterior;
+
                     // Validar que no exceda lo pendiente
                     if (nuevoValor <= maxPermitido && nuevoValor >= 0) {
                       setNuevoPago(nuevoValor);
@@ -533,7 +602,12 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
 
         {/* Botones */}
         <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-          <Button size="sm" variant="outline" onClick={closeModal} disabled={isSaving}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={closeModal}
+            disabled={isSaving}
+          >
             Cancelar
           </Button>
           <Button
@@ -611,4 +685,3 @@ function GastoFormUpdateSkeleton() {
     </div>
   );
 }
-

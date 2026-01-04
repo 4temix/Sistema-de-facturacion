@@ -33,6 +33,7 @@ export type ReporteMensual = {
   devoluciones: Devoluciones;
   facturasMes: DataRequest; // <-- LO RELLENAS TÚ
   topProductos: TopProducto[];
+  totalNomina: number;
 };
 
 export type Semana = {

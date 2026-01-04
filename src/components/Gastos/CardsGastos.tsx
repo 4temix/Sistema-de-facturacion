@@ -30,10 +30,13 @@ export default function CardsGastos({
         </div>
         <div className="mt-5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Total Gastos del Mes
+            Total Gastos (Mes)
           </span>
           <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
-            ${totalGastosMes.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+            $
+            {totalGastosMes.toLocaleString("es-DO", {
+              minimumFractionDigits: 2,
+            })}
           </h4>
         </div>
       </div>
@@ -45,10 +48,13 @@ export default function CardsGastos({
         </div>
         <div className="mt-5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Gastos Pendientes
+            Gastos Pendientes (General)
           </span>
           <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
-            ${gastosPendientes.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+            $
+            {gastosPendientes.toLocaleString("es-DO", {
+              minimumFractionDigits: 2,
+            })}
           </h4>
         </div>
       </div>
@@ -60,10 +66,13 @@ export default function CardsGastos({
         </div>
         <div className="mt-5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Gastos Pagados
+            Gastos Pagados (Mes)
           </span>
           <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
-            ${gastosPagados.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+            $
+            {gastosPagados.toLocaleString("es-DO", {
+              minimumFractionDigits: 2,
+            })}
           </h4>
         </div>
       </div>
@@ -75,7 +84,7 @@ export default function CardsGastos({
         </div>
         <div className="mt-5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Cantidad de Gastos
+            Cantidad de Gastos (Mes)
           </span>
           <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
             {cantidadGastosMes}
@@ -90,14 +99,16 @@ export default function CardsGastos({
         </div>
         <div className="mt-5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Gastos Inventario
+            Gastos Inventario (Mes)
           </span>
           <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
-            ${gastosInventarioMes.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+            $
+            {gastosInventarioMes.toLocaleString("es-DO", {
+              minimumFractionDigits: 2,
+            })}
           </h4>
         </div>
       </div>
     </div>
   );
 }
-

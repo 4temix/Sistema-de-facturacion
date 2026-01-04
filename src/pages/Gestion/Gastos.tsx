@@ -146,7 +146,7 @@ export default function Gastos() {
 
       setIsSaving(true);
       try {
-        const response = await apiRequest({
+        const response = await apiRequestThen({
           url: "api/gastos",
           configuration: {
             method: "POST",
