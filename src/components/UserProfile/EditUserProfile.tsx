@@ -5,7 +5,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { ValidationUserProfile } from "./yup";
-import { baseUrl } from "../../Utilities/FetchFuntions";
+import { apiRequestThen, baseUrl } from "../../Utilities/FetchFuntions";
 import { useUserData } from "../../context/GlobalUserContext";
 import Swal from "sweetalert2";
 
@@ -77,80 +77,58 @@ export default function EditUserProfile({
         if (values.about) updateData.About = values.about;
         if (values.compName) updateData.CompName = values.compName;
         if (values.address) updateData.Address = values.address;
-        // TODO: Agregar UserImage cuando se implemente
+        // TODO: Agregar UserImage cuando se implement
 
-        const headers: HeadersInit = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        };
-
-        const response = await fetch(`${baseUrl}api/user/update_user`, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify(updateData),
-        });
-
-        // Procesar respuesta
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "bottom-end",
-            showConfirmButton: false,
-            timer: 5000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer;
-              toast.onmouseleave = Swal.resumeTimer;
+        apiRequestThen<null>({
+          url: `api/user/update_user`,
+          configuration: {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
             },
-          });
-          Toast.fire({
-            icon: "error",
-            title: errorData.errorMessage || errorData.error || "Error al actualizar el perfil",
-          });
-          return;
-        }
-
-        const json = await response.json();
-        if (!json.success) {
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "bottom-end",
-            showConfirmButton: false,
-            timer: 5000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer;
-              toast.onmouseleave = Swal.resumeTimer;
-            },
-          });
-          Toast.fire({
-            icon: "error",
-            title: json.errorMessage || "Error al actualizar el perfil",
-          });
-          return;
-        }
-
-        const Toast = Swal.mixin({
-          toast: true,
-          position: "bottom-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
+            body: JSON.stringify(updateData),
           },
-        });
-        Toast.fire({
-          icon: "success",
-          title: "Perfil actualizado correctamente",
-        });
+        }).then((response) => {
+          if (!response.success) {
+            const Toast = Swal.mixin({
+              toast: true,
+              position: "bottom-end",
+              showConfirmButton: false,
+              timer: 5000,
+              timerProgressBar: true,
+              didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+              },
+            });
 
-        if (onSuccess) {
-          onSuccess();
-        }
-        onClose();
+            Toast.fire({
+              icon: "error",
+              title: response.errorMessage || "Error al actualizar el perfil",
+            });
+            return;
+          }
+
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "bottom-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            },
+          });
+
+          Toast.fire({
+            icon: "success",
+            title: "Perfil actualizado correctamente",
+          });
+
+          onClose();
+          onSuccess?.();
+        });
       } catch (error) {
         console.error("Error al actualizar perfil:", error);
         const Toast = Swal.mixin({
@@ -221,9 +199,7 @@ export default function EditUserProfile({
                     onBlur={() => setFieldTouched("realName", true)}
                     error={!!errors.realName && touched.realName}
                     hint={
-                      errors.realName && touched.realName
-                        ? errors.realName
-                        : ""
+                      errors.realName && touched.realName ? errors.realName : ""
                     }
                   />
                 </div>
@@ -342,4 +318,3 @@ export default function EditUserProfile({
     </Modal>
   );
 }
-
