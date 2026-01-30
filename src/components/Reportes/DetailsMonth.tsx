@@ -19,7 +19,7 @@ import {
 export default function DetailsMonth({ params }: { params: ReporteMensual }) {
   const { fechaInit, fechaFin } = generarRangoFecha(
     params.anio,
-    params.mesNumber
+    params.mesNumber,
   );
 
   //filtros de busqueda
@@ -68,7 +68,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           response.result ?? {
             data: [],
             total_pages: 0,
-          }
+          },
         );
       })
       .finally(() => {
@@ -402,7 +402,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                     Gastos Recientes
                   </p>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {params.gastos.detalles.slice(0, 5).map((gasto) => (
+                    {params.gastos.detalles.map((gasto) => (
                       <div
                         key={gasto.id}
                         className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
@@ -429,8 +429,8 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                               gasto.estado?.toLowerCase() === "pagado"
                                 ? "bg-green-100 text-green-700"
                                 : gasto.estado?.toLowerCase() === "pendiente"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-amber-100 text-amber-700"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-amber-100 text-amber-700"
                             }`}
                           >
                             {gasto.estado}
@@ -439,11 +439,6 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                       </div>
                     ))}
                   </div>
-                  {params.gastos.detalles.length > 5 && (
-                    <p className="text-xs text-gray-500 text-center mt-2">
-                      +{params.gastos.detalles.length - 5} gastos más
-                    </p>
-                  )}
                 </div>
               )}
 

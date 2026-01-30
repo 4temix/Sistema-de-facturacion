@@ -241,6 +241,10 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
           <span>Fecha:</span>
           <span class="info-value">${formatDate(factura.fechaEmision)}</span>
         </div>
+        <div class="info-row">
+          <span>Estado:</span>
+          <span class="info-value">${factura.estado}</span>
+        </div>
 
         <hr class="divider" />
 
@@ -330,7 +334,15 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
         <div class="payment-box">
           <div>Método de pago:</div>
           <div class="payment-method">${factura.metodoPago || "N/A"}</div>
-          <div class="payment-date">Pago: ${formatDate(factura.fechaPago)}</div>
+          <div class="payment-date">fecha de pago: ${formatDate(
+            factura.fechaPago
+          )}</div>
+          <div class="payment-date">Monto pagado: ${formatCurrency(
+            factura.montoPagado
+          )}</div>
+           <div class="payment-date">Monto pendiente: ${formatCurrency(
+             factura.total - factura.montoPagado
+           )}</div>
         </div>
 
         <hr class="divider" />

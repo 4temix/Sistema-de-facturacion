@@ -207,7 +207,7 @@ export default function Mantenimientos() {
             />
           ))}
         </ComponentCard>
-        <ComponentCard
+        {/* <ComponentCard
           title="Estado"
           button_text="Agregar"
           action={() => {
@@ -224,7 +224,7 @@ export default function Mantenimientos() {
               }}
             />
           ))}
-        </ComponentCard>
+        </ComponentCard> */}
       </section>
     </>
   );
