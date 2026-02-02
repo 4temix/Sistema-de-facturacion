@@ -32,14 +32,17 @@ const BasicTables = lazy(() => import("./pages/Tables/BasicTables"));
 const FormElements = lazy(() => import("./pages/Forms/FormElements"));
 const Blank = lazy(() => import("./pages/Blank"));
 const Mantenimientos = lazy(
-  () => import("./pages/Configuraciones/Mantenimientos")
+  () => import("./pages/Configuraciones/Mantenimientos"),
 );
 const Reportes = lazy(() => import("./pages/Reportes/Reportes"));
 const PageDetailsProductos = lazy(
-  () => import("./pages/Gestion/PageDetailsProductos")
+  () => import("./pages/Gestion/PageDetailsProductos"),
 );
 const DetailsYearPage = lazy(() => import("./pages/Reportes/DetailsYear"));
 const DetailsMonth = lazy(() => import("./pages/Reportes/PageDetailsMonth"));
+const UserAdministracion = lazy(
+  () => import("./pages/Administracion/userAdministracion"),
+);
 
 // Definición de rutas
 const routes = createBrowserRouter([
@@ -156,6 +159,16 @@ const routes = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <UserProfiles />
+          </ProtectedRoute>
+        ),
+      },
+
+      //administracion
+      {
+        path: "/users-administracion",
+        element: (
+          <ProtectedRoute>
+            <UserAdministracion />
           </ProtectedRoute>
         ),
       },

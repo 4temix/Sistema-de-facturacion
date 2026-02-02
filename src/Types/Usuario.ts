@@ -1,4 +1,5 @@
 import { Menu } from "./Menu";
+import { BaseSelecst } from "./ProductTypes";
 
 export interface Rol {
   id: number;
@@ -27,9 +28,28 @@ export interface User {
   estado: Estado;
 }
 
+export interface CreateUser {
+  username: string;
+  realName: string;
+  lastName: string;
+  email: string;
+  teNumber: string;
+  about: string;
+  pass: string;
+  compName: string;
+  address: string;
+  rolId: number;
+  estado: number;
+}
+
 export interface LoginResponse {
   token: string;
   refreshToken: string;
   user: User;
   menu: Menu;
 }
+
+export type UserSelectResponse = {
+  roles: BaseSelecst[];
+  estados: BaseSelecst[];
+};
