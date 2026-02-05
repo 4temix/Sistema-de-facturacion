@@ -154,7 +154,7 @@ export default function Productos() {
           response.result ?? {
             data: [],
             total_pages: 0,
-          }
+          },
         );
       })
       .finally(() => {
@@ -247,6 +247,7 @@ export default function Productos() {
             isOpen={isProductModalOpen}
             onClose={closeProductModal}
             className="max-w-[1200px] m-4 p-5"
+            CloseClickBanner={false}
           >
             <section
               className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
@@ -359,7 +360,7 @@ export default function Productos() {
                         (producto: BaseSelecst) => ({
                           label: producto.name,
                           value: producto.id.toString(),
-                        })
+                        }),
                       )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
@@ -390,7 +391,7 @@ export default function Productos() {
                         (producto: BaseSelecst) => ({
                           label: producto.name,
                           value: producto.id.toString(),
-                        })
+                        }),
                       )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
@@ -421,7 +422,7 @@ export default function Productos() {
                         (producto: BaseSelecst) => ({
                           label: producto.name,
                           value: producto.id.toString(),
-                        })
+                        }),
                       )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
@@ -449,7 +450,7 @@ export default function Productos() {
                         }
                         updateFilter(
                           parseFloat(e.target.value),
-                          "precioVentaMinimo"
+                          "precioVentaMinimo",
                         );
                       }}
                     />
@@ -468,7 +469,7 @@ export default function Productos() {
                         }
                         updateFilter(
                           parseInt(e.target.value),
-                          "precioVentaMaximo"
+                          "precioVentaMaximo",
                         );
                       }}
                     />

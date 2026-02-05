@@ -223,7 +223,7 @@ function FacturacionPageContent() {
           response.result ?? {
             data: [],
             total_pages: 0,
-          }
+          },
         );
       })
       .finally(() => {
@@ -307,7 +307,7 @@ function FacturacionPageContent() {
               isOpen={isProductModalOpen}
               onClose={closeProductModal}
               CloseClickBanner={false}
-              showCloseButton={false}
+              showCloseButton={true}
               className="max-w-[1200px] m-4 p-2"
             >
               <section
@@ -507,7 +507,7 @@ function FacturacionPageContent() {
                           (producto: BaseSelecst) => ({
                             label: producto.name,
                             value: producto.id.toString(),
-                          })
+                          }),
                         )}
                         className="select-custom pl-0"
                         classNamePrefix="select"
@@ -614,7 +614,7 @@ function FacturacionPageContent() {
           <EdicionFactura
             closeModal={closeModalEdit}
             selectsData={selectsData?.estados.filter(
-              (el) => ![1, 2, 3, 7].includes(el.id)
+              (el) => ![1, 2, 3, 7].includes(el.id),
             )}
           />
         </section>

@@ -182,13 +182,13 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     if (montoTotal === null || montoTotal === 0) return;
 
     const estadoPagado = gastosSelects.estados?.find(
-      (e) => e.name.toLowerCase() === "pagado"
+      (e) => e.name.toLowerCase() === "pagado",
     );
     const estadoPendiente = gastosSelects.estados?.find(
-      (e) => e.name.toLowerCase() === "pendiente"
+      (e) => e.name.toLowerCase() === "pendiente",
     );
     const estadoParcial = gastosSelects.estados?.find((e) =>
-      e.name.toLowerCase().includes("parcial")
+      e.name.toLowerCase().includes("parcial"),
     );
 
     isUpdatingFromMonto.current = true;
@@ -235,12 +235,15 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
       return;
 
     const estadoPagado = gastosSelects.estados?.find(
-      (e) => e.name.toLowerCase() === "pagado"
+      (e) => e.name.toLowerCase() === "pagado",
     );
     const estadoPendiente = gastosSelects.estados?.find(
-      (e) => e.name.toLowerCase() === "pendiente"
+      (e) => e.name.toLowerCase() === "pendiente",
     );
 
+    const estadoParcial = gastosSelects.estados?.find((e) =>
+      e.name.toLowerCase().includes("parcial"),
+    );
     isUpdatingFromEstado.current = true;
 
     // Si seleccionó "Pagado" → poner nuevoPago = lo que falta (montoPendiente)
@@ -250,24 +253,30 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     // Si seleccionó "Pendiente" → poner nuevoPago = 0
     else if (estadoPendiente && estado === estadoPendiente.id) {
       setNuevoPago(0);
+    } else if (estadoParcial && estado === estadoParcial.id) {
+      setNuevoPago(0);
     }
-  }, [values.estado, values.montoTotal, montoPendiente, gastosSelects.estados]);
+  }, [values.estado, values.montoTotal, gastosSelects.estados]);
 
-  // Actualizar monto pendiente cuando cambia el nuevo pago
   useEffect(() => {
-    const montoTotal = values.montoTotal ?? 0;
-    const pendienteRestante = montoTotal - montoPagadoAnterior - nuevoPago;
+    const pendienteRestante =
+      values.montoTotal - montoPagadoAnterior - nuevoPago;
+
+    console.log(pendienteRestante);
     setMontoPendiente(pendienteRestante > 0 ? pendienteRestante : 0);
-  }, [nuevoPago, values.montoTotal, montoPagadoAnterior]);
+  }, [nuevoPago, values.estado]);
 
   const handleSubmit = async () => {
     const errors = await validateForm();
     setTouched(
-      Object.keys(formik.initialValues).reduce((acc, key) => {
-        acc[key] = true;
-        return acc;
-      }, {} as Record<string, boolean>),
-      true
+      Object.keys(formik.initialValues).reduce(
+        (acc, key) => {
+          acc[key] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+      true,
     );
 
     if (Object.keys(errors).length === 0) {
@@ -279,7 +288,6 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     return <GastoFormUpdateSkeleton />;
   }
 
-  console.log(values);
   return (
     <>
       <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
@@ -309,14 +317,14 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                         label: element.name,
                       }))
                       .find(
-                        (opt) => opt.value === values.tipoGasto?.toString()
+                        (opt) => opt.value === values.tipoGasto?.toString(),
                       ) || null
                   }
                   options={gastosSelects.tiposGasto?.map(
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
-                    })
+                    }),
                   )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
@@ -350,7 +358,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
-                    })
+                    }),
                   )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
@@ -449,6 +457,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                 <Label htmlFor="montoTotal">Monto Total</Label>
                 <Input
                   type="number"
+                  disabled
                   id="montoTotal"
                   placeholder="0.00"
                   hint={
@@ -466,7 +475,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
                     const pendienteOriginal = nuevoTotal - montoPagadoAnterior;
                     if (nuevoPago > pendienteOriginal) {
                       setNuevoPago(
-                        pendienteOriginal > 0 ? pendienteOriginal : 0
+                        pendienteOriginal > 0 ? pendienteOriginal : 0,
                       );
                     }
                   }}
@@ -476,7 +485,7 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
               <div>
                 <Label htmlFor="nuevoPago">Monto a Pagar Ahora</Label>
                 <Input
-                  type="number"
+                  type="text"
                   id="nuevoPago"
                   placeholder="0.00"
                   hint={

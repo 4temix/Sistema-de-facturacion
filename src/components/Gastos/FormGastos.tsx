@@ -61,7 +61,7 @@ export default function FormGastos({
                   <Select<Option, false>
                     id="tipoGasto"
                     styles={customStyles(
-                      !!errors.tipoGasto && touched.tipoGasto
+                      !!errors.tipoGasto && touched.tipoGasto,
                     )}
                     placeholder="Selecciona un tipo..."
                     menuPortalTarget={document.body}
@@ -69,7 +69,7 @@ export default function FormGastos({
                       (element: BaseSelecst) => ({
                         value: element.id.toString(),
                         label: element.name,
-                      })
+                      }),
                     )}
                     onChange={(e: SingleValue<Option>) => {
                       if (!e) return;
@@ -95,7 +95,7 @@ export default function FormGastos({
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
-                    })
+                    }),
                   )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
@@ -168,7 +168,9 @@ export default function FormGastos({
                       ? errors.montoTotal
                       : ""
                   }
-                  value={values.montoTotal === 0 ? "" : values.montoTotal ?? ""}
+                  value={
+                    values.montoTotal === 0 ? "" : (values.montoTotal ?? "")
+                  }
                   error={errors.montoTotal && touched.montoTotal ? true : false}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -195,7 +197,7 @@ export default function FormGastos({
                       : ""
                   }
                   value={
-                    values.montoPagado === 0 ? "" : values.montoPagado ?? ""
+                    values.montoPagado === 0 ? "" : (values.montoPagado ?? "")
                   }
                   error={
                     errors.montoPagado && touched.montoPagado ? true : false
@@ -223,7 +225,7 @@ export default function FormGastos({
                   value={
                     values.saldoPendiente === 0
                       ? ""
-                      : values.saldoPendiente ?? ""
+                      : (values.saldoPendiente ?? "")
                   }
                   error={errors.saldoPendiente ? true : false}
                   disabled
@@ -281,7 +283,7 @@ export default function FormGastos({
                 <Select<Option, false>
                   id="metodoPago"
                   styles={customStyles(
-                    !!errors.metodoPago && touched.metodoPago
+                    !!errors.metodoPago && touched.metodoPago,
                   )}
                   placeholder="Selecciona método de pago..."
                   menuPortalTarget={document.body}
@@ -307,7 +309,7 @@ export default function FormGastos({
                   </p>
                 )}
               </div>
-              <div>
+              {/* <div>
                 <Label htmlFor="origenFondo">Origen del fondo</Label>
                 <Select<Option, false>
                   id="origenFondo"
@@ -336,34 +338,34 @@ export default function FormGastos({
                     {errors.origenFondo}
                   </p>
                 )}
+              </div> */}
+              <div>
+                <div>
+                  <Label htmlFor="cantidad">Cantidad</Label>
+                  <Input
+                    type="text"
+                    id="cantidad"
+                    placeholder="0"
+                    hint={errors.cantidad}
+                    value={values.cantidad === 0 ? "" : (values.cantidad ?? "")}
+                    error={errors.cantidad ? true : false}
+                    disabled
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        setFieldValue("cantidad", null);
+                        return;
+                      }
+                      if (regexNum.test(value)) {
+                        setFieldValue("cantidad", Number(value));
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
             {/* 6️⃣ Cantidad (para inventario) */}
-            <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="cantidad">Cantidad</Label>
-                <Input
-                  type="text"
-                  id="cantidad"
-                  placeholder="0"
-                  hint={errors.cantidad}
-                  value={values.cantidad === 0 ? "" : values.cantidad ?? ""}
-                  error={errors.cantidad ? true : false}
-                  disabled
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
-                      setFieldValue("cantidad", null);
-                      return;
-                    }
-                    if (regexNum.test(value)) {
-                      setFieldValue("cantidad", Number(value));
-                    }
-                  }}
-                />
-              </div>
-            </div>
 
             {/* 7️⃣ Referencia */}
             <div>

@@ -326,7 +326,7 @@ export default function FormProducts(params: Actions) {
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
-                    })
+                    }),
                   )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
@@ -384,7 +384,7 @@ export default function FormProducts(params: Actions) {
                       : ""
                   }
                   value={
-                    values.precioCompra === 0 ? "" : values.precioCompra ?? ""
+                    values.precioCompra === 0 ? "" : (values.precioCompra ?? "")
                   }
                   error={
                     errors.precioCompra && touched.precioCompra ? true : false
@@ -414,7 +414,7 @@ export default function FormProducts(params: Actions) {
                       : ""
                   }
                   value={
-                    values.precioVenta === 0 ? "" : values.precioVenta ?? ""
+                    values.precioVenta === 0 ? "" : (values.precioVenta ?? "")
                   }
                   error={
                     errors.precioVenta && touched.precioVenta ? true : false
@@ -440,7 +440,7 @@ export default function FormProducts(params: Actions) {
                   placeholder="0.00"
                   hint={errors.precioMinimo}
                   value={
-                    values.precioMinimo === 0 ? "" : values.precioMinimo ?? ""
+                    values.precioMinimo === 0 ? "" : (values.precioMinimo ?? "")
                   }
                   error={errors.precioMinimo ? true : false}
                   onChange={(e) => {
@@ -471,7 +471,7 @@ export default function FormProducts(params: Actions) {
                       : ""
                   }
                   value={
-                    values.stockActual === 0 ? "" : values.stockActual ?? ""
+                    values.stockActual === 0 ? "" : (values.stockActual ?? "")
                   }
                   error={
                     errors.stockActual && touched.stockActual ? true : false
@@ -497,7 +497,7 @@ export default function FormProducts(params: Actions) {
                   placeholder="0"
                   hint={errors.stockMinimo}
                   value={
-                    values.stockMinimo === 0 ? "" : values.stockMinimo ?? ""
+                    values.stockMinimo === 0 ? "" : (values.stockMinimo ?? "")
                   }
                   error={errors.stockMinimo ? true : false}
                   onChange={(e) => {
@@ -530,20 +530,21 @@ export default function FormProducts(params: Actions) {
 
             {/* 6️⃣ Código de barras y estado */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="codigo_barras">Código de barras</Label>
-                <Input
-                  type="text"
-                  id="codigo_barras"
-                  placeholder="Ej: 1234567890"
-                  hint={errors.codigoBarras}
-                  value={values.codigoBarras ?? ""}
-                  error={errors.codigoBarras ? true : false}
-                  onChange={(e) => {
-                    setFieldValue("codigoBarras", e.target.value);
-                  }}
-                />
-              </div>
+              {/* <div>
+                    <Label htmlFor="codigo_barras">Código de barras</Label>
+                    <Input
+                      type="text"
+                      id="codigo_barras"
+                      placeholder="Ej: 1234567890"
+                      hint={errors.codigoBarras}
+                      value={values.codigoBarras ?? ""}
+                      error={errors.codigoBarras ? true : false}
+                      onChange={(e) => {
+                        setFieldValue("codigoBarras", e.target.value);
+                      }}
+                    />
+                  </div> */}
+
               <div>
                 <Label htmlFor="estado">Estado</Label>
                 <Select<Option, false>
@@ -555,7 +556,7 @@ export default function FormProducts(params: Actions) {
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
-                    })
+                    }),
                   )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
@@ -569,30 +570,30 @@ export default function FormProducts(params: Actions) {
                   </p>
                 )}
               </div>
+              <div>
+                <Label htmlFor="impuesto">Impuesto (%)</Label>
+                <Input
+                  type="text"
+                  id="impuesto"
+                  placeholder="Ej: 18"
+                  hint={errors.impuesto}
+                  value={values.impuesto === 0 ? "" : (values.impuesto ?? "")}
+                  error={errors.impuesto ? true : false}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setFieldValue("impuesto", 0);
+                      return;
+                    }
+                    if (regexNum.test(value)) {
+                      setFieldValue("impuesto", Number(value));
+                    }
+                  }}
+                />
+              </div>
             </div>
 
             {/* 7️⃣ Impuesto */}
-            <div>
-              <Label htmlFor="impuesto">Impuesto (%)</Label>
-              <Input
-                type="text"
-                id="impuesto"
-                placeholder="Ej: 18"
-                hint={errors.impuesto}
-                value={values.impuesto === 0 ? "" : values.impuesto ?? ""}
-                error={errors.impuesto ? true : false}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "") {
-                    setFieldValue("impuesto", 0);
-                    return;
-                  }
-                  if (regexNum.test(value)) {
-                    setFieldValue("impuesto", Number(value));
-                  }
-                }}
-              />
-            </div>
 
             {/* 8️⃣ Sección de Gastos */}
             <div className="border-t border-gray-200 pt-5 mt-2">
@@ -627,7 +628,7 @@ export default function FormProducts(params: Actions) {
                     value={
                       valuesGasto.montoPagado === 0
                         ? ""
-                        : valuesGasto.montoPagado ?? ""
+                        : (valuesGasto.montoPagado ?? "")
                     }
                     error={
                       errorsGasto.montoPagado && touchedGasto.montoPagado
@@ -667,7 +668,7 @@ export default function FormProducts(params: Actions) {
                   <Select<Option, false>
                     id="estadoGasto"
                     styles={customStyles(
-                      !!errorsGasto.estado && touchedGasto.estado
+                      !!errorsGasto.estado && touchedGasto.estado,
                     )}
                     placeholder="Selecciona un estado..."
                     menuPortalTarget={document.body}
@@ -677,7 +678,7 @@ export default function FormProducts(params: Actions) {
                             value: valuesGasto.estado.toString(),
                             label:
                               ESTADOS_PAGO.find(
-                                (e) => e.id === valuesGasto.estado
+                                (e) => e.id === valuesGasto.estado,
                               )?.name ?? "",
                           }
                         : null
@@ -766,7 +767,7 @@ export default function FormProducts(params: Actions) {
 
               {/* Origen de fondo y comprobante */}
               <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
-                <div>
+                {/* <div>
                   <Label htmlFor="origenFondoGasto">Origen del fondo</Label>
                   <Select<Option, false>
                     id="origenFondoGasto"
@@ -790,7 +791,7 @@ export default function FormProducts(params: Actions) {
                       setFieldValueGastos("origenFondo", e.value);
                     }}
                   />
-                </div>
+                </div> */}
                 <div>
                   <Label htmlFor="comprobanteGasto">Comprobante</Label>
                   <Input
@@ -836,21 +837,27 @@ export default function FormProducts(params: Actions) {
               // Validar producto
               const errorsProducto = await validateForm();
               setTouched(
-                Object.keys(initialValues).reduce((acc, key) => {
-                  acc[key] = true;
-                  return acc;
-                }, {} as Record<string, boolean>),
-                true
+                Object.keys(initialValues).reduce(
+                  (acc, key) => {
+                    acc[key] = true;
+                    return acc;
+                  },
+                  {} as Record<string, boolean>,
+                ),
+                true,
               );
 
               // Validar gasto
               const errorsGastoForm = await formikGasto.validateForm();
               formikGasto.setTouched(
-                Object.keys(gastosInitialValues).reduce((acc, key) => {
-                  acc[key] = true;
-                  return acc;
-                }, {} as Record<string, boolean>),
-                true
+                Object.keys(gastosInitialValues).reduce(
+                  (acc, key) => {
+                    acc[key] = true;
+                    return acc;
+                  },
+                  {} as Record<string, boolean>,
+                ),
+                true,
               );
 
               // Si no hay errores en ninguno, guardar

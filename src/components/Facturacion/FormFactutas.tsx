@@ -154,7 +154,7 @@ export default function FormFactutas(params: Actions) {
   function SaveElements(productElement: Producto) {
     let existElement = products.find((el) => el.id == productElement.id);
     let cantidad = params.stockGlobal.findIndex(
-      (el) => el.id == productElement.id
+      (el) => el.id == productElement.id,
     );
 
     if (existElement) {
@@ -180,7 +180,7 @@ export default function FormFactutas(params: Actions) {
       handleProductoChange(
         existElement.id,
         "cantidad",
-        existElement.cantidad + 1
+        existElement.cantidad + 1,
       );
 
       const elementCantidad = params.stockGlobal[cantidad];
@@ -321,7 +321,7 @@ export default function FormFactutas(params: Actions) {
           impuestos: acc.impuestos + el.impuestos * el.cantidad,
         };
       },
-      { subtotal: 0, total: 0, descuentoTotal: 0, impuestos: 0 }
+      { subtotal: 0, total: 0, descuentoTotal: 0, impuestos: 0 },
     );
 
     // asigna los valores al estado o formulario
@@ -530,8 +530,8 @@ export default function FormFactutas(params: Actions) {
           ((producto.precioVentaOriginal - producto.precioVenta) /
             producto.precioVentaOriginal) *
             100 *
-            100
-        ) / 100
+            100,
+        ) / 100,
       );
     }
 
@@ -577,7 +577,7 @@ export default function FormFactutas(params: Actions) {
 
     if (
       params.facturasP.some(
-        (el) => el.factura.nombreCliente == values.nombreCliente
+        (el) => el.factura.nombreCliente == values.nombreCliente,
       )
     ) {
       const Toast = Swal.mixin({
@@ -661,7 +661,7 @@ export default function FormFactutas(params: Actions) {
           response.result ?? {
             data: [],
             total_pages: 0,
-          }
+          },
         );
       })
       .finally(() => {
@@ -985,7 +985,7 @@ export default function FormFactutas(params: Actions) {
                             handleProductoChange(
                               producto.id,
                               "cantidad",
-                              Number(e.target.value)
+                              Number(e.target.value),
                             );
                           }
                         }}
@@ -1005,7 +1005,7 @@ export default function FormFactutas(params: Actions) {
                             handleProductoChange(
                               producto.id,
                               "precioVenta",
-                              Number(e.target.value)
+                              Number(e.target.value),
                             );
                           }
                         }}
@@ -1026,7 +1026,7 @@ export default function FormFactutas(params: Actions) {
                             handleProductoChange(
                               producto.id,
                               "descuento",
-                              Number(e.target.value)
+                              Number(e.target.value),
                             );
                           }
                         }}
@@ -1088,7 +1088,7 @@ export default function FormFactutas(params: Actions) {
                     setFieldValue("total", values.total - values.manoDeObra);
                     setFieldValue(
                       "subtotal",
-                      values.subtotal - values.manoDeObra
+                      values.subtotal - values.manoDeObra,
                     );
                     setFieldValue("manoDeObra", 0);
                     return;
@@ -1100,11 +1100,11 @@ export default function FormFactutas(params: Actions) {
 
                   setFieldValue(
                     "total",
-                    values.total - values.manoDeObra + manoDeObra
+                    values.total - values.manoDeObra + manoDeObra,
                   );
                   setFieldValue(
                     "subtotal",
-                    values.subtotal - values.manoDeObra + manoDeObra
+                    values.subtotal - values.manoDeObra + manoDeObra,
                   );
                   setFieldValue("manoDeObra", manoDeObra);
                 }}
@@ -1118,7 +1118,7 @@ export default function FormFactutas(params: Actions) {
                 <Select<Option, false>
                   id="categoria"
                   styles={customStyles(
-                    !!errors.metodoPagoId && touched.metodoPagoId
+                    !!errors.metodoPagoId && touched.metodoPagoId,
                   )}
                   placeholder="Método de pago..."
                   menuPortalTarget={document.body}
@@ -1126,7 +1126,7 @@ export default function FormFactutas(params: Actions) {
                     (element: BaseSelecst) => ({
                       value: element.id.toString(),
                       label: element.name,
-                    })
+                    }),
                   )}
                   onChange={(e: SingleValue<Option>) => {
                     if (!e) return;
@@ -1240,11 +1240,14 @@ export default function FormFactutas(params: Actions) {
 
               // Marca todos los campos como tocados
               setTouched(
-                Object.keys(initialValues).reduce((acc, key) => {
-                  acc[key] = true;
-                  return acc;
-                }, {} as Record<string, boolean>),
-                true
+                Object.keys(initialValues).reduce(
+                  (acc, key) => {
+                    acc[key] = true;
+                    return acc;
+                  },
+                  {} as Record<string, boolean>,
+                ),
+                true,
               );
               // Si no hay errores
               if (Object.keys(errors).length === 0) {

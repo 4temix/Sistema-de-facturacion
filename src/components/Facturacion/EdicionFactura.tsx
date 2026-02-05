@@ -60,7 +60,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
       .map((p) => {
         const cantidadDevuelta = p.devoluciones.reduce(
           (acc, d) => acc + (d.cantidad ?? 0),
-          0
+          0,
         );
 
         const nuevaCantidad = p.cantidad - cantidadDevuelta;
@@ -78,7 +78,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
     element: ProductoVenta,
     cantidad: number,
     estado: string,
-    observaciones: string = ""
+    observaciones: string = "",
   ) {
     if (estado == "") {
       const Toast = Swal.mixin({
@@ -101,12 +101,12 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
     let elements = [...sendData.detalles];
 
     const existente = sendData.detalles.findIndex(
-      (el) => el.productoId == element?.productoId
+      (el) => el.productoId == element?.productoId,
     );
 
     if (!editData) return;
     const producto = editData.findIndex(
-      (el) => el.productoId == element?.productoId
+      (el) => el.productoId == element?.productoId,
     );
     let elementSelect = editData;
 
@@ -157,7 +157,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
   function updateDevolution(value: number | string, key: string) {
     if (key == "cantidad" && editData) {
       const producto = editData.find(
-        (el) => el.productoId == elementSelect?.productoId
+        (el) => el.productoId == elementSelect?.productoId,
       );
 
       if (!producto) return;
@@ -260,18 +260,20 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
     });
   }, [facturaDetails]);
 
+  console.log(sendData.estado.value);
+
   //marcar el total del monto pagado
   useEffect(() => {
     updateFields(
       isCheckedTwo && facturaDetails
         ? facturaDetails?.total - facturaDetails?.montoPagado
         : 0,
-      "pagado"
+      "pagado",
     );
   }, [isCheckedTwo]);
 
   useEffect(() => {
-    if (sendData.estado.value == "5") {
+    if (sendData.estado.value == "5" || sendData.estado.value == "4") {
       editData?.forEach((el) => {
         aggDetallesDevolucion(el, el.cantidad, "Reintegrable", "");
       });
@@ -454,7 +456,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                                   if (regexNum.test(value)) {
                                     updateDevolution(
                                       parseInt(e.target.value),
-                                      "cantidad"
+                                      "cantidad",
                                     );
                                   }
                                 }}
@@ -559,7 +561,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                                   producto,
                                   elementSelect.cantidad,
                                   elementSelect.tipo,
-                                  elementSelect.observaciones
+                                  elementSelect.observaciones,
                                 );
                               }}
                             >
@@ -600,7 +602,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
                           </span>
                         </div>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </>
