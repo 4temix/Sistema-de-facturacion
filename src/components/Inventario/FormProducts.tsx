@@ -24,6 +24,22 @@ type Actions = {
   onSuccess?: () => void;
 };
 
+export const unidadesMedida = [
+  { value: "unidad", label: "Unidad" },
+  { value: "g", label: "Gramo (g)" },
+  { value: "kg", label: "Kilogramo (kg)" },
+  { value: "t", label: "Tonelada (t)" },
+  { value: "ml", label: "Mililitro (ml)" },
+  { value: "l", label: "Litro (l)" },
+  { value: "m3", label: "Metro cúbico (m³)" },
+  { value: "mm", label: "Milímetro (mm)" },
+  { value: "cm", label: "Centímetro (cm)" },
+  { value: "m", label: "Metro (m)" },
+  { value: "km", label: "Kilómetro (km)" },
+  { value: "m2", label: "Metro cuadrado (m²)" },
+  { value: "lb", label: "Libra (lb)" },
+];
+
 // Regex para validar números (enteros y decimales)
 const regexNum = /^[0-9]*\.?[0-9]*$/;
 
@@ -529,7 +545,7 @@ export default function FormProducts(params: Actions) {
             </div>
 
             {/* 6️⃣ Código de barras y estado */}
-            <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
               {/* <div>
                     <Label htmlFor="codigo_barras">Código de barras</Label>
                     <Input
@@ -567,6 +583,29 @@ export default function FormProducts(params: Actions) {
                 {errors.estadoId && touched.estadoId && (
                   <p className={`mt-1.5 text-xs text-error-500`}>
                     {errors.estadoId}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="estado">Unidad de medida</Label>
+                <Select<Option, false>
+                  id="estado"
+                  styles={customStyles(
+                    !!errors.unidadMedida && touched.unidadMedida,
+                  )}
+                  placeholder="Seleccione una unidad de medida"
+                  menuPortalTarget={document.body}
+                  options={unidadesMedida}
+                  onChange={(e: SingleValue<Option>) => {
+                    if (!e) return;
+                    setFieldValue("unidadMedida", parseInt(e.value));
+                  }}
+                  onBlur={() => setFieldTouched("unidadMedida", true)}
+                />
+                {errors.unidadMedida && touched.unidadMedida && (
+                  <p className={`mt-1.5 text-xs text-error-500`}>
+                    {errors.unidadMedida}
                   </p>
                 )}
               </div>

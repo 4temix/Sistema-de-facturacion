@@ -193,7 +193,7 @@ export default function FormUsers({
                   <Select<Option, false>
                     id="categoria"
                     styles={customStyles(!!errors.rolId && touched.rolId)}
-                    placeholder="Método de pago..."
+                    placeholder="Rol seleccionado"
                     menuPortalTarget={document.body}
                     options={selectsData?.roles?.map(
                       (element: BaseSelecst) => ({
@@ -218,7 +218,7 @@ export default function FormUsers({
                   <Select<Option, false>
                     id="categoria"
                     styles={customStyles(!!errors.estado && touched.estado)}
-                    placeholder="Método de pago..."
+                    placeholder="Estado de la cuenta"
                     menuPortalTarget={document.body}
                     options={selectsData?.estados?.map(
                       (element: BaseSelecst) => ({
