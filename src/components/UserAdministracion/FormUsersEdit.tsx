@@ -232,8 +232,9 @@ export default function FormUsersEdit({
                     value={{
                       value: values.estado.toString(),
                       label:
-                        selectsData?.estados.find((el) => el.id == values.rolId)
-                          ?.name ?? "",
+                        selectsData?.estados.find(
+                          (el) => el.id == values.estado,
+                        )?.name ?? "",
                     }}
                     options={selectsData?.estados?.map(
                       (element: BaseSelecst) => ({
