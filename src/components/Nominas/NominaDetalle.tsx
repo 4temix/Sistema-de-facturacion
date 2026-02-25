@@ -17,7 +17,7 @@ import {
 import Drawer from "../ui/modal/Drawer";
 import NominaEmpleadoDetails from "./NominaEmpleadoDetails";
 import Button from "../ui/button/Button";
-import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import LoaderFun from "../loader/LoaderFunc";
 
 interface NominaDetalleProps {

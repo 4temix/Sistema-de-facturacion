@@ -9,7 +9,7 @@ import {
   type OnChangeFn,
 } from "@tanstack/react-table";
 import { DataRequest, Producto, Selects } from "../../Types/ProductTypes";
-import { TrashBinIcon, PencilIcon } from "../../icons";
+import { PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
 import { useNavigate } from "react-router";

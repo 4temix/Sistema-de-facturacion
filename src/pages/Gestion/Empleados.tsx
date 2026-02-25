@@ -7,8 +7,8 @@ import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import FormEmpleados from "../../components/Empleados/FormEmpleados";
 import EditEmpleado from "../../components/Empleados/EditEmpleado";
-import { use, useEffect, useRef, useState } from "react";
-import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import { useEffect, useRef, useState } from "react";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import type { VisibilityState } from "@tanstack/react-table";
 import {
   EmpleadoFormValues,
@@ -60,7 +60,7 @@ export default function Empleados() {
     closeModal: closeEditModal,
   } = useModal();
 
-  const { user } = useUserData();
+  const { user: _user } = useUserData();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -186,7 +186,7 @@ export default function Empleados() {
 
   // Función para obtener los empleados de la tabla
   function getData(filters: GetEmpleadosParams) {
-    const queryString = buildQueryString(filters);
+    const queryString = buildQueryString(filters as Record<string, unknown>);
 
     if (BeforeFilter.current === queryString) {
       if (loadingComplete) {

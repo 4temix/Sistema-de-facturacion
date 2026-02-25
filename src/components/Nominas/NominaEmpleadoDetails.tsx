@@ -62,7 +62,7 @@ export default function NominaEmpleadoDetails({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [empleadoInfo, setEmpleadoInfo] = useState<EmpleadoDetailsDto | null>(null);
-  const [isLoadingEmpleado, setIsLoadingEmpleado] = useState(false);
+  const [_isLoadingEmpleado, setIsLoadingEmpleado] = useState(false);
   
   // Cargar información del empleado
   useEffect(() => {
@@ -499,7 +499,7 @@ export default function NominaEmpleadoDetails({
                       salarioBase: parseFloat(e.target.value) || 0,
                     })
                   }
-                  step="0.01"
+                  step={0.01}
                   min="0"
                 />
               </div>
@@ -515,7 +515,7 @@ export default function NominaEmpleadoDetails({
                       horasExtras: parseFloat(e.target.value) || 0,
                     })
                   }
-                  step="0.5"
+                  step={0.5}
                   min="0"
                 />
               </div>
@@ -531,7 +531,7 @@ export default function NominaEmpleadoDetails({
                       montoHorasExtras: parseFloat(e.target.value) || 0,
                     })
                   }
-                  step="0.01"
+                  step={0.01}
                   min="0"
                 />
               </div>
@@ -547,7 +547,7 @@ export default function NominaEmpleadoDetails({
                       otrosIngresos: parseFloat(e.target.value) || 0,
                     })
                   }
-                  step="0.01"
+                  step={0.01}
                   min="0"
                 />
               </div>

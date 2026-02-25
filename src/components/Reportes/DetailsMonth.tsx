@@ -467,7 +467,7 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
                 pageSize={10}
                 updateSize={() => {}}
                 showPag={true}
-                showColum={{ actions: false }}
+                columnVisibility={{ actions: false }}
                 btnEdit={false}
               />
             </div>

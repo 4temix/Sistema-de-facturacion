@@ -10,7 +10,7 @@ import { customStyles } from "../../Utilities/StyleForReactSelect";
 import FormGastos from "../../components/Gastos/FormGastos";
 import EditGasto from "../../components/Gastos/EditGasto";
 import { useEffect, useRef, useState } from "react";
-import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { Option, BaseSelecst } from "../../Types/ProductTypes";
 import type { VisibilityState } from "@tanstack/react-table";
 import {

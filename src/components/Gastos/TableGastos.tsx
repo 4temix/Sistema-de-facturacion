@@ -9,7 +9,7 @@ import {
   type OnChangeFn,
 } from "@tanstack/react-table";
 import { GastoList, DataGastoResponse } from "../../Types/Gastos";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2 } from "react-icons/fi";
 import { Pagination } from "../Inventario/pagination";
 import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
 

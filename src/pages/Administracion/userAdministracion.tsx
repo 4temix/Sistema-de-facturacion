@@ -83,7 +83,7 @@ export default function UserAdministracion() {
   const [editEmpleadoId, setEditEmpleadoId] = useState<number | null>(null);
 
   // Métricas superiores
-  const [dataMetricas, setDataMetricas] = useState<EmpleadosMetrics>({
+  const [dataMetricas, _setDataMetricas] = useState<EmpleadosMetrics>({
     totalEmpleados: 0,
     empleadosActivos: 0,
     empleadosInactivos: 0,
@@ -244,7 +244,7 @@ export default function UserAdministracion() {
 
   // Función para obtener los empleados de la tabla
   function getData(filters: GetEmpleadosParams) {
-    const queryString = buildQueryString(filters);
+    const queryString = buildQueryString(filters as Record<string, unknown>);
 
     if (BeforeFilter.current === queryString) {
       if (loadingComplete) {

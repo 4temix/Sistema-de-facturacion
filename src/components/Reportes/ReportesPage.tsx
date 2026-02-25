@@ -64,7 +64,10 @@ export default function ReportesPage({ data = [] }: Params) {
                     { month: "Nov", value: yearData.ventasMensuales[10] },
                     { month: "Dic", value: yearData.ventasMensuales[11] },
                   ].map((item, idx) => (
-                    <div key={`${yearData.anio}-${idx}`} className="flex items-center gap-2">
+                    <div
+                      key={`${yearData.anio}-${idx}`}
+                      className="flex items-center gap-2"
+                    >
                       <span className="text-xs text-gray-500 w-8">
                         {item.month}
                       </span>
@@ -75,7 +78,12 @@ export default function ReportesPage({ data = [] }: Params) {
                               ? "from-blue-500 to-blue-600"
                               : "from-error-500 to-error-600"
                           }  rounded-full transition-all`}
-                          style={{ width: `${item.value}%` }}
+                          style={{
+                            width: `${Math.min(
+                              (item.value / 120000) * 100,
+                              100,
+                            )}%`,
+                          }}
                         />
                       </div>
                     </div>

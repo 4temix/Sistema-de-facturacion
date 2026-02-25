@@ -46,7 +46,7 @@ export default function DatePickerFormik({
       clickOpens: true,
       allowInput: false,
       defaultDate: value || undefined,
-      onChange: (selectedDates, dateStr) => {
+      onChange: (_selectedDates, dateStr) => {
         if (dateStr && onChangeRef.current) {
           onChangeRef.current(dateStr);
         }

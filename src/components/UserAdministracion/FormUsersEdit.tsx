@@ -6,10 +6,7 @@ import { UserSelectResponse } from "../../Types/Usuario";
 import Select, { SingleValue } from "react-select";
 import { BaseSelecst, Option } from "../../Types/ProductTypes";
 import { customStyles } from "../../Utilities/StyleForReactSelect";
-import {
-  FormContent,
-  FormContentUpdate,
-} from "../../pages/Administracion/userAdministracion";
+import { FormContentUpdate } from "../../pages/Administracion/userAdministracion";
 // // Regex para validar números
 // const regexNum = /^[0-9]*\.?[0-9]*$/;
 

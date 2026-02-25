@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useFormik } from "formik";
-import { apiRequest, apiRequestThen } from "../../Utilities/FetchFuntions";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import {
   EmpleadoFormValues,
   EmpleadoUpdateDto,

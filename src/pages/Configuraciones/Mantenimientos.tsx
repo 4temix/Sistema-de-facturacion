@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { TrashBinIcon, PencilIcon } from "../../icons";
+import { TrashBinIcon } from "../../icons";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { DatosSelect } from "../../Types/ConfigurationTypes";
 import { useModal } from "../../hooks/useModal";

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useFormik, FormikProps } from "formik";
+import { useFormik } from "formik";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { ValidationUserProfile } from "./yup";
-import { apiRequestThen, baseUrl } from "../../Utilities/FetchFuntions";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { useUserData } from "../../context/GlobalUserContext";
 import Swal from "sweetalert2";
 
@@ -30,14 +30,14 @@ export default function EditUserProfile({
   onClose,
   onSuccess,
 }: EditUserProfileProps) {
-  const { user, token } = useUserData();
+  const { user } = useUserData();
   const [isSaving, setIsSaving] = useState(false);
   // TODO: Reactivar cuando se implemente la funcionalidad de imagen
   // const [imagePreview, setImagePreview] = useState<string | null>(
   //   user?.userImage || null
   // );
 
-  const formik: FormikProps<UserProfileFormValues> = useFormik({
+  const formik = useFormik<UserProfileFormValues>({
     initialValues: {
       realName: user?.realName || null,
       lastName: user?.lastName || null,
@@ -45,7 +45,7 @@ export default function EditUserProfile({
       about: user?.about || null,
       compName: user?.compName || null,
       address: user?.address || null,
-      userImage: null,
+      userImage: null as File | null,
     },
     validationSchema: ValidationUserProfile,
     enableReinitialize: true,

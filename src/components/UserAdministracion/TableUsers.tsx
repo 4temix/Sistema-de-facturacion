@@ -65,8 +65,8 @@ export default function TableUsers({
 
   // Estado para el drawer de detalles
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-  const [empleadoDetails, setEmpleadoDetails] = useState<User>(
+  const [_isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [_empleadoDetails, setEmpleadoDetails] = useState<User>(
     initialEmpleadoDetails,
   );
 

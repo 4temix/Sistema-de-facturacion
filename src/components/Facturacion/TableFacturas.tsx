@@ -422,7 +422,7 @@ export default function TableFacturas({
                   if (e.target.value == "e") {
                     return;
                   }
-                  updateSize(parseInt(e.target.value), "PageSize");
+                  updateSize?.(parseInt(e.target.value, 10), "PageSize");
                 }}
               />
             </div>
