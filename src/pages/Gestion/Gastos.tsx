@@ -75,6 +75,8 @@ export default function Gastos() {
     totalPages: 0,
   });
 
+  console.log(gastosData);
+
   // Selects para crear y filtrar gastos
   const [selectsData, setSelectsData] = useState<SelectsGastos>();
   const [selectsTable, setSelectsTable] = useState<SelectsGastosTable>();
@@ -219,13 +221,13 @@ export default function Gastos() {
 
     // Buscar los IDs de los estados
     const estadoPagado = selectsData?.estados?.find(
-      (e) => e.name.toLowerCase() === "pagado"
+      (e) => e.name.toLowerCase() === "pagado",
     );
     const estadoPendiente = selectsData?.estados?.find(
-      (e) => e.name.toLowerCase() === "pendiente"
+      (e) => e.name.toLowerCase() === "pendiente",
     );
     const estadoParcial = selectsData?.estados?.find((e) =>
-      e.name.toLowerCase().includes("parcial")
+      e.name.toLowerCase().includes("parcial"),
     );
 
     isUpdatingFromMonto.current = true;
@@ -265,10 +267,10 @@ export default function Gastos() {
 
     // Buscar los IDs de los estados
     const estadoPagado = selectsData?.estados?.find(
-      (e) => e.name.toLowerCase() === "pagado"
+      (e) => e.name.toLowerCase() === "pagado",
     );
     const estadoPendiente = selectsData?.estados?.find(
-      (e) => e.name.toLowerCase() === "pendiente"
+      (e) => e.name.toLowerCase() === "pendiente",
     );
 
     isUpdatingFromEstado.current = true;
@@ -286,7 +288,7 @@ export default function Gastos() {
   // Actualizar los filtros
   function updateFilter(
     value: string | number | null | undefined,
-    key: string
+    key: string,
   ) {
     setFilters((prev) => {
       return {
@@ -308,11 +310,11 @@ export default function Gastos() {
 
   // Eliminar nulos y undefined
   function buildQueryString<T extends Record<string, unknown>>(
-    filters: T
+    filters: T,
   ): string {
     const validEntries = Object.entries(filters)
       .filter(
-        ([_, value]) => value !== null && value !== undefined && value !== ""
+        ([_, value]) => value !== null && value !== undefined && value !== "",
       )
       .map(([key, value]) => [key, String(value)]);
 
@@ -344,7 +346,7 @@ export default function Gastos() {
           response.result ?? {
             data: [],
             totalPages: 0,
-          }
+          },
         );
       })
       .finally(() => {
@@ -386,13 +388,13 @@ export default function Gastos() {
         const newLabels = { ...labelSelects };
         if (filters.pTipoGasto) {
           const tipo = response.result.tiposGastos?.find(
-            (t) => t.id === filters.pTipoGasto
+            (t) => t.id === filters.pTipoGasto,
           );
           if (tipo) newLabels.tipoGasto = tipo.name;
         }
         if (filters.pEstado) {
           const estado = response.result.estadosGastos?.find(
-            (e) => e.id === filters.pEstado
+            (e) => e.id === filters.pEstado,
           );
           if (estado) newLabels.estado = estado.name;
         }
@@ -559,7 +561,7 @@ export default function Gastos() {
                         (item: BaseSelecst) => ({
                           label: item.name,
                           value: item.id.toString(),
-                        })
+                        }),
                       )}
                       className="select-custom pl-0"
                       classNamePrefix="select"
@@ -590,7 +592,7 @@ export default function Gastos() {
                         (item: BaseSelecst) => ({
                           label: item.name,
                           value: item.id.toString(),
-                        })
+                        }),
                       )}
                       className="select-custom pl-0"
                       classNamePrefix="select"

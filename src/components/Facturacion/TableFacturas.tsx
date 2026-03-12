@@ -27,6 +27,8 @@ import { useModalEdit } from "../../context/ModalEditContext";
 import { handlePrintFactura } from "../../hooks/useImpresion";
 import LoaderFun from "../loader/LoaderFunc";
 import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
+import { useUserData } from "../../context/GlobalUserContext";
+import { User } from "../../Types/Usuario";
 
 type internalProps = DataRequest & {
   setPage: (page: number) => void;
@@ -61,6 +63,8 @@ export default function TableFacturas({
 }: internalProps) {
   const getFacturaColor = useFacturaColor();
   const [isLoading, setIsLoading] = useState(false);
+
+  const { user } = useUserData();
 
   //cargando
   const [loadintComplete, setLoadintComplete] = useState(false);
@@ -219,7 +223,7 @@ export default function TableFacturas({
         cell: ({ getValue }: { getValue: () => string }) => (
           <div
             className={`px-3 py-1 rounded-full border text-sm font-medium text-center ${getFacturaColor(
-              getValue()
+              getValue(),
             )}`}
           >
             {getValue() ?? "Desconocido"}
@@ -300,7 +304,7 @@ export default function TableFacturas({
         if (!response.success) {
           return;
         }
-        handlePrintFactura(response.result!);
+        handlePrintFactura(response.result!, user ?? ({} as User));
       })
       .finally(() => {
         setLoadintComplete(false);
@@ -360,7 +364,7 @@ export default function TableFacturas({
                       >
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                       </th>
                     ))}
@@ -396,7 +400,7 @@ export default function TableFacturas({
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.getContext(),
                             )}
                           </td>
                         ))}

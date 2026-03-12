@@ -1,6 +1,7 @@
 import { FacturaDetalle } from "../Types/FacturacionTypes";
+import { User } from "../Types/Usuario";
 
-export const handlePrintFactura = (factura: FacturaDetalle) => {
+export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
   const formatDate = (date: string | null) =>
     date ? new Date(date).toLocaleDateString("es-DO") : "N/A";
 
@@ -9,6 +10,12 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
+
+  // let stringsms = `<img src="../../public/images/logo.jpg" class="logo" alt="Logo" />`;
+
+  // docker run -d --name prueba-db --network red_prueba -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=forerunner117@# -e POSTGRES_DB=basePrueba -v postgres_data:/var/lib/postgresql/data postgres:18
+
+  // docker run -d --name back-prueba -p 8080:8080 -e ASPNETCORE_URLS=http://0.0.0.0:8080 backp:1.0
 
   const printContent = `
     <html>
@@ -223,8 +230,7 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
       <body>
         
         <div class="header">
-          <img src="../../public/images/logo.jpg" class="logo" alt="Logo" />
-          <div class="store-name">REPUESTO</div>
+          <div class="store-name">${user.compName}</div>
         </div>
 
         <hr class="divider-double" />
@@ -258,7 +264,7 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
               <div class="product-line">
                 <span>x${p.cantidad}</span>
                 <span>RD$ ${formatCurrency(
-                  p.precioVentaActual * p.cantidad
+                  p.precioVentaActual * p.cantidad,
                 )}</span>
               </div>
               ${
@@ -273,7 +279,7 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
                   : ""
               }
             </div>
-          `
+          `,
           )
           .join("")}
 
@@ -335,13 +341,13 @@ export const handlePrintFactura = (factura: FacturaDetalle) => {
           <div>Método de pago:</div>
           <div class="payment-method">${factura.metodoPago || "N/A"}</div>
           <div class="payment-date">fecha de pago: ${formatDate(
-            factura.fechaPago
+            factura.fechaPago,
           )}</div>
           <div class="payment-date">Monto pagado: ${formatCurrency(
-            factura.montoPagado
+            factura.montoPagado,
           )}</div>
            <div class="payment-date">Monto pendiente: ${formatCurrency(
-             factura.total - factura.montoPagado
+             factura.total - factura.montoPagado,
            )}</div>
         </div>
 

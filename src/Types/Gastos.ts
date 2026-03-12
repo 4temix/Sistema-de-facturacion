@@ -67,6 +67,7 @@ export type GastoList = {
   montoTotal: number;
   montoPagado: number;
   saldoPendiente: number;
+  nota: string;
 };
 
 // Métricas de gastos
