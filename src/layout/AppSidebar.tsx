@@ -187,7 +187,8 @@ const getIconForMenu = (menuName: string) => {
 };
 
 const AppSidebar = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, closeMobileSidebar } =
+    useSidebar();
   const { menu } = useUserData();
   const location = useLocation();
 
@@ -240,6 +241,10 @@ const AppSidebar = () => {
       setOpenSubmenu(null);
     }
   }, [location, isActive, menu]);
+
+  useEffect(() => {
+    closeMobileSidebar();
+  }, [location.pathname, closeMobileSidebar]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
@@ -302,10 +307,11 @@ const AppSidebar = () => {
             </>
           ) : (
             <img
-              // src="/images/logo/logo-icon.svg"
+              className="w-9 h-9 object-contain shrink-0"
+              src="/favicon.png"
               alt="Logo"
-              width={32}
-              height={32}
+              width={36}
+              height={36}
             />
           )}
         </Link>

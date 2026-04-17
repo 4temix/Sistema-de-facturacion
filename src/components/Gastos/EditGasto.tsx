@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import { BaseSelecst, Option } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
 import {
   GastoUpdate,
   SelectsGastos,
@@ -146,6 +147,8 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     const gastoToSend: GastoUpdate = {
       ...gasto,
       montoPagado: montoTotalPagado,
+      fechaPago:
+        toUtcIsoFromDateInput(gasto.fechaPago ?? undefined) ?? null,
     };
 
     apiRequestThen<boolean>({

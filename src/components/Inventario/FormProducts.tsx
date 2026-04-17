@@ -1,6 +1,7 @@
 import { customStyles } from "../../Utilities/StyleForReactSelect";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import DatePickerFormik from "../form/DatePickerFormik";
 import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
@@ -13,6 +14,7 @@ import {
   Selects,
 } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
 import { GastoFormValues, SaveGasto } from "../../Types/Gastos";
 import { ValidationGasto } from "../Gastos/yup";
 import LoaderFun from "../loader/LoaderFunc";
@@ -781,25 +783,41 @@ export default function FormProducts(params: Actions) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="fechaGasto">Fecha del gasto</Label>
-                  <Input
-                    type="date"
+                  <DatePickerFormik
                     id="fechaGasto"
+                    name="fecha"
+                    label="Fecha del gasto"
+                    placeholder="Seleccione la fecha del gasto"
                     value={valuesGasto.fecha ?? ""}
-                    onChange={(e) => {
-                      setFieldValueGastos("fecha", e.target.value);
-                    }}
+                    onChange={(value) => setFieldValueGastos("fecha", value)}
+                    onBlur={() => setFieldTouchedGasto("fecha", true)}
+                    error={
+                      !!errorsGasto.fecha && !!touchedGasto.fecha
+                    }
+                    errorMessage={
+                      touchedGasto.fecha ? errorsGasto.fecha : undefined
+                    }
                   />
                 </div>
                 <div>
-                  <Label htmlFor="fechaPagoGasto">Fecha de pago</Label>
-                  <Input
-                    type="date"
+                  <DatePickerFormik
                     id="fechaPagoGasto"
+                    name="fechaPago"
+                    label="Fecha de pago"
+                    placeholder="Seleccione la fecha de pago"
                     value={valuesGasto.fechaPago ?? ""}
-                    onChange={(e) => {
-                      setFieldValueGastos("fechaPago", e.target.value);
-                    }}
+                    onChange={(value) =>
+                      setFieldValueGastos("fechaPago", value)
+                    }
+                    onBlur={() => setFieldTouchedGasto("fechaPago", true)}
+                    error={
+                      !!errorsGasto.fechaPago && !!touchedGasto.fechaPago
+                    }
+                    errorMessage={
+                      touchedGasto.fechaPago
+                        ? errorsGasto.fechaPago
+                        : undefined
+                    }
                   />
                 </div>
               </div>
@@ -908,13 +926,13 @@ export default function FormProducts(params: Actions) {
                   tipoGasto: valuesGasto.tipoGasto ?? TIPO_GASTO_DEFAULT,
                   proveedor: valuesGasto.proveedor || undefined,
                   comprobante: valuesGasto.comprobante || undefined,
-                  fecha: valuesGasto.fecha || undefined,
+                  fecha: toUtcIsoFromDateInput(valuesGasto.fecha),
                   montoTotal: valuesGasto.montoTotal!,
                   montoPagado: valuesGasto.montoPagado ?? 0,
                   saldoPendiente: valuesGasto.saldoPendiente || undefined,
                   estado: valuesGasto.estado!,
                   metodoPago: valuesGasto.metodoPago || undefined,
-                  fechaPago: valuesGasto.fechaPago || undefined,
+                  fechaPago: toUtcIsoFromDateInput(valuesGasto.fechaPago),
                   origenFondo: valuesGasto.origenFondo || undefined,
                   referencia: valuesGasto.referencia || undefined,
                   nota: valuesGasto.nota || undefined,

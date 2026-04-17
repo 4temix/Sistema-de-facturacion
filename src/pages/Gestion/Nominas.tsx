@@ -9,6 +9,7 @@ import NominaDetalle from "../../components/Nominas/NominaDetalle";
 import FormNomina from "../../components/Nominas/FormNomina";
 import { ValidationNomina } from "../../components/Nominas/yup";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
 import {
   NominaListItem,
   NominaListResponse,
@@ -59,8 +60,8 @@ export default function Nominas() {
     validationSchema: ValidationNomina,
     onSubmit: async (values) => {
       const nominaData: NominaCreateDto = {
-        periodoInicio: values.periodoInicio,
-        periodoFin: values.periodoFin,
+        periodoInicio: toUtcIsoFromDateInput(values.periodoInicio) ?? "",
+        periodoFin: toUtcIsoFromDateInput(values.periodoFin) ?? "",
         tipo: values.tipo,
       };
 

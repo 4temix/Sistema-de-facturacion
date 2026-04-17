@@ -11,6 +11,7 @@ import FormGastos from "../../components/Gastos/FormGastos";
 import EditGasto from "../../components/Gastos/EditGasto";
 import { useEffect, useRef, useState } from "react";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
 import { Option, BaseSelecst } from "../../Types/ProductTypes";
 import type { VisibilityState } from "@tanstack/react-table";
 import {
@@ -134,13 +135,13 @@ export default function Gastos() {
         tipoGasto: values.tipoGasto!,
         proveedor: values.proveedor || undefined,
         comprobante: values.comprobante || undefined,
-        fecha: values.fecha || undefined,
+        fecha: toUtcIsoFromDateInput(values.fecha),
         montoTotal: values.montoTotal!,
         montoPagado: values.montoPagado ?? 0,
         saldoPendiente: values.saldoPendiente ?? undefined,
         estado: values.estado!,
         metodoPago: values.metodoPago || undefined,
-        fechaPago: values.fechaPago || undefined,
+        fechaPago: toUtcIsoFromDateInput(values.fechaPago),
         origenFondo: values.origenFondo || undefined,
         referencia: values.referencia || undefined,
         nota: values.nota || undefined,
@@ -748,6 +749,7 @@ export default function Gastos() {
           pageNumber={filters.pPage ?? 1}
           pageSize={filters.pPageSize!}
           updateSize={updateFilter}
+          selectsTable={selectsTable}
           onEdit={(id) => {
             setEditGastoId(id);
             openEditModal();

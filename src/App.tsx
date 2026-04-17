@@ -43,6 +43,9 @@ const DetailsMonth = lazy(() => import("./pages/Reportes/PageDetailsMonth"));
 const UserAdministracion = lazy(
   () => import("./pages/Administracion/userAdministracion"),
 );
+const RoleAdministration = lazy(
+  () => import("./pages/Administracion/RoleAdministration"),
+);
 
 // Definición de rutas
 const routes = createBrowserRouter([
@@ -156,11 +159,7 @@ const routes = createBrowserRouter([
       // Others Page
       {
         path: "/profile",
-        element: (
-          <ProtectedRoute>
-            <UserProfiles />
-          </ProtectedRoute>
-        ),
+        element: <UserProfiles />,
       },
 
       //administracion
@@ -169,6 +168,14 @@ const routes = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <UserAdministracion />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/role_administration",
+        element: (
+          <ProtectedRoute>
+            <RoleAdministration />
           </ProtectedRoute>
         ),
       },

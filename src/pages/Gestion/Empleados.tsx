@@ -9,6 +9,7 @@ import FormEmpleados from "../../components/Empleados/FormEmpleados";
 import EditEmpleado from "../../components/Empleados/EditEmpleado";
 import { useEffect, useRef, useState } from "react";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
 import type { VisibilityState } from "@tanstack/react-table";
 import {
   EmpleadoFormValues,
@@ -112,13 +113,13 @@ export default function Empleados() {
         nombres: values.nombres,
         apellidos: values.apellidos,
         cedula: values.cedula,
-        fechaNacimiento: values.fechaNacimiento || undefined,
+        fechaNacimiento: toUtcIsoFromDateInput(values.fechaNacimiento),
         telefono: values.telefono,
         email: values.email,
         provincia: values.provincia,
         municipio: values.municipio,
         direccion: values.direccion,
-        fechaIngreso: values.fechaIngreso,
+        fechaIngreso: toUtcIsoFromDateInput(values.fechaIngreso) ?? "",
         puestoId: values.puestoId!,
         tipoContrato: values.tipoContrato,
         salarioBase: values.salarioBase!,

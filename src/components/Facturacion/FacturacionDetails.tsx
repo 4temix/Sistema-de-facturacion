@@ -1,7 +1,10 @@
 import { useUserData } from "../../context/GlobalUserContext";
 import { useModalEdit } from "../../context/ModalEditContext";
 import { useFacturaColor } from "../../hooks/useFacturaColor";
-import { handlePrintFactura } from "../../hooks/useImpresion";
+import {
+  handlePrintFactura,
+  handlePrintFacturaFullPage,
+} from "../../hooks/useImpresion";
 import { PencilIcon } from "../../icons";
 import { FacturaDetalle, ProductoVenta } from "../../Types/FacturacionTypes";
 import { User } from "../../Types/Usuario";
@@ -377,35 +380,49 @@ export default function FacturacionDetails({
       </div>
 
       {/* 🔹 Botones */}
-      <div className="flex gap-3">
-        {btnEdit && (
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-2">
+          {btnEdit && (
+            <button
+              onClick={() => {
+                modalEditOpen();
+                AsingFactura(factura);
+              }}
+              disabled={factura.estado == "Reembolsada" ? true : false}
+              className={`flex-1 min-w-[120px] ${
+                factura.estado != "Reembolsada"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-300"
+              } py-2 rounded-lg transition-colors`}
+            >
+              <span className="flex justify-center items-center gap-2">
+                <PencilIcon /> Editar
+              </span>
+            </button>
+          )}
           <button
+            type="button"
+            className="flex-1 min-w-[120px] bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
             onClick={() => {
-              modalEditOpen();
-              AsingFactura(factura);
+              handlePrintFactura(factura, user ?? ({} as User));
             }}
-            disabled={factura.estado == "Reembolsada" ? true : false}
-            className={`flex-1 ${
-              factura.estado != "Reembolsada"
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-300"
-            } py-2 rounded-lg transition-colors`}
           >
-            <span className="flex justify-center items-center gap-2">
-              <PencilIcon /> Editar
+            <span className="flex justify-center items-center gap-2 text-sm">
+              <LuPrinter className="text-lg" /> Ticket / 48mm
             </span>
           </button>
-        )}
-        <button
-          className="flex-1 bg-green-400 text-white py-2 rounded-lg hover:bg-green-500 transition-colors"
-          onClick={() => {
-            handlePrintFactura(factura, user ?? ({} as User));
-          }}
-        >
-          <span className="flex justify-center items-center gap-2">
-            <LuPrinter className="text-lg" /> Imprimir
-          </span>
-        </button>
+          <button
+            type="button"
+            className="flex-1 min-w-[120px] bg-emerald-700 text-white py-2 rounded-lg hover:bg-emerald-800 transition-colors"
+            onClick={() => {
+              handlePrintFacturaFullPage(factura, user ?? ({} as User));
+            }}
+          >
+            <span className="flex justify-center items-center gap-2 text-sm">
+              <LuPrinter className="text-lg" /> Página completa (A4)
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* 🔹 Cerrar */}

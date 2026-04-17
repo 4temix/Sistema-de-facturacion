@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
 import {
   EmpleadoFormValues,
   EmpleadoUpdateDto,
@@ -57,13 +58,13 @@ export default function EditEmpleado({ id, closeModal, onSuccess }: Props) {
         nombres: values.nombres,
         apellidos: values.apellidos,
         cedula: values.cedula,
-        fechaNacimiento: values.fechaNacimiento || undefined,
+        fechaNacimiento: toUtcIsoFromDateInput(values.fechaNacimiento),
         telefono: values.telefono,
         email: values.email,
         provincia: values.provincia,
         municipio: values.municipio,
         direccion: values.direccion,
-        fechaIngreso: values.fechaIngreso,
+        fechaIngreso: toUtcIsoFromDateInput(values.fechaIngreso) ?? "",
         puestoId: values.puestoId!,
         tipoContrato: values.tipoContrato,
         salarioBase: values.salarioBase!,
@@ -72,7 +73,7 @@ export default function EditEmpleado({ id, closeModal, onSuccess }: Props) {
         afpId: values.afpId || undefined,
         banco: values.banco,
         cuentaBancaria: values.cuentaBancaria,
-        fechaSalida: fechaSalida || undefined,
+        fechaSalida: toUtcIsoFromDateInput(fechaSalida),
       };
 
       try {

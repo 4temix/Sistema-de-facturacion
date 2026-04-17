@@ -101,6 +101,8 @@ export type GastoUpdate = {
   estado: number;
   metodoPago: string | null;
   fechaPago: string | null; // ISO string
+  /** Fecha del gasto (si el API la devuelve en detalle) */
+  fecha?: string | null;
   origenFondo: string | null;
   generaInventario: boolean;
   productoId: number | null;

@@ -1,4 +1,5 @@
 import { FacturaDetalle } from "../Types/FacturacionTypes";
+import { GastoList, GastoUpdate } from "../Types/Gastos";
 import { User } from "../Types/Usuario";
 
 export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
@@ -376,6 +377,254 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
     printWindow.onload = () => {
       printWindow.focus();
       printWindow.print();
+    };
+  }
+};
+
+/** Misma información que el ticket térmico, en hoja A4 con márgenes para impresora estándar */
+export const handlePrintFacturaFullPage = (
+  factura: FacturaDetalle,
+  user: User,
+) => {
+  const formatDate = (date: string | null) =>
+    date ? new Date(date).toLocaleDateString("es-DO") : "N/A";
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("es-DO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+
+  const printContent = `
+    <html>
+      <head>
+        <title>Factura ${factura.numeroFactura}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            width: 100%;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 12mm 14mm;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.45;
+            color: #111;
+          }
+          h1 { font-size: 1.35rem; margin-bottom: 4px; }
+          .muted { color: #555; font-size: 0.9rem; }
+          .divider { border: none; border-top: 1px solid #ccc; margin: 12px 0; }
+          .divider-double { border-top: 2px solid #111; margin: 14px 0; }
+          .invoice-box {
+            background: #f4f4f4;
+            padding: 10px 12px;
+            margin: 10px 0;
+            font-size: 1.05rem;
+            font-weight: bold;
+            text-align: center;
+          }
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            font-size: 0.95rem;
+          }
+          .section-title {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin: 14px 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+          }
+          .product {
+            margin: 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px dotted #bbb;
+          }
+          .product-name { font-weight: bold; margin-bottom: 4px; }
+          .product-line { display: flex; justify-content: space-between; font-size: 0.9rem; }
+          .total-row { display: flex; justify-content: space-between; margin: 6px 0; }
+          .grand-total {
+            font-size: 1.15rem;
+            font-weight: bold;
+            background: #111;
+            color: #fff;
+            padding: 10px 12px;
+            margin: 12px 0;
+          }
+          .payment-box { margin: 12px 0; font-size: 0.95rem; }
+          .footer { margin-top: 16px; text-align: center; font-size: 0.9rem; color: #444; }
+          @media print {
+            body { padding: 10mm; }
+            .no-print { display: none !important; }
+          }
+          @page { size: A4 portrait; margin: 12mm; }
+        </style>
+      </head>
+      <body>
+        <div style="text-align:center; margin-bottom: 12px;">
+          <div style="font-size: 1.25rem; font-weight: bold;">${user.compName ?? "Empresa"}</div>
+          <div class="muted">Factura de venta</div>
+        </div>
+        <hr class="divider-double" />
+        <div class="invoice-box">FACTURA #${factura.numeroFactura}</div>
+        <div class="info-row"><span>Cliente:</span><span style="font-weight:600">${factura.nombreCliente}</span></div>
+        <div class="info-row"><span>Emisión:</span><span>${formatDate(factura.fechaEmision)}</span></div>
+        <div class="info-row"><span>Estado:</span><span>${factura.estado}</span></div>
+        <hr class="divider" />
+        <div class="section-title">Productos</div>
+        ${(factura.productos ?? [])
+          .map(
+            (p) => `
+          <div class="product">
+            <div class="product-name">${p.nombre}</div>
+            <div class="product-line">
+              <span>Cant. ${p.cantidad}</span>
+              <span>RD$ ${formatCurrency(p.precioVentaActual * p.cantidad)}</span>
+            </div>
+          </div>`,
+          )
+          .join("")}
+        ${
+          factura.manoDeObra > 0
+            ? `<div class="section-title">Mano de obra</div>
+               <div class="info-row"><span>Servicio</span><span>RD$ ${formatCurrency(factura.manoDeObra)}</span></div>
+               ${factura.detalleManoDeObra ? `<p class="muted" style="margin-top:6px;">${factura.detalleManoDeObra}</p>` : ""}`
+            : ""
+        }
+        <hr class="divider-double" />
+        <div class="total-row"><span>Subtotal</span><span>RD$ ${formatCurrency(factura.subtotal)}</span></div>
+        <div class="grand-total">
+          <div class="product-line"><span>TOTAL</span><span>RD$ ${formatCurrency(factura.total)}</span></div>
+        </div>
+        <div class="payment-box">
+          <div class="info-row"><span>Método de pago</span><span>${factura.metodoPago || "N/A"}</span></div>
+          <div class="info-row"><span>Fecha de pago</span><span>${formatDate(factura.fechaPago)}</span></div>
+          <div class="info-row"><span>Monto pagado</span><span>RD$ ${formatCurrency(factura.montoPagado)}</span></div>
+        </div>
+        <div class="footer"><p>Gracias por su compra.</p><p class="muted">Documento generado desde el sistema.</p></div>
+        <button class="no-print" style="margin-top:16px;padding:10px;width:100%;cursor:pointer;" onclick="window.print()">Imprimir</button>
+      </body>
+    </html>
+  `;
+
+  const printWindow = window.open("", "_blank");
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+  }
+};
+
+function formatDateGasto(date: string | null | undefined) {
+  if (!date) return "N/A";
+  return new Date(date).toLocaleDateString("es-DO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatMoneyGasto(n: number) {
+  return new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    minimumFractionDigits: 2,
+  }).format(n);
+}
+
+export const handlePrintGastoThermal = (
+  detail: GastoUpdate,
+  summary: GastoList | null,
+  user: User,
+) => {
+  const fechaGasto = detail.fecha ?? summary?.fecha;
+  const printContent = `
+    <html><head><title>Gasto #${detail.id}</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { width:48mm; max-width:48mm; margin:0 auto; padding:2mm 1mm; font-family:Arial,sans-serif; font-size:11px; line-height:1.4; }
+      .h { font-weight:bold; font-size:13px; text-align:center; margin-bottom:6px; }
+      .row { display:flex; justify-content:space-between; margin:3px 0; font-size:10px; }
+      .sep { border-top:1px dashed #000; margin:6px 0; }
+      .big { font-weight:bold; font-size:12px; margin-top:6px; text-align:center; }
+      @page { size:48mm auto; margin:0; }
+    </style></head><body>
+      <div class="h">${user.compName ?? "Gasto"}</div>
+      <div class="sep"></div>
+      <div class="row"><span>ID</span><span>#${detail.id}</span></div>
+      <div class="row"><span>Fecha</span><span>${formatDateGasto(fechaGasto)}</span></div>
+      <div class="row"><span>Pago</span><span>${formatDateGasto(detail.fechaPago)}</span></div>
+      <div class="sep"></div>
+      <div class="row"><span>Total</span><span>${formatMoneyGasto(detail.montoTotal)}</span></div>
+      <div class="row"><span>Pagado</span><span>${formatMoneyGasto(detail.montoPagado)}</span></div>
+      <div class="big">${formatMoneyGasto(detail.montoTotal - detail.montoPagado)} pend.</div>
+      <div class="sep"></div>
+      <div style="font-size:9px;">${(detail.nota || summary?.nota || "").slice(0, 200)}</div>
+      <button style="margin-top:8px;width:100%;" class="no-print" onclick="window.print()">Imprimir</button>
+    </body></html>`;
+
+  const w = window.open("", "_blank");
+  if (w) {
+    w.document.write(printContent);
+    w.document.close();
+    w.onload = () => {
+      w.focus();
+      w.print();
+    };
+  }
+};
+
+export const handlePrintGastoFullPage = (
+  detail: GastoUpdate,
+  summary: GastoList | null,
+  user: User,
+) => {
+  const fechaGasto = detail.fecha ?? summary?.fecha;
+  const printContent = `
+    <html><head><title>Gasto #${detail.id}</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { width:100%; max-width:210mm; margin:0 auto; padding:12mm 14mm; font-family:'Segoe UI',Arial,sans-serif; font-size:12pt; color:#111; }
+      h1 { font-size:1.25rem; margin-bottom:4px; }
+      .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+      .box { border:1px solid #ddd; padding:10px; border-radius:6px; background:#fafafa; }
+      .label { font-size:0.75rem; color:#666; text-transform:uppercase; }
+      .row { display:flex; justify-content:space-between; margin:6px 0; }
+      .sep { border-top:1px solid #ccc; margin:14px 0; }
+      @page { size:A4 portrait; margin:12mm; }
+    </style></head><body>
+      <h1>Comprobante de gasto #${detail.id}</h1>
+      <p style="color:#555;">${user.compName ?? ""}</p>
+      <div class="sep"></div>
+      <div class="grid">
+        <div class="box"><div class="label">Fecha del gasto</div><div>${formatDateGasto(fechaGasto)}</div></div>
+        <div class="box"><div class="label">Fecha de pago</div><div>${formatDateGasto(detail.fechaPago)}</div></div>
+        <div class="box"><div class="label">Proveedor</div><div>${detail.proveedor ?? summary?.proveedor ?? "—"}</div></div>
+        <div class="box"><div class="label">Comprobante</div><div>${detail.comprobante ?? summary?.comprobante ?? "—"}</div></div>
+      </div>
+      <div class="row"><span>Total</span><strong>${formatMoneyGasto(detail.montoTotal)}</strong></div>
+      <div class="row"><span>Pagado</span><strong>${formatMoneyGasto(detail.montoPagado)}</strong></div>
+      <div class="row"><span>Pendiente</span><strong>${formatMoneyGasto(detail.montoTotal - detail.montoPagado)}</strong></div>
+      <div class="sep"></div>
+      <div class="row"><span>Método de pago</span><span>${detail.metodoPago ?? summary?.metodoPago ?? "—"}</span></div>
+      <div class="row"><span>Origen fondo</span><span>${detail.origenFondo ?? "—"}</span></div>
+      <div class="row"><span>Referencia</span><span>${detail.referencia ?? "—"}</span></div>
+      <p style="margin-top:12px;"><span class="label">Nota</span><br/>${(detail.nota || summary?.nota || "—").replace(/</g, "&lt;")}</p>
+      <button style="margin-top:20px;" onclick="window.print()">Imprimir</button>
+    </body></html>`;
+
+  const w = window.open("", "_blank");
+  if (w) {
+    w.document.write(printContent);
+    w.document.close();
+    w.onload = () => {
+      w.focus();
+      w.print();
     };
   }
 };

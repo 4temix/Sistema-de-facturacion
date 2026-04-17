@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,10 +8,18 @@ import {
   type VisibilityState,
   type OnChangeFn,
 } from "@tanstack/react-table";
-import { GastoList, DataGastoResponse } from "../../Types/Gastos";
+import {
+  GastoList,
+  DataGastoResponse,
+  GastoUpdate,
+  SelectsGastosTable,
+} from "../../Types/Gastos";
 import { FiEdit2 } from "react-icons/fi";
 import { Pagination } from "../Inventario/pagination";
 import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
+import Drawer from "../ui/modal/Drawer";
+import GastoDetails from "./GastoDetails";
+import { apiRequestThen } from "../../Utilities/FetchFuntions";
 
 type Props = DataGastoResponse & {
   setPage: (page: number) => void;
@@ -22,6 +30,8 @@ type Props = DataGastoResponse & {
   onDelete: (id: number) => void;
   columnVisibility?: VisibilityState;
   onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+  /** Para mostrar nombres de tipo/estado en el panel de detalle */
+  selectsTable?: SelectsGastosTable;
 };
 
 // Valor por defecto para visibilidad de columnas
@@ -41,7 +51,29 @@ export default function TableGastos({
   onDelete,
   columnVisibility: columnVisibilityProp,
   onColumnVisibilityChange: onColumnVisibilityChangeProp,
+  selectsTable,
 }: Props) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailGasto, setDetailGasto] = useState<GastoUpdate | null>(null);
+  const [summaryRow, setSummaryRow] = useState<GastoList | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
+  const loadGastoDetails = useCallback((row: GastoList) => {
+    setSummaryRow(row);
+    setDetailGasto(null);
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+    apiRequestThen<GastoUpdate>({
+      url: `api/gastos/get-update/${row.id}`,
+      configuration: { method: "GET" },
+    })
+      .then((res) => {
+        if (res.success && res.result) {
+          setDetailGasto(res.result);
+        }
+      })
+      .finally(() => setDetailsLoading(false));
+  }, []);
   // Estado interno para cuando no se pasan las props
   const [internalColumnVisibility, setInternalColumnVisibility] =
     useState<VisibilityState>(defaultColumnVisibility);
@@ -213,6 +245,7 @@ export default function TableGastos({
         cell: ({ row }: { row: Row<GastoList> }) => (
           <div className="flex items-center gap-2">
             <button
+              type="button"
               className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
@@ -240,6 +273,20 @@ export default function TableGastos({
 
   return (
     <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <Drawer isOpen={detailsOpen} onClose={() => setDetailsOpen(false)}>
+        <GastoDetails
+          onClose={() => setDetailsOpen(false)}
+          detail={detailGasto}
+          summary={summaryRow}
+          selectsTable={selectsTable}
+          isLoading={detailsLoading}
+          onEditar={(id) => {
+            setDetailsOpen(false);
+            onEdit(id);
+          }}
+        />
+      </Drawer>
+
       {/* Header con toggle de columnas */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -289,7 +336,8 @@ export default function TableGastos({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                  onClick={() => loadGastoDetails(row.original)}
                 >
                   {row
                     .getVisibleCells()
