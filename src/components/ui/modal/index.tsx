@@ -5,8 +5,8 @@ interface ModalProps {
   onClose: () => void;
   className?: string;
   children: React.ReactNode;
-  showCloseButton?: boolean; // New prop to control close button visibility
-  isFullscreen?: boolean; // Default to false for backwards compatibility
+  showCloseButton?: boolean;
+  isFullscreen?: boolean;
   CloseClickBanner?: boolean;
   zIndex?: string;
 }
@@ -16,7 +16,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   children,
   className,
-  showCloseButton = true, // Default to true for backwards compatibility
+  showCloseButton = true,
   isFullscreen = false,
   CloseClickBanner = true,
   zIndex = "",
@@ -53,39 +53,51 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
+  const zClass = zIndex === "" ? "z-50" : zIndex;
+
   const contentClasses = isFullscreen
     ? "w-full h-full"
-    : "relative w-full rounded-3xl bg-white  dark:bg-gray-900";
+    : [
+        "relative w-full max-h-[min(92dvh,calc(100dvh-1.5rem))] overflow-hidden",
+        "rounded-2xl sm:rounded-3xl",
+        "bg-white dark:bg-gray-900",
+        "shadow-2xl shadow-gray-900/10 dark:shadow-black/50",
+        "ring-1 ring-gray-900/[0.06] dark:ring-white/[0.08]",
+        "flex flex-col",
+      ].join(" ");
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center overflow-y-auto modal z-${
-        zIndex == "" ? "50" : zIndex
-      }`}
+      className={`fixed inset-0 flex items-end justify-center overflow-hidden overscroll-contain sm:items-center sm:p-4 ${zClass}`}
     >
       {!isFullscreen && (
         <div
-          className="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
+          className="fixed inset-0 bg-gray-900/45 backdrop-blur-sm transition-opacity dark:bg-black/60"
+          aria-hidden
           onClick={() => {
             if (CloseClickBanner) {
               onClose();
             }
           }}
-        ></div>
+        />
       )}
       <div
         ref={modalRef}
-        className={`${contentClasses}  ${className}`}
+        className={`${contentClasses} ${className ?? ""}`}
+        role="dialog"
+        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         {showCloseButton && (
           <button
+            type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white sm:right-6 sm:top-6 sm:h-11 sm:w-11"
+            className="absolute right-2 top-2 z-[60] flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-gray-500 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-800/95 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-white sm:right-4 sm:top-4 sm:h-11 sm:w-11"
+            aria-label="Cerrar"
           >
             <svg
-              width="24"
-              height="24"
+              width="22"
+              height="22"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +111,11 @@ export const Modal: React.FC<ModalProps> = ({
             </svg>
           </button>
         )}
-        <div>{children}</div>
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain rounded-b-2xl [-webkit-overflow-scrolling:touch] sm:rounded-b-3xl [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-200 dark:[&::-webkit-scrollbar-track]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-blue-500 [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

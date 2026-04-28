@@ -413,14 +413,16 @@ export default function TableFacturas({
         )}
 
         {showPag && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Mostrar:</span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 w-full min-w-0">
+            <div className="flex items-center justify-center sm:justify-start gap-2 shrink-0">
+              <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                Mostrar:
+              </span>
               <Input
                 type="number"
                 id="size"
                 placeholder="5"
-                className="max-w-[70px]"
+                className="max-w-[64px] sm:max-w-[70px] text-sm"
                 value={pageSize ?? ""}
                 onChange={(e) => {
                   if (e.target.value == "e") {
@@ -430,11 +432,13 @@ export default function TableFacturas({
                 }}
               />
             </div>
-            <Pagination
-              totalPages={total_pages}
-              currentPage={pageNUmber}
-              onPageChange={setPage}
-            />
+            <div className="w-full min-w-0 flex justify-center sm:justify-end sm:max-w-[min(100%,28rem)] sm:shrink">
+              <Pagination
+                totalPages={total_pages}
+                currentPage={pageNUmber}
+                onPageChange={setPage}
+              />
+            </div>
           </div>
         )}
       </div>

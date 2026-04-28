@@ -64,6 +64,15 @@ type Actions = {
 
 //expresion regular para validar si algo es
 const regexNum = /^-?\d+(\.\d+)?$/;
+
+const formatDop = (n: number) =>
+  new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(n) ? n : 0);
+
 export default function FormFacturasPersistentes(params: Actions) {
   const { closeModal, selectsData, onSuccess } = params;
   //filtros de busqueda
@@ -802,16 +811,14 @@ export default function FormFacturasPersistentes(params: Actions) {
 
   return (
     <>
-      <div className="relative max-h-[95vh] overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
+      <div className="relative shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
         {isLoading && <LoaderFun absolute={false} />}
-        <div className="px-2 pr-14">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            Creacion de factura
-          </h4>
-        </div>
+        <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
+          Creacion de factura
+        </h4>
       </div>
       <form className="flex flex-col">
-        <div className="px-2 overflow-y-auto custom-scrollbar">
+        <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Código y nombre */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
@@ -883,16 +890,16 @@ export default function FormFacturasPersistentes(params: Actions) {
                 />
               </div>
             </div>
-            <h5 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+            <h5 className="mb-3 border-b border-gray-200 pb-2 text-lg font-semibold text-gray-800 dark:border-gray-700 dark:text-white sm:text-xl">
               Productos
             </h5>
-            <div className="relative">
+            <div className="relative z-10">
               <Label htmlFor="search">Buscar producto</Label>
               <Input
                 ref={inputRef}
                 type="text"
                 id="search"
-                placeholder="Nombre del producto o codigo..."
+                placeholder="Nombre o código…"
                 onFocus={() => setSearchConfig((p) => ({ ...p, enFoco: true }))}
                 value={filters.search ?? ""}
                 onChange={(e) => {
@@ -913,58 +920,65 @@ export default function FormFacturasPersistentes(params: Actions) {
 
               {searchConfig.enFoco && (
                 <div
-                  className={`absolute z-40 w-full bg-gray-100 max-h-[300px] min-h-[200px] rounded-[9px] p-3 overflow-y-scroll ${
-                    productosData.data.length == 0 &&
-                    filters.search.length > 0 &&
-                    "flex justify-center items-center"
-                  } ${
-                    productosData.data.length == 0 &&
-                    filters.search.length == 0 &&
-                    "flex justify-center items-center"
-                  }`}
                   ref={dropdownRef}
+                  className={`absolute left-0 right-0 top-full z-50 mt-1 flex max-h-[min(55vh,22rem)] min-h-[7rem] flex-col gap-2 overflow-y-auto overscroll-contain rounded-xl border border-gray-200 bg-white p-2 shadow-lg ring-1 ring-black/5 dark:border-gray-600 dark:bg-gray-900 dark:ring-white/10 sm:max-h-[26rem] ${
+                    productosData.data.length === 0
+                      ? "items-center justify-center py-8"
+                      : ""
+                  }`}
                 >
                   {searchConfig.loading && <LoaderFun absolute={true} />}
 
                   {productosData.data.length == 0 &&
                     filters.search.length == 0 && (
-                      <p className="text-gray-500">
-                        Escriba el nombre el producto a buscar
+                      <p className="px-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Escriba para buscar en el catálogo
                       </p>
                     )}
 
                   {productosData.data.length == 0 &&
                     filters.search.length > 0 && (
-                      <p className="text-gray-500">Sin resultados</p>
+                      <p className="px-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Sin resultados
+                      </p>
                     )}
 
                   {productosData.data.map((producto: Producto) => (
                     <div
                       key={producto.id}
-                      className="p-3 border border-gray-200 rounded-[9px] dark:border-gray-800 flex bg-white min-h-24 gap-3 lg:flex-row flex-col mt-3 hover:bg-gray-300 transition-colors duration-150 ease-in cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          SaveElements(producto);
+                        }
+                      }}
+                      className="grid cursor-pointer grid-cols-1 gap-2 rounded-lg border border-gray-100 bg-gray-50/90 p-3 transition hover:border-brand-300 hover:bg-brand-25/80 dark:border-gray-700 dark:bg-gray-800/60 dark:hover:border-brand-500 sm:grid-cols-[auto_1fr_auto] sm:items-center"
                       onClick={() => {
                         SaveElements(producto);
                       }}
                     >
-                      <div className="bg-gray-200 p-2 flex justify-center items-center rounded-[9px] max-h-[40px]">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400">
                         <BoxCubeIcon />
                       </div>
 
-                      <div className="flex flex-col">
-                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-gray-900 dark:text-white">
                           {producto.nombre}
-                        </div>
-                        <span className="text-gray-500">
-                          Código: {producto.codigo}
-                        </span>
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Código {producto.codigo}
+                        </p>
                       </div>
 
-                      {/* BOTÓN ELIMINAR */}
-                      <div className="ml-auto flex gap-2 flex-col">
-                        <span>RD${producto.precioVenta.toFixed(2)}</span>
-                        <span className="text-gray-400">
+                      <div className="flex flex-col items-start gap-0.5 border-t border-gray-100 pt-2 text-left sm:border-0 sm:pt-0 sm:text-right">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {formatDop(producto.precioVenta)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Stock:{" "}
                           {SearchCantidad(producto.id) ?? producto.stockActual}
-                          en stock
                         </span>
                       </div>
                     </div>
@@ -973,9 +987,10 @@ export default function FormFacturasPersistentes(params: Actions) {
               )}
             </div>
             <div
-              className={`bg-brand-25 min-h-[200px] rounded-[9px] p-3 overflow-y-scroll max-h-[450px] ${
-                products.length == 0 &&
-                "flex flex-col justify-center items-center"
+              className={`mt-3 max-h-[min(50vh,28rem)] min-h-[10rem] overflow-y-auto overscroll-contain rounded-2xl border border-gray-100 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-800/40 sm:p-4 ${
+                products.length == 0
+                  ? "flex flex-col items-center justify-center"
+                  : "space-y-3"
               }`}
             >
               {/* mapeo de elementos */}
@@ -988,115 +1003,134 @@ export default function FormFacturasPersistentes(params: Actions) {
               {products.map((producto, index) => (
                 <div
                   key={producto.id || index}
-                  className="p-3 border border-gray-200 rounded-[9px] dark:border-gray-800 flex bg-white min-h-24 gap-3 lg:flex-row flex-col mt-3"
+                  className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900 sm:p-4"
                 >
-                  <div className="bg-gray-200 p-2 flex justify-center items-center rounded-[9px] max-h-[40px]">
-                    <BoxCubeIcon />
-                  </div>
-
-                  <div className="flex flex-col">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                      {producto.nombre}
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
+                    <div className="flex shrink-0 items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                        <BoxCubeIcon />
+                      </div>
+                      <div className="min-w-0 flex-1 lg:hidden">
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {producto.nombre}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {producto.codigo}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-gray-500">
-                      Código: {producto.codigo}
-                    </span>
-                    <div>
-                      <span>
-                        RD${producto.precioVentaOriginal.toFixed(2)} -{" "}
-                      </span>
+
+                    <div className="hidden min-w-0 flex-1 flex-col lg:flex">
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {producto.nombre}
+                      </p>
+                      <p className="text-xs text-gray-500">Código {producto.codigo}</p>
+                      <p className="mt-1 text-xs">
+                        <span className="text-gray-600">
+                          Base {formatDop(producto.precioVentaOriginal)}
+                        </span>
+                        <span className="mx-1 text-gray-400">·</span>
+                        <span
+                          className={
+                            producto.precioVenta < producto.precioMinimo
+                              ? "font-medium text-error-500"
+                              : "font-medium text-green-600 dark:text-green-400"
+                          }
+                        >
+                          Mín. {formatDop(producto.precioMinimo)}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:max-w-xl lg:flex-1">
+                      <div>
+                        <Label>Cantidad</Label>
+                        <Input
+                          value={producto.cantidad ?? ""}
+                          onChange={(e) => {
+                            if (
+                              regexNum.test(e.target.value) ||
+                              e.target.value.length == 0
+                            ) {
+                              handleProductoChange(
+                                producto.id,
+                                "cantidad",
+                                Number(e.target.value),
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label>Precio venta</Label>
+                        <Input
+                          value={producto.precioVenta}
+                          onChange={(e) => {
+                            if (
+                              regexNum.test(e.target.value) ||
+                              e.target.value.length == 0
+                            ) {
+                              handleProductoChange(
+                                producto.id,
+                                "precioVenta",
+                                Number(e.target.value),
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label>Desc. %</Label>
+                        <Input
+                          className="max-w-full"
+                          value={producto.descuento}
+                          onChange={(e) => {
+                            if (
+                              regexNum.test(e.target.value) ||
+                              e.target.value.length == 0
+                            ) {
+                              handleProductoChange(
+                                producto.id,
+                                "descuento",
+                                Number(e.target.value),
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-col justify-end rounded-lg bg-brand-25/60 px-2 py-1.5 dark:bg-brand-500/10">
+                        <span className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-400">
+                          Línea
+                        </span>
+                        <span className="text-sm font-semibold text-brand-700 dark:text-brand-300">
+                          {formatDop(producto.subtotal)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-600 dark:text-gray-400 lg:hidden">
+                      Base {formatDop(producto.precioVentaOriginal)} · Mín.{" "}
                       <span
-                        className={`${
+                        className={
                           producto.precioVenta < producto.precioMinimo
                             ? "text-error-500"
-                            : "text-green-400"
-                        }`}
+                            : "text-green-600"
+                        }
                       >
-                        {producto.precioMinimo.toFixed(2)}
+                        {formatDop(producto.precioMinimo)}
                       </span>
-                    </div>
-                  </div>
+                    </p>
 
-                  <div className="flex gap-2 lg:flex-row flex-col">
-                    {/* CANTIDAD */}
-                    <div>
-                      <Label>Cantidad</Label>
-                      <Input
-                        value={producto.cantidad ?? ""}
-                        onChange={(e) => {
-                          if (
-                            regexNum.test(e.target.value) ||
-                            e.target.value.length == 0
-                          ) {
-                            handleProductoChange(
-                              producto.id,
-                              "cantidad",
-                              Number(e.target.value)
-                            );
-                          }
-                        }}
-                      />
+                    <div className="flex justify-end lg:shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => DeleteProduct(producto.id)}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:border-error-200 hover:bg-error-50 hover:text-error-600 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-error-500/10"
+                        title="Quitar"
+                      >
+                        <TrashBinIcon />
+                      </button>
                     </div>
-
-                    {/* PRECIO DE VENTA */}
-                    <div>
-                      <Label>Precio de venta</Label>
-                      <Input
-                        value={producto.precioVenta}
-                        onChange={(e) => {
-                          if (
-                            regexNum.test(e.target.value) ||
-                            e.target.value.length == 0
-                          ) {
-                            handleProductoChange(
-                              producto.id,
-                              "precioVenta",
-                              Number(e.target.value)
-                            );
-                          }
-                        }}
-                      />
-                    </div>
-
-                    {/* DESCUENTO */}
-                    <div>
-                      <Label>Descuento %</Label>
-                      <Input
-                        className="max-w-20"
-                        value={producto.descuento}
-                        onChange={(e) => {
-                          if (
-                            regexNum.test(e.target.value) ||
-                            e.target.value.length == 0
-                          ) {
-                            handleProductoChange(
-                              producto.id,
-                              "descuento",
-                              Number(e.target.value)
-                            );
-                          }
-                        }}
-                      />
-                    </div>
-
-                    {/* SUBTOTAL */}
-                    <div className="flex flex-col">
-                      <Label>Subtotal</Label>
-                      <span>RD${producto.subtotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  {/* BOTÓN ELIMINAR */}
-                  <div className="ml-auto flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        DeleteProduct(producto.id);
-                      }}
-                      className="flex w-full items-center justify-center rounded-full border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-error-600"
-                    >
-                      <TrashBinIcon />
-                    </button>
                   </div>
                 </div>
               ))}
@@ -1108,13 +1142,13 @@ export default function FormFacturasPersistentes(params: Actions) {
               <textarea
                 id="descripcion"
                 rows={3}
-                placeholder="Costo de la accion realizada..."
+                placeholder="Describe el servicio o trabajo realizado…"
                 value={values.detalleManoDeObra ?? ""}
-                className={`border rounded-xl w-full p-2 text-sm`}
+                className="w-full rounded-xl border border-gray-300 bg-white p-3 text-sm text-gray-800 shadow-theme-xs transition placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/15 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-600"
                 onChange={(e) => {
                   setFieldValue("detalleManoDeObra", e.target.value);
                 }}
-              ></textarea>
+              />
             </div>
             <div>
               <Label htmlFor="telefono">Monto mano de obra</Label>
@@ -1159,95 +1193,120 @@ export default function FormFacturasPersistentes(params: Actions) {
               />
             </div>
 
-            {/* 3️⃣ Categoría, Marca y Unidad de medida */}
-            <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3">
-              <div>
-                <Label htmlFor="categoria">Metodo de pago</Label>
-                <Select<Option, false>
-                  id="categoria"
-                  styles={customStyles(
-                    !!errors.metodoPagoId && touched.metodoPagoId
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:items-end">
+                <div>
+                  <Label htmlFor="categoria">Método de pago</Label>
+                  <Select<Option, false>
+                    id="categoria"
+                    styles={customStyles(
+                      !!errors.metodoPagoId && touched.metodoPagoId,
+                    )}
+                    placeholder="Seleccionar…"
+                    menuPortalTarget={document.body}
+                    options={selectsData?.metodoPago?.map(
+                      (element: BaseSelecst) => ({
+                        value: element.id.toString(),
+                        label: element.name,
+                      }),
+                    )}
+                    onChange={(e: SingleValue<Option>) => {
+                      if (!e) return;
+                      setFieldValue("metodoPagoId", parseInt(e.value));
+                    }}
+                    onBlur={() => setFieldTouched("metodoPagoId", true)}
+                  />
+                  {errors.metodoPagoId && touched.metodoPagoId && (
+                    <p className="mt-1.5 text-xs text-error-500">
+                      {errors.metodoPagoId}
+                    </p>
                   )}
-                  placeholder="Método de pago..."
-                  menuPortalTarget={document.body}
-                  options={selectsData?.metodoPago?.map(
-                    (element: BaseSelecst) => ({
-                      value: element.id.toString(),
-                      label: element.name,
-                    })
-                  )}
-                  onChange={(e: SingleValue<Option>) => {
-                    if (!e) return;
-                    setFieldValue("metodoPagoId", parseInt(e.value));
-                  }}
-                  onBlur={() => setFieldTouched("metodoPagoId", true)}
-                />
-                {errors.metodoPagoId && touched.metodoPagoId && (
-                  <p className={`mt-1.5 text-xs text-error-500`}>
-                    {errors.metodoPagoId}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="telefono">Monto pagado</Label>
-                <Input
-                  type="text"
-                  id="telefono"
-                  placeholder="Nombre del producto"
-                  hint={
-                    errors.montoPagado && touched.montoPagado
-                      ? errors.montoPagado
-                      : ""
-                  }
-                  value={values.montoPagado ?? ""}
-                  error={
-                    errors.montoPagado && touched.montoPagado ? true : false
-                  }
-                  onChange={(e) => {
-                    const value = e.target.value;
-
-                    if (value === "") {
-                      setFieldValue("montoPagado", 0);
-                      return;
+                </div>
+                <div>
+                  <Label htmlFor="montoPagadoFactP">Monto pagado</Label>
+                  <Input
+                    type="text"
+                    id="montoPagadoFactP"
+                    placeholder="0.00"
+                    hint={
+                      errors.montoPagado && touched.montoPagado
+                        ? errors.montoPagado
+                        : ""
                     }
-
-                    if (regexNum.test(value)) {
-                      setFieldValue("montoPagado", Number(e.target.value));
+                    value={values.montoPagado ?? ""}
+                    error={
+                      errors.montoPagado && touched.montoPagado ? true : false
                     }
-                  }}
-                  onBlur={() => setFieldTouched("montoPagado", true)}
-                />
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      if (value === "") {
+                        setFieldValue("montoPagado", 0);
+                        return;
+                      }
+
+                      if (regexNum.test(value)) {
+                        setFieldValue("montoPagado", Number(e.target.value));
+                      }
+                    }}
+                    onBlur={() => setFieldTouched("montoPagado", true)}
+                  />
+                </div>
+                <div className="flex min-h-[44px] items-center pb-1 sm:col-span-2 lg:col-span-1 lg:pb-0">
+                  <Checkbox
+                    checked={isCheckedTwo}
+                    onChange={setIsCheckedTwo}
+                    disabled={values.total == 0 ? true : false}
+                    label="Marcar como todo pagado"
+                  />
+                </div>
               </div>
-              <Checkbox
-                checked={isCheckedTwo}
-                onChange={setIsCheckedTwo}
-                disabled={values.total == 0 ? true : false}
-                label="Todo pagado"
-              />
-              <div className="rounded-[9px] bg-gray-200 flex flex-col p-3">
-                <span>
-                  Subtotal: {"RD$"}
-                  {values.subtotal}
-                </span>
-                <span>
-                  Desc: {"RD$"}
-                  {values.descuentoTotal}
-                </span>
-                <span>
-                  Total impuestos:
-                  {values.impuestoTotal}%
-                </span>
-                <span>
-                  Total: {"RD$"}
-                  {values.total}
-                </span>
+
+              <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-brand-25/40 p-4 shadow-sm dark:border-gray-600 dark:from-gray-900 dark:via-gray-900 dark:to-brand-500/10 sm:p-5">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Resumen de la factura
+                </p>
+                <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="rounded-xl border border-gray-100 bg-white/90 px-3 py-2.5 dark:border-gray-700 dark:bg-gray-800/80">
+                    <dt className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                      Subtotal
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-semibold text-gray-900 dark:text-white">
+                      {formatDop(values.subtotal)}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-white/90 px-3 py-2.5 dark:border-gray-700 dark:bg-gray-800/80">
+                    <dt className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                      Descuentos
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-semibold text-gray-900 dark:text-white">
+                      {formatDop(values.descuentoTotal)}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-white/90 px-3 py-2.5 dark:border-gray-700 dark:bg-gray-800/80">
+                    <dt className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                      Impuestos
+                    </dt>
+                    <dd className="mt-0.5 text-sm font-semibold text-gray-900 dark:text-white">
+                      {values.impuestoTotal}%
+                    </dd>
+                  </div>
+                  <div className="col-span-2 rounded-xl bg-brand-500 px-4 py-3 text-white shadow-md sm:col-span-1">
+                    <dt className="text-[11px] font-medium uppercase tracking-wide text-white/90">
+                      Total a pagar
+                    </dt>
+                    <dd className="mt-1 text-xl font-bold tracking-tight">
+                      {formatDop(values.total)}
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </div>
           </div>
         </div>
 
         {/* Botones */}
-        <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+        <div className="mt-6 flex flex-col gap-2 px-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
           <Button
             size="sm"
             className="bg-green-500 hover:bg-green-600"

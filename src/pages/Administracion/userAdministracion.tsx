@@ -17,6 +17,7 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { LoadingTable } from "../../components/loader/LoadingTable";
 import { CreateUser, User, UserSelectResponse } from "../../Types/Usuario";
+import { normalizeUserFromApi } from "../../Utilities/normalizeUserApi";
 import { ValidationUsers } from "../../components/UserAdministracion/yup";
 import FormUsers from "../../components/UserAdministracion/FormUsers";
 import { BaseSelecst } from "../../Types/ProductTypes";
@@ -81,6 +82,8 @@ export default function UserAdministracion() {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editEmpleadoId, setEditEmpleadoId] = useState<number | null>(null);
+  /** Usuario de la fila al abrir edición (etiquetas de rol/estado si los selects aún no cargan). */
+  const [userBeingEdited, setUserBeingEdited] = useState<User | null>(null);
 
   // Métricas superiores
   const [dataMetricas, _setDataMetricas] = useState<EmpleadosMetrics>({
@@ -201,8 +204,9 @@ export default function UserAdministracion() {
         });
 
         if (response.success) {
+          setUserBeingEdited(null);
           closeEditModal();
-          formik.resetForm();
+          formikUpdate.resetForm();
           // Forzar recarga de datos
           BeforeFilter.current = "";
           getData(filters);
@@ -215,6 +219,11 @@ export default function UserAdministracion() {
       }
     },
   });
+
+  function handleCloseEditModal() {
+    setUserBeingEdited(null);
+    closeEditModal();
+  }
 
   // Actualizar los filtros
   function updateFilter(
@@ -263,7 +272,12 @@ export default function UserAdministracion() {
           console.error("Error:", response.errorMessage);
           return;
         }
-        setEmpleadosData(response.result ?? ([] as User[]));
+        const raw = response.result ?? [];
+        setEmpleadosData(
+          Array.isArray(raw)
+            ? raw.map((u) => normalizeUserFromApi(u))
+            : ([] as User[]),
+        );
         // Calcular métricas basándose en los datos
       })
       .finally(() => {
@@ -340,13 +354,7 @@ export default function UserAdministracion() {
             className="max-w-[900px] m-4 p-5"
           >
             {isSaving && <LoaderFun absolute={false} />}
-            <section
-              className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
-         [&::-webkit-scrollbar-track]:bg-gray-200 
-         [&::-webkit-scrollbar-thumb]:bg-blue-500 
-         [&::-webkit-scrollbar-thumb]:rounded-full 
-         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
-            >
+            <section className="min-h-0">
               <FormUsers
                 formik={formik}
                 selectsData={selectsData}
@@ -417,6 +425,7 @@ export default function UserAdministracion() {
             const usuario = empleadosData.find((el) => el.id == id);
 
             if (usuario) {
+              setUserBeingEdited(usuario);
               formikUpdate.setValues({
                 id: usuario.id,
                 username: usuario.username || "",
@@ -445,21 +454,20 @@ export default function UserAdministracion() {
       {/* Modal de edición de empleados */}
       <Modal
         isOpen={isEditModalOpen}
-        onClose={closeEditModal}
+        onClose={handleCloseEditModal}
         className="max-w-[900px] m-4 p-5"
       >
-        <section
-          className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
-         [&::-webkit-scrollbar-track]:bg-gray-200 
-         [&::-webkit-scrollbar-thumb]:bg-blue-500 
-         [&::-webkit-scrollbar-thumb]:rounded-full 
-         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
-        >
+        {isSaving && <LoaderFun absolute={false} />}
+        <section className="min-h-0">
           {editEmpleadoId && (
             <FormUsersEdit
               formik={formikUpdate}
               selectsData={selectsData}
-              onCancel={closeEditModal}
+              selectLabelFallback={{
+                rolNombre: userBeingEdited?.rol?.nombre ?? "",
+                estadoNombre: userBeingEdited?.estado?.nombre ?? "",
+              }}
+              onCancel={handleCloseEditModal}
               onSubmit={() => {
                 formikUpdate.handleSubmit();
               }}

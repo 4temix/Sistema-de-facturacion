@@ -21,6 +21,8 @@ import { FormContentUpdate } from "../../pages/Administracion/userAdministracion
 type FormEmpleadosProps = {
   formik: FormikProps<FormContentUpdate>;
   selectsData: UserSelectResponse | undefined;
+  /** Texto mostrado en los Select si la lista de `selectsData` aún no incluye la etiqueta. */
+  selectLabelFallback?: { rolNombre: string; estadoNombre: string };
   onCancel?: () => void;
   onSubmit: () => void;
   submitLabel?: string;
@@ -30,6 +32,7 @@ type FormEmpleadosProps = {
 export default function FormUsersEdit({
   formik,
   selectsData,
+  selectLabelFallback,
   onCancel,
   onSubmit,
   submitLabel = "Guardar usuario",
@@ -39,15 +42,13 @@ export default function FormUsersEdit({
 
   return (
     <>
-      <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
-        <div className="px-2 pr-14">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            {title}
-          </h4>
-        </div>
+      <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
+        <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
+          {title}
+        </h4>
       </div>
       <form className="flex flex-col">
-        <div className="px-2 overflow-y-auto custom-scrollbar">
+        <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Datos personales */}
             <div className="mb-2">
@@ -199,7 +200,9 @@ export default function FormUsersEdit({
                       value: values.rolId.toString(),
                       label:
                         selectsData?.roles.find((el) => el.id == values.rolId)
-                          ?.name ?? "",
+                          ?.name ??
+                        selectLabelFallback?.rolNombre ??
+                        "",
                     }}
                     options={selectsData?.roles?.map(
                       (element: BaseSelecst) => ({
@@ -231,7 +234,9 @@ export default function FormUsersEdit({
                       label:
                         selectsData?.estados.find(
                           (el) => el.id == values.estado,
-                        )?.name ?? "",
+                        )?.name ??
+                        selectLabelFallback?.estadoNombre ??
+                        "",
                     }}
                     options={selectsData?.estados?.map(
                       (element: BaseSelecst) => ({

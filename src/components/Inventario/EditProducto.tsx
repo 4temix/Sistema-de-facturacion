@@ -13,6 +13,7 @@ import {
   UpdateProducto,
 } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import LoaderFun from "../loader/LoaderFunc";
 
 type Actions = {
   closeModal: () => void;
@@ -34,7 +35,8 @@ export default function EditProducto(params: Actions) {
   //   estado: { value: 0, label: "" },
   // });
 
-  const [isLoading, setIsloading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   //formik validation
   const {
@@ -77,8 +79,8 @@ export default function EditProducto(params: Actions) {
   });
 
   //guardar los elementos
-  function Saveproducto(producto: any) {
-    setIsloading(true);
+  function Saveproducto(producto: unknown) {
+    setIsSaving(true);
     apiRequestThen<boolean>({
       url: "api/productos/detalles-update",
       configuration: {
@@ -98,13 +100,13 @@ export default function EditProducto(params: Actions) {
         closeModal();
       })
       .finally(() => {
-        setIsloading(false);
+        setIsSaving(false);
       });
   }
 
   //guardar los elementos
   function GetForUpdate(id: number) {
-    setIsloading(true);
+    setIsFetching(true);
     apiRequestThen<UpdateProducto>({
       url: `api/productos/detalles-update/${id}`,
       configuration: {
@@ -120,7 +122,7 @@ export default function EditProducto(params: Actions) {
         setValues(response.result!);
       })
       .finally(() => {
-        setIsloading(false);
+        setIsFetching(false);
       });
   }
 
@@ -133,19 +135,18 @@ export default function EditProducto(params: Actions) {
 
   return (
     <>
-      {isLoading ? (
+      {isFetching ? (
         <ProductFormUpdateSkeleton />
       ) : (
         <>
-          <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
-            <div className="px-2 pr-14">
-              <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                Actualizar un producto
-              </h4>
-            </div>
+          <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
+            {isSaving && <LoaderFun absolute={false} />}
+            <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              Actualizar un producto
+            </h4>
           </div>
           <form className="flex flex-col">
-            <div className="px-2 overflow-y-auto custom-scrollbar">
+            <div className="px-2 pb-4 pt-2">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5">
                 {/* 1️⃣ Código y nombre */}
                 <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
@@ -558,13 +559,12 @@ export default function EditProducto(params: Actions) {
 
 function ProductFormUpdateSkeleton() {
   return (
-    <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
-      <div className="px-2 pr-14">
-        <div className="shimmer h-6 w-60 my-4 rounded" />
+    <>
+      <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-3 dark:border-gray-800 dark:bg-gray-900">
+        <div className="shimmer h-6 w-60 rounded" />
       </div>
-
       <form className="flex flex-col">
-        <div className="px-2 overflow-y-auto custom-scrollbar">
+        <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Código y nombre */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
@@ -613,6 +613,6 @@ function ProductFormUpdateSkeleton() {
           <SkeletonBox height="h-8" width="w-32" />
         </div>
       </form>
-    </div>
+    </>
   );
 }

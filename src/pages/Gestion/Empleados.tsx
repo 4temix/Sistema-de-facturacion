@@ -298,13 +298,7 @@ export default function Empleados() {
             className="max-w-[900px] m-4 p-5"
           >
             {isSaving && <LoaderFun absolute={false} />}
-            <section
-              className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
-         [&::-webkit-scrollbar-track]:bg-gray-200 
-         [&::-webkit-scrollbar-thumb]:bg-blue-500 
-         [&::-webkit-scrollbar-thumb]:rounded-full 
-         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
-            >
+            <section className="min-h-0">
               <FormEmpleados
                 formik={formik}
                 selectsData={selectsData}
@@ -386,13 +380,7 @@ export default function Empleados() {
         onClose={closeEditModal}
         className="max-w-[900px] m-4 p-5"
       >
-        <section
-          className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
-         [&::-webkit-scrollbar-track]:bg-gray-200 
-         [&::-webkit-scrollbar-thumb]:bg-blue-500 
-         [&::-webkit-scrollbar-thumb]:rounded-full 
-         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
-        >
+        <section className="min-h-0">
           {editEmpleadoId && (
             <EditEmpleado
               id={editEmpleadoId}

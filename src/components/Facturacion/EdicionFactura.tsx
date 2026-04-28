@@ -282,15 +282,13 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
 
   return (
     <>
-      <div className="relative w-full bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
-        <div className="px-2 pr-14">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            Edición
-          </h4>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-            Edicion de los elementos
-          </p>
-        </div>
+      <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
+        <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+          Edición
+        </h4>
+        <p className="mb-0 text-sm text-gray-500 dark:text-gray-400 lg:mb-1">
+          Edicion de los elementos
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-white border p-3 rounded-lg">
@@ -316,7 +314,7 @@ export function EdicionFactura({ selectsData, closeModal }: EdicionParameters) {
         </div>
       </div>
       <form className="flex flex-col">
-        <div className="px-2 custom-scrollbar">
+        <div className="px-2 pb-4">
           <div className="grid">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-1">

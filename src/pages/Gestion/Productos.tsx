@@ -249,13 +249,7 @@ export default function Productos() {
             className="max-w-[1200px] m-4 p-5"
             CloseClickBanner={false}
           >
-            <section
-              className="overflow-y-scroll max-h-[95vh] [&::-webkit-scrollbar]:w-2 
-         [&::-webkit-scrollbar-track]:bg-gray-200 
-         [&::-webkit-scrollbar-thumb]:bg-blue-500 
-         [&::-webkit-scrollbar-thumb]:rounded-full 
-         [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
-            >
+            <section className="min-h-0">
               <FormProducts
                 closeModal={closeProductModal}
                 selectsData={selectsData}
@@ -326,18 +320,16 @@ export default function Productos() {
           onClose={closeModal}
           className="max-w-[700px] m-4 p-5"
         >
-          <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
-            <div className="px-2 pr-14">
-              <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                Filtros
-              </h4>
-              <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-                Filtra los elementos para encontrarlos mas rapido
-              </p>
-            </div>
+          <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-2 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              Filtros
+            </h4>
+            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400 lg:mb-5">
+              Filtra los elementos para encontrarlos mas rapido
+            </p>
           </div>
           <form className="flex flex-col">
-            <div className="px-2 overflow-y-auto custom-scrollbar">
+            <div className="px-2">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5">
                 <div className="grid sm:grid-cols-1 gap-3 lg:grid-cols-2">
                   <div>

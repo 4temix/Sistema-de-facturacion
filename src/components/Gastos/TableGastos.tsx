@@ -359,16 +359,18 @@ export default function TableGastos({
         </table>
       </div>
 
-      {/* Paginación */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-        <span className="text-sm text-gray-500">
+      {/* Paginación: columna en móvil para evitar desborde horizontal */}
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 w-full min-w-0">
+        <span className="text-xs sm:text-sm text-gray-500 text-center sm:text-left shrink-0 order-2 sm:order-1">
           Página {pageNumber} de {totalPages || 1}
         </span>
-        <Pagination
-          totalPages={totalPages}
-          currentPage={pageNumber}
-          onPageChange={setPage}
-        />
+        <div className="w-full min-w-0 flex justify-center order-1 sm:order-2 sm:w-auto sm:max-w-[min(100%,28rem)]">
+          <Pagination
+            totalPages={totalPages}
+            currentPage={pageNumber}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
     </div>
   );

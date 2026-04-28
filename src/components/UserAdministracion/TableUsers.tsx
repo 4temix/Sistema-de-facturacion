@@ -12,8 +12,8 @@ import { FiEdit2 } from "react-icons/fi";
 import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
 import Drawer from "../ui/modal/Drawer";
 
-import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { Estado, Rol, User } from "../../Types/Usuario";
+import UsuarioDetails from "./UsuarioDetails";
 
 type Props = {
   data: User[];
@@ -63,33 +63,13 @@ export default function TableUsers({
   const onColumnVisibilityChange =
     onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
 
-  // Estado para el drawer de detalles
+  // Drawer de detalle (datos de la fila ya cargados en la tabla)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [_isLoadingDetails, setIsLoadingDetails] = useState(false);
-  const [_empleadoDetails, setEmpleadoDetails] = useState<User>(
-    initialEmpleadoDetails,
-  );
+  const [userDetails, setUserDetails] = useState<User>(initialEmpleadoDetails);
 
-  // Función para cargar los detalles del empleado
-  function loadEmpleadoDetails(id: number) {
+  function openUserDetails(user: User) {
+    setUserDetails(user);
     setIsDetailsOpen(true);
-    setIsLoadingDetails(true);
-
-    apiRequestThen<User>({
-      url: `api/empleados/get-empleado/${id}`,
-    })
-      .then((response) => {
-        if (!response.success) {
-          console.error("Error:", response.errorMessage);
-          return;
-        }
-        if (response.result) {
-          setEmpleadoDetails(response.result);
-        }
-      })
-      .finally(() => {
-        setIsLoadingDetails(false);
-      });
   }
 
   // Configuración de columnas para el toggle
@@ -157,18 +137,25 @@ export default function TableUsers({
         id: "rol",
         accessorKey: "rol",
         header: "Role",
-        cell: ({ getValue }: { getValue: () => Rol }) => (
-          <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-medium">
-            {getValue().nombre || "-"}
-          </span>
-        ),
+        cell: ({ getValue }: { getValue: () => unknown }) => {
+          const rol = getValue() as Rol | null | undefined;
+          const nombre = rol?.nombre ?? (rol as unknown as { name?: string })?.name;
+          return (
+            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-medium">
+              {nombre || "-"}
+            </span>
+          );
+        },
       },
       {
         id: "estado",
         accessorKey: "estado",
         header: "Estado",
-        cell: ({ getValue }: { getValue: () => Estado }) => {
-          const activo = getValue().nombre;
+        cell: ({ getValue }: { getValue: () => unknown }) => {
+          const est = getValue() as Estado | null | undefined;
+          const nombre =
+            est?.nombre ?? (est as unknown as { name?: string })?.name ?? "—";
+          const activo = nombre && nombre !== "—";
           return (
             <div
               className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full border text-sm font-medium ${
@@ -177,7 +164,7 @@ export default function TableUsers({
                   : "bg-red-100 text-red-800 border-red-300"
               }`}
             >
-              {activo}
+              {nombre}
             </div>
           );
         },
@@ -218,7 +205,7 @@ export default function TableUsers({
       {/* Header con toggle de columnas */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {data.length} empleado{data.length !== 1 ? "s" : ""}
+          {data.length} usuario{data.length !== 1 ? "s" : ""}
         </span>
         <ColumnVisibilityToggle
           columns={columnConfig}
@@ -229,17 +216,14 @@ export default function TableUsers({
 
       {/* Drawer de detalles */}
       <Drawer isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
-        {/* <EmpleadoDetails
-          isOpen={isDetailsOpen}
+        <UsuarioDetails
+          user={userDetails}
           onClose={() => setIsDetailsOpen(false)}
-          empleado={empleadoDetails}
-          isLoading={isLoadingDetails}
           onEditar={(id) => {
             setIsDetailsOpen(false);
             onEdit(id);
           }}
-        /> */}
-        <></>
+        />
       </Drawer>
 
       {/* Tabla */}
@@ -272,7 +256,7 @@ export default function TableUsers({
                   colSpan={columns.length}
                   className="px-4 py-12 text-center text-gray-400"
                 >
-                  No hay empleados registrados
+                  No hay usuarios registrados
                 </td>
               </tr>
             ) : (
@@ -280,7 +264,7 @@ export default function TableUsers({
                 <tr
                   key={row.id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-                  onClick={() => loadEmpleadoDetails(row.original.id)}
+                  onClick={() => openUserDetails(row.original)}
                 >
                   {row.getVisibleCells().map((cell: Cell<User, unknown>) => (
                     <td

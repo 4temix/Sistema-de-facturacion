@@ -245,7 +245,7 @@ export default function Nominas() {
 
               {/* Paginación */}
               {nominasData.totalPages > 1 && (
-                <div className="flex justify-center">
+                <div className="flex justify-center w-full min-w-0 px-2 pb-2">
                   <Pagination
                     totalPages={nominasData.totalPages}
                     currentPage={page}

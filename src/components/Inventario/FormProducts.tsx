@@ -272,16 +272,14 @@ export default function FormProducts(params: Actions) {
 
   return (
     <>
-      <div className="relative w-full overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900">
+      <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
         {isLoading && <LoaderFun absolute={false} />}
-        <div className="px-2 pr-14">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            Agregar un producto
-          </h4>
-        </div>
+        <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
+          Agregar un producto
+        </h4>
       </div>
       <form className="flex flex-col">
-        <div className="px-2 overflow-y-auto custom-scrollbar">
+        <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Código y nombre */}
             <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3">
@@ -637,73 +635,21 @@ export default function FormProducts(params: Actions) {
             {/* 7️⃣ Impuesto */}
 
             {/* 8️⃣ Sección de Gastos */}
-            <div className="border-t border-gray-200 pt-5 mt-2">
-              <h5 className="text-lg font-semibold text-gray-700 dark:text-white/80 mb-4">
-                Información del Gasto
-              </h5>
-
-              {/* Montos calculados automáticamente */}
-              <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+            <div className="mt-2 rounded-2xl border border-gray-200 bg-gray-50/90 px-4 pb-5 pt-4 dark:border-gray-700 dark:bg-gray-800/40">
+              <div className="mb-4 flex flex-col gap-1 border-b border-gray-200/80 pb-3 dark:border-gray-600/80 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <Label htmlFor="montoTotal">Monto total</Label>
-                  <Input
-                    type="text"
-                    id="montoTotal"
-                    placeholder="0.00"
-                    value={valuesGasto.montoTotal ?? ""}
-                    disabled
-                    hint="Calculado: Stock × Precio compra"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="montoPagado">Monto pagado</Label>
-                  <Input
-                    type="text"
-                    id="montoPagado"
-                    placeholder="0.00"
-                    hint={
-                      errorsGasto.montoPagado && touchedGasto.montoPagado
-                        ? errorsGasto.montoPagado
-                        : ""
-                    }
-                    value={
-                      valuesGasto.montoPagado === 0
-                        ? ""
-                        : (valuesGasto.montoPagado ?? "")
-                    }
-                    error={
-                      errorsGasto.montoPagado && touchedGasto.montoPagado
-                        ? true
-                        : false
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        setFieldValueGastos("montoPagado", 0);
-                        return;
-                      }
-                      if (regexNum.test(value)) {
-                        setFieldValueGastos("montoPagado", Number(value));
-                      }
-                    }}
-                    onBlur={() => setFieldTouchedGasto("montoPagado", true)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="saldoPendiente">Saldo pendiente</Label>
-                  <Input
-                    type="text"
-                    id="saldoPendiente"
-                    placeholder="0.00"
-                    value={valuesGasto.saldoPendiente ?? ""}
-                    disabled
-                    hint="Calculado automáticamente"
-                  />
+                  <h5 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                    Información del gasto
+                  </h5>
+                  <p className="mt-0.5 max-w-xl text-xs text-gray-500 dark:text-gray-400">
+                    Primero define el estado de pago; al elegir &quot;Pagado&quot; se
+                    ajustan los montos automáticamente.
+                  </p>
                 </div>
               </div>
 
-              {/* Estado de pago y método */}
-              <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+              {/* Estado de pago y método (arriba para ver el efecto en montos al instante) */}
+              <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-3 mb-5">
                 <div>
                   <Label htmlFor="estadoGasto">Estado de pago</Label>
                   <Select<Option, false>
@@ -764,6 +710,66 @@ export default function FormProducts(params: Actions) {
                       if (!e) return;
                       setFieldValueGastos("metodoPago", e.value);
                     }}
+                  />
+                </div>
+              </div>
+
+              {/* Montos */}
+              <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
+                <div>
+                  <Label htmlFor="montoTotal">Monto total</Label>
+                  <Input
+                    type="text"
+                    id="montoTotal"
+                    placeholder="0.00"
+                    value={valuesGasto.montoTotal ?? ""}
+                    disabled
+                    hint="Calculado: Stock × Precio compra"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="montoPagado">Monto pagado</Label>
+                  <Input
+                    type="text"
+                    id="montoPagado"
+                    placeholder="0.00"
+                    hint={
+                      errorsGasto.montoPagado && touchedGasto.montoPagado
+                        ? errorsGasto.montoPagado
+                        : ""
+                    }
+                    value={
+                      valuesGasto.montoPagado === 0
+                        ? ""
+                        : (valuesGasto.montoPagado ?? "")
+                    }
+                    error={
+                      errorsGasto.montoPagado && touchedGasto.montoPagado
+                        ? true
+                        : false
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        setFieldValueGastos("montoPagado", 0);
+                        return;
+                      }
+                      if (regexNum.test(value)) {
+                        setFieldValueGastos("montoPagado", Number(value));
+                      }
+                    }}
+                    onBlur={() => setFieldTouchedGasto("montoPagado", true)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="saldoPendiente">Saldo pendiente</Label>
+                  <Input
+                    type="text"
+                    id="saldoPendiente"
+                    placeholder="0.00"
+                    value={valuesGasto.saldoPendiente ?? ""}
+                    disabled
+                    hint="Calculado automáticamente"
                   />
                 </div>
               </div>
