@@ -578,7 +578,7 @@ function FacturacionPageContent() {
       <Modal
         isOpen={modalEditIsOpen}
         onClose={closeModalEdit}
-        zIndex="999"
+        zIndex="z-[100]"
         className="max-w-[900px] overflow-hidden m-4 p-2"
         CloseClickBanner={false}
       >

@@ -1,4 +1,78 @@
-import { FacturaDetalle } from "../Types/FacturacionTypes";
+import {
+  FacturaDetalle,
+  FacturaPagosDto,
+} from "../Types/FacturacionTypes";
+
+function facturaPagosOrdenados(
+  pagos: FacturaDetalle["pagos"],
+): FacturaPagosDto[] {
+  return [...(pagos ?? [])].sort(
+    (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
+  );
+}
+
+/** Saldo pendiente mostrado en impresión: último `montoPendiente` del historial si existe, si no cálculo por total. */
+function saldoPendienteImpresion(f: FacturaDetalle): number {
+  const orden = facturaPagosOrdenados(f.pagos);
+  if (orden.length) return orden[orden.length - 1]!.montoPendiente;
+  return f.total - f.montoPagado;
+}
+
+function buildFacturaPagosPrintBlock(
+  pagos: FacturaDetalle["pagos"],
+  formatDate: (d: string | null) => string,
+  formatCurrency: (n: number) => string,
+  variant: "thermal" | "a4",
+): string {
+  const list = facturaPagosOrdenados(pagos);
+  if (!list.length) return "";
+
+  if (variant === "thermal") {
+    return `
+        <hr class="divider" />
+        <div class="section-title">Abonos</div>
+        ${list
+          .map(
+            (p, i) => `
+          <div class="product">
+            <div class="product-name">#${i + 1} · ${formatDate(p.fecha)}</div>
+            <div class="product-line"><span>Pagado</span><span>RD$ ${formatCurrency(p.montoPagado)}</span></div>
+            <div class="product-line"><span>Pend. tras abono</span><span>RD$ ${formatCurrency(p.montoPendiente)}</span></div>
+          </div>
+        `,
+          )
+          .join("")}
+      `;
+  }
+
+  return `
+        <hr class="divider" />
+        <div class="section-title">Historial de abonos</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem; margin:8px 0 12px;">
+          <thead>
+            <tr style="border-bottom:2px solid #111;">
+              <th style="text-align:left; padding:6px 8px;">#</th>
+              <th style="text-align:left; padding:6px 8px;">Fecha</th>
+              <th style="text-align:right; padding:6px 8px;">Monto abonado</th>
+              <th style="text-align:right; padding:6px 8px;">Pendiente después</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list
+              .map(
+                (p, i) => `
+              <tr style="border-bottom:1px solid #ddd;">
+                <td style="padding:8px;">${i + 1}</td>
+                <td style="padding:8px;">${formatDate(p.fecha)}</td>
+                <td style="padding:8px; text-align:right; font-weight:600;">RD$ ${formatCurrency(p.montoPagado)}</td>
+                <td style="padding:8px; text-align:right;">RD$ ${formatCurrency(p.montoPendiente)}</td>
+              </tr>`,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      `;
+}
 import { GastoList, GastoUpdate } from "../Types/Gastos";
 import { User } from "../Types/Usuario";
 
@@ -338,6 +412,13 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
           </div>
         </div>
 
+        ${buildFacturaPagosPrintBlock(
+          factura.pagos,
+          formatDate,
+          formatCurrency,
+          "thermal",
+        )}
+
         <div class="payment-box">
           <div>Método de pago:</div>
           <div class="payment-method">${factura.metodoPago || "N/A"}</div>
@@ -348,7 +429,7 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
             factura.montoPagado,
           )}</div>
            <div class="payment-date">Monto pendiente: ${formatCurrency(
-             factura.total - factura.montoPagado,
+             saldoPendienteImpresion(factura),
            )}</div>
         </div>
 
@@ -497,10 +578,17 @@ export const handlePrintFacturaFullPage = (
         <div class="grand-total">
           <div class="product-line"><span>TOTAL</span><span>RD$ ${formatCurrency(factura.total)}</span></div>
         </div>
+        ${buildFacturaPagosPrintBlock(
+          factura.pagos,
+          formatDate,
+          formatCurrency,
+          "a4",
+        )}
         <div class="payment-box">
           <div class="info-row"><span>Método de pago</span><span>${factura.metodoPago || "N/A"}</span></div>
           <div class="info-row"><span>Fecha de pago</span><span>${formatDate(factura.fechaPago)}</span></div>
-          <div class="info-row"><span>Monto pagado</span><span>RD$ ${formatCurrency(factura.montoPagado)}</span></div>
+          <div class="info-row"><span>Monto pagado (acum.)</span><span>RD$ ${formatCurrency(factura.montoPagado)}</span></div>
+          <div class="info-row"><span>Saldo pendiente</span><span>RD$ ${formatCurrency(saldoPendienteImpresion(factura))}</span></div>
         </div>
         <div class="footer"><p>Gracias por su compra.</p><p class="muted">Documento generado desde el sistema.</p></div>
         <button class="no-print" style="margin-top:16px;padding:10px;width:100%;cursor:pointer;" onclick="window.print()">Imprimir</button>

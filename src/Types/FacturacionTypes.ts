@@ -91,6 +91,13 @@ export interface ProductoVenta {
   devoluciones: DevolucionDetalle[];
 }
 
+/** Abono parcial o pago asociado a la factura (alineado con FacturaPagosDto en el API). */
+export interface FacturaPagosDto {
+  montoPagado: number;
+  fecha: string;
+  montoPendiente: number;
+}
+
 //deralles de facturacion
 export interface FacturaDetalle {
   id: number;
@@ -120,6 +127,8 @@ export interface FacturaDetalle {
   montoPagado: number;
   estado: string | null;
   metodoPago: string | null;
+  /** Historial de abonos (opcional; puede venir vacío o null si el API no lo envía). */
+  pagos?: FacturaPagosDto[] | null;
 
   // Relaciones y metadatos
   vendedor: number;

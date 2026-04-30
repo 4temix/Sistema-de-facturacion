@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -66,7 +67,7 @@ export const Modal: React.FC<ModalProps> = ({
         "flex flex-col",
       ].join(" ");
 
-  return (
+  const modalTree = (
     <div
       className={`fixed inset-0 flex items-end justify-center overflow-hidden overscroll-contain sm:items-center sm:p-4 ${zClass}`}
     >
@@ -119,4 +120,6 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalTree, document.body);
 };

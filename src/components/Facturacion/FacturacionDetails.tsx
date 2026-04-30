@@ -6,7 +6,11 @@ import {
   handlePrintFacturaFullPage,
 } from "../../hooks/useImpresion";
 import { PencilIcon } from "../../icons";
-import { FacturaDetalle, ProductoVenta } from "../../Types/FacturacionTypes";
+import {
+  FacturaDetalle,
+  FacturaPagosDto,
+  ProductoVenta,
+} from "../../Types/FacturacionTypes";
 import { User } from "../../Types/Usuario";
 import { FacturaSkeleton } from "./FacturaSkeleton";
 import { LuPrinter } from "react-icons/lu";
@@ -21,6 +25,8 @@ import {
   TbCash,
   TbCreditCard,
   TbReceiptRefund,
+  TbHistory,
+  TbCoin,
 } from "react-icons/tb";
 
 interface FacturaDetailsDrawerProps {
@@ -60,6 +66,24 @@ export default function FacturacionDetails({
       year: "numeric",
     });
   };
+
+  const formatDateTime = (date: string | null) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleString("es-DO", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatMoney = (n: number) =>
+    n.toLocaleString("es-DO", { style: "currency", currency: "DOP" });
+
+  const pagosOrdenados: FacturaPagosDto[] = [...(factura.pagos ?? [])].sort(
+    (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
+  );
 
   return (
     <div className="bg-white w-full h-full overflow-y-auto p-6">
@@ -315,6 +339,94 @@ export default function FacturacionDetails({
           <p className="font-medium">{factura.metodoPago}</p>
         </div>
       </div>
+
+      {pagosOrdenados.length > 0 && (
+        <div className="mb-6 rounded-xl border border-emerald-200/90 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/40 p-5 shadow-sm ring-1 ring-emerald-100/60">
+          <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
+            <div className="flex items-center gap-2">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+                <TbHistory className="text-xl" aria-hidden />
+              </span>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-lg leading-tight">
+                  Historial de abonos
+                </h3>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {pagosOrdenados.length} pago
+                  {pagosOrdenados.length !== 1 ? "s" : ""} registrado
+                  {pagosOrdenados.length !== 1 ? "s" : ""} sobre esta factura.
+                </p>
+              </div>
+            </div>
+            <div className="text-right text-xs text-emerald-900/80 bg-emerald-100/80 border border-emerald-200/80 rounded-lg px-3 py-2">
+              <p className="font-medium text-emerald-950">Saldo tras último abono</p>
+              <p className="text-base font-bold tabular-nums">
+                {formatMoney(
+                  pagosOrdenados[pagosOrdenados.length - 1]!.montoPendiente,
+                )}
+              </p>
+            </div>
+          </div>
+
+          <ol className="mt-4 space-y-0">
+            {pagosOrdenados.map((pago, idx) => (
+              <li key={`${pago.fecha}-${idx}`} className="relative flex gap-0">
+                <div className="flex w-8 shrink-0 flex-col items-center">
+                  <span
+                    className="z-[1] flex h-8 w-8 items-center justify-center rounded-full border-2 border-emerald-500 bg-white text-xs font-bold text-emerald-700 shadow-sm"
+                    aria-hidden
+                  >
+                    {idx + 1}
+                  </span>
+                  {idx < pagosOrdenados.length - 1 && (
+                    <span
+                      className="w-0.5 flex-1 min-h-[12px] bg-gradient-to-b from-emerald-400 to-emerald-200"
+                      aria-hidden
+                    />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1 pb-5 pl-3">
+                  <div className="rounded-lg border border-gray-200/80 bg-white/95 p-4 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2 mb-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <TbCoin className="text-emerald-600 shrink-0" />
+                        <span className="font-medium text-gray-800">
+                          Abono #{idx + 1}
+                        </span>
+                      </div>
+                      <time
+                        dateTime={pago.fecha}
+                        className="text-xs font-medium text-gray-500 tabular-nums"
+                      >
+                        {formatDateTime(pago.fecha)}
+                      </time>
+                    </div>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="rounded-md bg-emerald-50/70 border border-emerald-100/80 px-3 py-2.5">
+                        <dt className="text-[11px] uppercase tracking-wide text-emerald-800/80 font-semibold">
+                          Monto abonado
+                        </dt>
+                        <dd className="text-lg font-bold text-emerald-950 tabular-nums mt-0.5">
+                          {formatMoney(pago.montoPagado)}
+                        </dd>
+                      </div>
+                      <div className="rounded-md bg-amber-50/70 border border-amber-100/80 px-3 py-2.5">
+                        <dt className="text-[11px] uppercase tracking-wide text-amber-900/75 font-semibold">
+                          Pendiente después
+                        </dt>
+                        <dd className="text-lg font-bold text-amber-950 tabular-nums mt-0.5">
+                          {formatMoney(pago.montoPendiente)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div
           className={`border  p-4 rounded-lg ${

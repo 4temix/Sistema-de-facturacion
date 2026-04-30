@@ -140,6 +140,8 @@ export default function TableFacturas({
     devoluciones: [],
 
     gananciaActual: 0,
+
+    pagos: null,
   });
 
   //funcion para obtener los elementos de la tabla
