@@ -1,11 +1,13 @@
 import { useUserData } from "../../context/GlobalUserContext";
-import { useModalEdit } from "../../context/ModalEditContext";
+import {
+  useModalEdit,
+  type FacturaEditModalMode,
+} from "../../context/ModalEditContext";
 import { useFacturaColor } from "../../hooks/useFacturaColor";
 import {
   handlePrintFactura,
   handlePrintFacturaFullPage,
 } from "../../hooks/useImpresion";
-import { PencilIcon } from "../../icons";
 import {
   FacturaDetalle,
   FacturaPagosDto,
@@ -13,7 +15,7 @@ import {
 } from "../../Types/FacturacionTypes";
 import { User } from "../../Types/Usuario";
 import { FacturaSkeleton } from "./FacturaSkeleton";
-import { LuPrinter } from "react-icons/lu";
+import { LuPrinter, LuWallet } from "react-icons/lu";
 import {
   TbFileInvoice,
   TbUser,
@@ -53,6 +55,11 @@ export default function FacturacionDetails({
   const { user } = useUserData();
 
   const { modalEditOpen, AsingFactura } = useModalEdit();
+
+  function abrirEdicion(mode: FacturaEditModalMode) {
+    AsingFactura(factura);
+    modalEditOpen(mode);
+  }
 
   if (isLoading) {
     return <FacturaSkeleton />;
@@ -495,22 +502,38 @@ export default function FacturacionDetails({
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-2">
           {btnEdit && (
-            <button
-              onClick={() => {
-                modalEditOpen();
-                AsingFactura(factura);
-              }}
-              disabled={factura.estado == "Reembolsada" ? true : false}
-              className={`flex-1 min-w-[120px] ${
-                factura.estado != "Reembolsada"
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-300"
-              } py-2 rounded-lg transition-colors`}
-            >
-              <span className="flex justify-center items-center gap-2">
-                <PencilIcon /> Editar
-              </span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => abrirEdicion("pago")}
+                disabled={factura.estado == "Reembolsada"}
+                className={`flex-1 min-w-[140px] ${
+                  factura.estado != "Reembolsada"
+                    ? "bg-sky-600 text-white hover:bg-sky-700"
+                    : "bg-gray-300 cursor-not-allowed"
+                } py-2 rounded-lg transition-colors text-sm`}
+              >
+                <span className="flex justify-center items-center gap-2">
+                  <LuWallet className="text-lg" />
+                  Abonar saldo
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => abrirEdicion("devoluciones")}
+                disabled={factura.estado == "Reembolsada"}
+                className={`flex-1 min-w-[140px] ${
+                  factura.estado != "Reembolsada"
+                    ? "bg-amber-600 text-white hover:bg-amber-700"
+                    : "bg-gray-300 cursor-not-allowed"
+                } py-2 rounded-lg transition-colors text-sm`}
+              >
+                <span className="flex justify-center items-center gap-2">
+                  <TbReceiptRefund className="text-lg" />
+                  Reembolsos
+                </span>
+              </button>
+            </>
           )}
           <button
             type="button"

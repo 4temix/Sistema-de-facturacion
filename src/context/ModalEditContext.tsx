@@ -2,9 +2,12 @@ import { createContext, ReactNode, useContext, useRef, useState } from "react";
 import { useModal } from "../hooks/useModal";
 import { FacturaDetalle } from "../Types/FacturacionTypes";
 
+export type FacturaEditModalMode = "pago" | "devoluciones";
+
 type ModalContextType = {
   modalEditIsOpen: boolean;
-  modalEditOpen: () => void;
+  editModalMode: FacturaEditModalMode | null;
+  modalEditOpen: (mode: FacturaEditModalMode) => void;
   closeModalEdit: () => void;
   AsingFactura: (factura: FacturaDetalle) => void;
   facturaDetails?: FacturaDetalle;
@@ -15,24 +18,36 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 export function ModalEditProvider({ children }: { children: ReactNode }) {
   const {
     isOpen: modalEditIsOpen,
-    openModal: modalEditOpen,
-    closeModal: closeModalEdit,
+    openModal: openModalRaw,
+    closeModal: closeModalRaw,
   } = useModal();
 
   const [facturaDetails, setFacturaDetails] = useState<FacturaDetalle>();
+  const [editModalMode, setEditModalMode] =
+    useState<FacturaEditModalMode | null>(null);
   const plus = useRef(1);
 
-  //funcion para actualizar la factura
   function AsingFactura(factura: FacturaDetalle) {
     setFacturaDetails(factura);
     plus.current++;
     console.log(plus.current);
   }
 
+  function modalEditOpen(mode: FacturaEditModalMode) {
+    setEditModalMode(mode);
+    openModalRaw();
+  }
+
+  function closeModalEdit() {
+    setEditModalMode(null);
+    closeModalRaw();
+  }
+
   return (
     <ModalContext.Provider
       value={{
         modalEditIsOpen,
+        editModalMode,
         modalEditOpen,
         closeModalEdit,
         AsingFactura,
@@ -44,7 +59,6 @@ export function ModalEditProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ✅ Hook personalizado para usar el contexto
 export function useModalEdit() {
   const context = useContext(ModalContext);
   if (!context) {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { LuPrinter } from "react-icons/lu";
+import { LuPrinter, LuWallet } from "react-icons/lu";
+import { TbReceiptRefund } from "react-icons/tb";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,7 +10,6 @@ import {
   type VisibilityState,
   type OnChangeFn,
 } from "@tanstack/react-table";
-import { PencilIcon } from "../../icons";
 import { Pagination } from "./pagination";
 import Input from "../form/input/InputField";
 import {
@@ -23,7 +23,10 @@ import { useFacturaColor } from "../../hooks/useFacturaColor";
 import Drawer from "../ui/modal/Drawer";
 import FacturacionDetails from "./FacturacionDetails";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
-import { useModalEdit } from "../../context/ModalEditContext";
+import {
+  useModalEdit,
+  type FacturaEditModalMode,
+} from "../../context/ModalEditContext";
 import { handlePrintFactura } from "../../hooks/useImpresion";
 import LoaderFun from "../loader/LoaderFunc";
 import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
@@ -164,6 +167,24 @@ export default function TableFacturas({
   }
 
   const [IsDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  function openEdicionFactura(id: number, mode: FacturaEditModalMode) {
+    setLoadintComplete(true);
+    apiRequestThen<FacturaDetalle>({
+      url: `api/facturas/details/${id}`,
+    })
+      .then((response) => {
+        if (!response.success) {
+          return;
+        }
+        AsingFactura(response.result!);
+        modalEditOpen(mode);
+      })
+      .finally(() => {
+        setLoadintComplete(false);
+      });
+  }
+
   const columns = useMemo(() => {
     return [
       {
@@ -244,25 +265,42 @@ export default function TableFacturas({
         id: "actions",
         header: "Acciones",
         cell: ({ row }: { row: Row<Factura> }) => (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {btnEdit && (
-              <button
-                className={`p-2 rounded-lg transition-colors ${
-                  row.original.estado != "Reembolsada"
-                    ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (row.original.estado == "Reembolsada") {
-                    return;
-                  }
-                  EditFactura(row.original.id);
-                }}
-                title="Editar"
-              >
-                <PencilIcon />
-              </button>
+              <>
+                <button
+                  type="button"
+                  className={`p-2 rounded-lg transition-colors ${
+                    row.original.estado != "Reembolsada"
+                      ? "bg-sky-50 text-sky-700 hover:bg-sky-100"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (row.original.estado == "Reembolsada") return;
+                    openEdicionFactura(row.original.id, "pago");
+                  }}
+                  title="Abonar saldo — pago pendiente"
+                >
+                  <LuWallet className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  className={`p-2 rounded-lg transition-colors ${
+                    row.original.estado != "Reembolsada"
+                      ? "bg-amber-50 text-amber-800 hover:bg-amber-100"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (row.original.estado == "Reembolsada") return;
+                    openEdicionFactura(row.original.id, "devoluciones");
+                  }}
+                  title="Reembolsos y devoluciones"
+                >
+                  <TbReceiptRefund className="w-4 h-4" />
+                </button>
+              </>
             )}
             <button
               onClick={(e) => {
@@ -278,24 +316,7 @@ export default function TableFacturas({
         ),
       },
     ];
-  }, []);
-
-  function EditFactura(id: number) {
-    setLoadintComplete(true);
-    apiRequestThen<FacturaDetalle>({
-      url: `api/facturas/details/${id}`,
-    })
-      .then((response) => {
-        if (!response.success) {
-          return;
-        }
-        AsingFactura(response.result!);
-        modalEditOpen();
-      })
-      .finally(() => {
-        setLoadintComplete(false);
-      });
-  }
+  }, [btnEdit, getFacturaColor, openEdicionFactura]);
 
   function Impresion(id: number) {
     setLoadintComplete(true);
