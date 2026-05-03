@@ -15,7 +15,7 @@ interface FetchParams {
 
 //export const baseUrl = "http://localhost:8080/";
 // export const baseUrl = "https://localhost:7114/";
-export const baseUrl = "http://154.38.176.68/";
+export const baseUrl = "https://4temix.lat";
 
 /**
  * Función genérica y tipada para hacer peticiones HTTP con async/await
