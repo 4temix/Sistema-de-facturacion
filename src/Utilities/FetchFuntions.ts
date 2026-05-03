@@ -14,7 +14,8 @@ interface FetchParams {
 }
 
 //export const baseUrl = "http://localhost:8080/";
-export const baseUrl = "https://localhost:7114/";
+// export const baseUrl = "https://localhost:7114/";
+export const baseUrl = "https://154.38.176.68/";
 
 /**
  * Función genérica y tipada para hacer peticiones HTTP con async/await
