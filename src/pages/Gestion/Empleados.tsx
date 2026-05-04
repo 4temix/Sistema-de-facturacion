@@ -263,8 +263,11 @@ export default function Empleados() {
   // Incremento de la página
   function incrementPage(page: number) {
     updateFilter(page, "page");
-    searchParams.set("page", page.toString());
-    setSearchParams(searchParams);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("page", String(page));
+      return next;
+    });
   }
 
   // Debounce para búsquedas
@@ -272,15 +275,21 @@ export default function Empleados() {
     getData(filters);
   }, [debouncedSearch]);
 
-  // Sincronizar filtros con searchParams
+  // Sincronizar filtros con searchParams (sin borrar detalleEmpleado u otros params)
   useEffect(() => {
-    const params: Record<string, string> = {};
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
 
-    if (filters.search) params.search = filters.search;
-    if (filters.page && filters.page > 1) params.page = filters.page.toString();
+      if (filters.search) next.set("search", filters.search);
+      else next.delete("search");
 
-    setSearchParams(params);
-  }, [filters]);
+      if (filters.page && filters.page > 1)
+        next.set("page", String(filters.page));
+      else next.delete("page");
+
+      return next;
+    });
+  }, [filters, setSearchParams]);
 
   return (
     <section>

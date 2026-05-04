@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,6 +14,7 @@ import Drawer from "../ui/modal/Drawer";
 
 import { Estado, Rol, User } from "../../Types/Usuario";
 import UsuarioDetails from "./UsuarioDetails";
+import { useDrawerSearchParam } from "../../hooks/useDrawerSearchParam";
 
 type Props = {
   data: User[];
@@ -63,14 +64,34 @@ export default function TableUsers({
   const onColumnVisibilityChange =
     onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
 
-  // Drawer de detalle (datos de la fila ya cargados en la tabla)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { drawerId, isDrawerOpen, openDrawer, closeDrawer } =
+    useDrawerSearchParam("detalleUsuario");
   const [userDetails, setUserDetails] = useState<User>(initialEmpleadoDetails);
 
-  function openUserDetails(user: User) {
-    setUserDetails(user);
-    setIsDetailsOpen(true);
-  }
+  const openUserDetails = useCallback(
+    (user: User) => {
+      openDrawer(user.id);
+    },
+    [openDrawer]
+  );
+
+  useEffect(() => {
+    if (!drawerId) {
+      setUserDetails(initialEmpleadoDetails);
+      return;
+    }
+    const id = Number(drawerId);
+    if (!Number.isFinite(id) || id <= 0) {
+      closeDrawer();
+      return;
+    }
+    const u = data.find((row) => row.id === id);
+    if (!u) {
+      closeDrawer();
+      return;
+    }
+    setUserDetails(u);
+  }, [drawerId, data, closeDrawer]);
 
   // Configuración de columnas para el toggle
   const columnConfig = [
@@ -215,12 +236,12 @@ export default function TableUsers({
       </div>
 
       {/* Drawer de detalles */}
-      <Drawer isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
+      <Drawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         <UsuarioDetails
           user={userDetails}
-          onClose={() => setIsDetailsOpen(false)}
+          onClose={closeDrawer}
           onEditar={(id) => {
-            setIsDetailsOpen(false);
+            closeDrawer();
             onEdit(id);
           }}
         />

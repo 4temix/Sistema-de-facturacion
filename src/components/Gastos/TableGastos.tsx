@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,6 +20,7 @@ import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
 import Drawer from "../ui/modal/Drawer";
 import GastoDetails from "./GastoDetails";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { useDrawerSearchParam } from "../../hooks/useDrawerSearchParam";
 
 type Props = DataGastoResponse & {
   setPage: (page: number) => void;
@@ -53,18 +54,34 @@ export default function TableGastos({
   onColumnVisibilityChange: onColumnVisibilityChangeProp,
   selectsTable,
 }: Props) {
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const { drawerId, isDrawerOpen, openDrawer, closeDrawer } =
+    useDrawerSearchParam("detalleGasto");
   const [detailGasto, setDetailGasto] = useState<GastoUpdate | null>(null);
   const [summaryRow, setSummaryRow] = useState<GastoList | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
   const loadGastoDetails = useCallback((row: GastoList) => {
+    openDrawer(row.id);
+  }, [openDrawer]);
+
+  useEffect(() => {
+    if (!drawerId) {
+      setSummaryRow(null);
+      setDetailGasto(null);
+      setDetailsLoading(false);
+      return;
+    }
+    const id = Number(drawerId);
+    if (!Number.isFinite(id) || id <= 0) {
+      closeDrawer();
+      return;
+    }
+    const row = data.find((r) => r.id === id) ?? null;
     setSummaryRow(row);
     setDetailGasto(null);
-    setDetailsOpen(true);
     setDetailsLoading(true);
     apiRequestThen<GastoUpdate>({
-      url: `api/gastos/get-update/${row.id}`,
+      url: `api/gastos/get-update/${id}`,
       configuration: { method: "GET" },
     })
       .then((res) => {
@@ -73,7 +90,7 @@ export default function TableGastos({
         }
       })
       .finally(() => setDetailsLoading(false));
-  }, []);
+  }, [drawerId, data, closeDrawer]);
   // Estado interno para cuando no se pasan las props
   const [internalColumnVisibility, setInternalColumnVisibility] =
     useState<VisibilityState>(defaultColumnVisibility);
@@ -273,15 +290,15 @@ export default function TableGastos({
 
   return (
     <div className="mt-4 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-      <Drawer isOpen={detailsOpen} onClose={() => setDetailsOpen(false)}>
+      <Drawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         <GastoDetails
-          onClose={() => setDetailsOpen(false)}
+          onClose={closeDrawer}
           detail={detailGasto}
           summary={summaryRow}
           selectsTable={selectsTable}
           isLoading={detailsLoading}
           onEditar={(id) => {
-            setDetailsOpen(false);
+            closeDrawer();
             onEdit(id);
           }}
         />

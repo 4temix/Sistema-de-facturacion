@@ -417,8 +417,11 @@ export default function Gastos() {
   // Incremento de la página
   function incrementPage(page: number) {
     updateFilter(page, "pPage");
-    searchParams.set("pPage", page.toString());
-    setSearchParams(searchParams);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("pPage", String(page));
+      return next;
+    });
   }
 
   // Debounce para búsquedas
@@ -426,22 +429,40 @@ export default function Gastos() {
     getData(filters);
   }, [debouncedSearch]);
 
-  // Sincronizar filtros con searchParams
+  // Sincronizar filtros con searchParams (sin borrar detalleGasto u otros params)
   useEffect(() => {
-    const params: Record<string, string> = {};
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
 
-    if (filters.pTipoGasto) params.pTipoGasto = filters.pTipoGasto.toString();
-    if (filters.pEstado) params.pEstado = filters.pEstado.toString();
-    if (filters.pMetodoPago) params.pMetodoPago = filters.pMetodoPago;
-    if (filters.pOrigenFondo) params.pOrigenFondo = filters.pOrigenFondo;
-    if (filters.pSearch) params.pSearch = filters.pSearch;
-    if (filters.pFechaInit) params.pFechaInit = filters.pFechaInit;
-    if (filters.pFechaEnd) params.pFechaEnd = filters.pFechaEnd;
-    if (filters.pPage && filters.pPage > 1)
-      params.pPage = filters.pPage.toString();
+      if (filters.pTipoGasto)
+        next.set("pTipoGasto", String(filters.pTipoGasto));
+      else next.delete("pTipoGasto");
 
-    setSearchParams(params);
-  }, [filters]);
+      if (filters.pEstado) next.set("pEstado", String(filters.pEstado));
+      else next.delete("pEstado");
+
+      if (filters.pMetodoPago) next.set("pMetodoPago", filters.pMetodoPago);
+      else next.delete("pMetodoPago");
+
+      if (filters.pOrigenFondo) next.set("pOrigenFondo", filters.pOrigenFondo);
+      else next.delete("pOrigenFondo");
+
+      if (filters.pSearch) next.set("pSearch", filters.pSearch);
+      else next.delete("pSearch");
+
+      if (filters.pFechaInit) next.set("pFechaInit", filters.pFechaInit);
+      else next.delete("pFechaInit");
+
+      if (filters.pFechaEnd) next.set("pFechaEnd", filters.pFechaEnd);
+      else next.delete("pFechaEnd");
+
+      if (filters.pPage && filters.pPage > 1)
+        next.set("pPage", String(filters.pPage));
+      else next.delete("pPage");
+
+      return next;
+    });
+  }, [filters, setSearchParams]);
 
   return (
     <section>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -19,6 +19,7 @@ import NominaEmpleadoDetails from "./NominaEmpleadoDetails";
 import Button from "../ui/button/Button";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import LoaderFun from "../loader/LoaderFunc";
+import { useDrawerSearchParam } from "../../hooks/useDrawerSearchParam";
 
 interface NominaDetalleProps {
   nomina: NominaCompletaDto;
@@ -33,10 +34,36 @@ export default function NominaDetalle({
   onAprobar,
   onUpdate,
 }: NominaDetalleProps) {
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { drawerId, isDrawerOpen, openDrawer, closeDrawer } =
+    useDrawerSearchParam("detalleNominaEmp");
   const [selectedDetalle, setSelectedDetalle] =
     useState<NominaDetalleDto | null>(null);
   const [isAprobando, setIsAprobando] = useState(false);
+
+  useEffect(() => {
+    if (!drawerId) {
+      setSelectedDetalle(null);
+      return;
+    }
+    const id = Number(drawerId);
+    if (!Number.isFinite(id) || id <= 0) {
+      closeDrawer();
+      return;
+    }
+    const d = nomina.detalles.find((x) => x.id === id);
+    if (!d) {
+      closeDrawer();
+      return;
+    }
+    setSelectedDetalle(d);
+  }, [drawerId, nomina.detalles, closeDrawer]);
+
+  const openLineaNomina = useCallback(
+    (detalle: NominaDetalleDto) => {
+      openDrawer(detalle.id);
+    },
+    [openDrawer]
+  );
 
   const formatDate = (date: string) => {
     if (!date) return "N/A";
@@ -134,16 +161,16 @@ export default function NominaDetalle({
       {isAprobando && <LoaderFun absolute={false} />}
 
       {/* Drawer de detalles del empleado */}
-      <Drawer isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
+      <Drawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         {selectedDetalle && (
           <NominaEmpleadoDetails
             detalle={selectedDetalle}
-            onClose={() => setIsDetailsOpen(false)}
+            onClose={closeDrawer}
             onUpdate={() => {
               if (onUpdate) {
                 onUpdate();
               }
-              setIsDetailsOpen(false);
+              closeDrawer();
             }}
           />
         )}
@@ -271,10 +298,7 @@ export default function NominaDetalle({
                   <tr
                     key={row.id}
                     className="hover:bg-blue-50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      setSelectedDetalle(row.original);
-                      setIsDetailsOpen(true);
-                    }}
+                    onClick={() => openLineaNomina(row.original)}
                   >
                     {row
                       .getVisibleCells()

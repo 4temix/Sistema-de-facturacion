@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,6 +20,7 @@ import ColumnVisibilityToggle from "../ui/ColumnVisibilityToggle";
 import Drawer from "../ui/modal/Drawer";
 import EmpleadoDetails from "./EmpleadoDetails";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
+import { useDrawerSearchParam } from "../../hooks/useDrawerSearchParam";
 
 type Props = EmpleadosListResponse & {
   setPage: (page: number) => void;
@@ -73,18 +74,32 @@ export default function TableEmpleados({
   const onColumnVisibilityChange =
     onColumnVisibilityChangeProp ?? setInternalColumnVisibility;
 
-  // Estado para el drawer de detalles
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { drawerId, isDrawerOpen, openDrawer, closeDrawer } =
+    useDrawerSearchParam("detalleEmpleado");
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [empleadoDetails, setEmpleadoDetails] = useState<EmpleadoDetailsDto>(
     initialEmpleadoDetails
   );
 
-  // Función para cargar los detalles del empleado
-  function loadEmpleadoDetails(id: number) {
-    setIsDetailsOpen(true);
-    setIsLoadingDetails(true);
+  const loadEmpleadoDetails = useCallback(
+    (id: number) => {
+      openDrawer(id);
+    },
+    [openDrawer]
+  );
 
+  useEffect(() => {
+    if (!drawerId) {
+      setEmpleadoDetails(initialEmpleadoDetails);
+      setIsLoadingDetails(false);
+      return;
+    }
+    const id = Number(drawerId);
+    if (!Number.isFinite(id) || id <= 0) {
+      closeDrawer();
+      return;
+    }
+    setIsLoadingDetails(true);
     apiRequestThen<EmpleadoDetailsDto>({
       url: `api/empleados/get-empleado/${id}`,
     })
@@ -100,7 +115,7 @@ export default function TableEmpleados({
       .finally(() => {
         setIsLoadingDetails(false);
       });
-  }
+  }, [drawerId, closeDrawer]);
 
   // Configuración de columnas para el toggle
   const columnConfig = [
@@ -247,14 +262,14 @@ export default function TableEmpleados({
       </div>
 
       {/* Drawer de detalles */}
-      <Drawer isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)}>
+      <Drawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         <EmpleadoDetails
-          isOpen={isDetailsOpen}
-          onClose={() => setIsDetailsOpen(false)}
+          isOpen={isDrawerOpen}
+          onClose={closeDrawer}
           empleado={empleadoDetails}
           isLoading={isLoadingDetails}
           onEditar={(id) => {
-            setIsDetailsOpen(false);
+            closeDrawer();
             onEdit(id);
           }}
         />

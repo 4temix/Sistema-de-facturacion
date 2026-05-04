@@ -288,16 +288,18 @@ function FacturacionPageContent() {
   }, [debouncedSearch, filters.page]);
 
   useEffect(() => {
-    const params: any = {};
+    const params: Record<string, string | number> = {};
 
     if (filters.estado) params.estado = filters.estado;
     if (filters.search) params.search = filters.search;
-    if (filters.fechaPago) params.fechaPago = filters.fechaPago;
+    if (filters.fechaPago) params.fechaPago = filters.fechaPago as string;
     if (filters.fechaInit) params.fechaInit = filters.fechaInit;
     if (filters.fechaFin) params.fechaFin = filters.fechaFin;
     if (filters.page) params.page = filters.page;
 
-    setSearchParams(params);
+    setSearchParams(
+      params as unknown as Parameters<typeof setSearchParams>[0],
+    );
   }, [filters]);
 
   return (
@@ -588,9 +590,11 @@ function FacturacionPageContent() {
           {editModalMode === "devoluciones" && (
             <EdicionFacturaReembolsos
               closeModal={cerrarModalEdicionFactura}
-              selectsData={selectsData?.estados.filter(
-                (el) => ![1, 2, 3, 7].includes(el.id),
-              )}
+              selectsData={
+                selectsData?.estados?.filter(
+                  (el) => ![1, 2, 3, 7].includes(el.id),
+                ) ?? []
+              }
             />
           )}
         </section>
