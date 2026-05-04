@@ -157,9 +157,7 @@ export default function NominaDetalle({
   });
 
   return (
-    <div>
-      {isAprobando && <LoaderFun absolute={false} />}
-
+    <div className="relative min-h-[120px]">
       {/* Drawer de detalles del empleado */}
       <Drawer isOpen={isDrawerOpen} onClose={closeDrawer}>
         {selectedDetalle && (
@@ -320,6 +318,7 @@ export default function NominaDetalle({
           </table>
         </div>
       </div>
+      {isAprobando && <LoaderFun />}
     </div>
   );
 }

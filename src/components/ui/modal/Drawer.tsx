@@ -120,7 +120,17 @@ export default function Drawer({
             </button>
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        <div
+          className="relative min-h-0 flex-1 overflow-y-auto"
+          onSubmitCapture={(e) => {
+            const t = e.target as HTMLElement | null;
+            if (t?.tagName === "FORM") {
+              e.preventDefault();
+            }
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

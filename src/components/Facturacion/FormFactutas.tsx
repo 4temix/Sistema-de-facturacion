@@ -762,15 +762,40 @@ export default function FormFactutas(params: Actions) {
     setFieldValue("montoPagado", isCheckedTwo ? values.total : 0);
   }, [isCheckedTwo]);
 
+  const handleGuardarFacturaPrincipal = async () => {
+    const errors = await validateForm();
+    setTouched(
+      Object.keys(initialValues).reduce(
+        (acc, key) => {
+          acc[key] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+      true,
+    );
+    if (Object.keys(errors).length === 0) {
+      SaveFactura({ ...values });
+    }
+    if (params.facturasP.length == 0) {
+      params.sendStock([]);
+    }
+  };
+
   return (
-    <>
+    <div className="relative flex min-h-0 w-full flex-col">
       <div className="relative shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
-        {isLoading && <LoaderFun absolute={false} />}
         <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
           Creacion de factura
         </h4>
       </div>
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleGuardarFacturaPrincipal();
+        }}
+      >
         <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Código y nombre */}
@@ -1291,39 +1316,15 @@ export default function FormFactutas(params: Actions) {
           </Button>
           <Button
             size="sm"
-            onClick={async (e?: React.MouseEvent<HTMLButtonElement>) => {
-              e?.preventDefault();
-              // Valida todos los campos
-              const errors = await validateForm();
-
-              // Marca todos los campos como tocados
-              setTouched(
-                Object.keys(initialValues).reduce(
-                  (acc, key) => {
-                    acc[key] = true;
-                    return acc;
-                  },
-                  {} as Record<string, boolean>,
-                ),
-                true,
-              );
-              // Si no hay errores
-              if (Object.keys(errors).length === 0) {
-                console.log("todo bien");
-                SaveFactura({ ...values });
-              } else {
-                console.log("Errores encontrados:", errors);
-              }
-
-              if (params.facturasP.length == 0) {
-                params.sendStock([]);
-              }
+            onClick={() => {
+              void handleGuardarFacturaPrincipal();
             }}
           >
             Guardar factura
           </Button>
         </div>
       </form>
-    </>
+      {isLoading && <LoaderFun />}
+    </div>
   );
 }

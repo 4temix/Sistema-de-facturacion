@@ -16,7 +16,7 @@ export function guardarEdicionFactura(
   facturaDetails: FacturaDetalle,
   saveElement: PayloadEdicionFactura,
   onSuccess: () => void,
-) {
+): Promise<void> {
   const devolucion = {
     id: saveElement.id,
     estado: saveElement.estado === 0 ? 0 : saveElement.estado,
@@ -27,7 +27,7 @@ export function guardarEdicionFactura(
     detalles: saveElement.detalles,
   };
 
-  apiRequestThen<boolean>({
+  return apiRequestThen<boolean>({
     url: "api/facturas/ediccion",
     configuration: {
       method: "PUT",

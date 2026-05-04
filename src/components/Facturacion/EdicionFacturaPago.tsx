@@ -3,6 +3,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import { useModalEdit } from "../../context/ModalEditContext";
 import { useEffect, useState } from "react";
+import LoaderFun from "../loader/LoaderFunc";
 import Checkbox from "../form/input/Checkbox";
 import { guardarEdicionFactura } from "./facturaEdicionGuardar";
 
@@ -16,6 +17,7 @@ export function EdicionFacturaPago({ closeModal }: EdicionParameters) {
   const { facturaDetails } = useModalEdit();
   const [pagado, setPagado] = useState(0);
   const [isCheckedTwo, setIsCheckedTwo] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!facturaDetails) return;
@@ -36,22 +38,27 @@ export function EdicionFacturaPago({ closeModal }: EdicionParameters) {
   const yaPagadaTotal =
     facturaDetails != null && facturaDetails.montoPagado >= facturaDetails.total;
 
-  function guardar() {
+  async function guardar() {
     if (!facturaDetails) return;
-    guardarEdicionFactura(
-      facturaDetails,
-      {
-        id: facturaDetails.id,
-        estado: 0,
-        pagado,
-        detalles: [],
-      },
-      closeModal,
-    );
+    setIsSaving(true);
+    try {
+      await guardarEdicionFactura(
+        facturaDetails,
+        {
+          id: facturaDetails.id,
+          estado: 0,
+          pagado,
+          detalles: [],
+        },
+        closeModal,
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
-    <>
+    <div className="relative w-full min-h-[120px]">
       <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
         <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
           Abonar saldo — pago pendiente
@@ -94,7 +101,13 @@ export function EdicionFacturaPago({ closeModal }: EdicionParameters) {
         </div>
       </div>
 
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void guardar();
+        }}
+      >
         <div className="px-2 pb-4 space-y-4">
           <div>
             <Label htmlFor="monto_abono">Monto a abonar ahora</Label>
@@ -152,14 +165,28 @@ export function EdicionFacturaPago({ closeModal }: EdicionParameters) {
         </div>
 
         <div className="flex items-center gap-3 px-2 mt-2 lg:justify-end">
-          <Button size="sm" variant="outline" type="button" onClick={closeModal}>
+          <Button
+            size="sm"
+            variant="outline"
+            type="button"
+            onClick={closeModal}
+            disabled={isSaving}
+          >
             Cerrar
           </Button>
-          <Button size="sm" type="button" onClick={guardar}>
-            Guardar pago
+          <Button
+            size="sm"
+            type="button"
+            onClick={() => {
+              void guardar();
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? "Enviando…" : "Guardar pago"}
           </Button>
         </div>
       </form>
-    </>
+      {isSaving && <LoaderFun />}
+    </div>
   );
 }

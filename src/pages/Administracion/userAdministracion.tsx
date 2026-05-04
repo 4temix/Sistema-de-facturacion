@@ -362,7 +362,6 @@ export default function UserAdministracion() {
             onClose={closeEmpleadoModal}
             className="max-w-[900px] m-4 p-5"
           >
-            {isSaving && <LoaderFun absolute={false} />}
             <section className="min-h-0">
               <FormUsers
                 formik={formik}
@@ -373,6 +372,7 @@ export default function UserAdministracion() {
                 }}
               />
             </section>
+            {isSaving && <LoaderFun />}
           </Modal>
         </div>
       </article>
@@ -466,7 +466,6 @@ export default function UserAdministracion() {
         onClose={handleCloseEditModal}
         className="max-w-[900px] m-4 p-5"
       >
-        {isSaving && <LoaderFun absolute={false} />}
         <section className="min-h-0">
           {editEmpleadoId && (
             <FormUsersEdit
@@ -483,6 +482,7 @@ export default function UserAdministracion() {
             />
           )}
         </section>
+        {isSaving && <LoaderFun />}
       </Modal>
     </section>
   );

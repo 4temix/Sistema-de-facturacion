@@ -15,6 +15,7 @@ import { BoxCubeIcon } from "../../icons";
 import Swal from "sweetalert2";
 import { guardarEdicionFactura } from "./facturaEdicionGuardar";
 import { TbTrash, TbInfoCircle, TbPackage } from "react-icons/tb";
+import LoaderFun from "../loader/LoaderFunc";
 
 type EdicionParameters = {
   closeModal: () => void;
@@ -102,6 +103,8 @@ export function EdicionFacturaReembolsos({
     estado: { value: "", label: "" },
     detalles: [],
   });
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const [elementSelect, setElementSelect] = useState<DevolucionDetallesSave>();
 
@@ -254,21 +257,26 @@ export function EdicionFacturaReembolsos({
     });
   }
 
-  function saveDevolution(saveElement: Devolucion) {
+  async function saveDevolution(saveElement: Devolucion) {
     if (!facturaDetails) return;
-    guardarEdicionFactura(
-      facturaDetails,
-      {
-        id: saveElement.id,
-        estado:
-          saveElement.estado.value === ""
-            ? 0
-            : parseInt(saveElement.estado.value, 10),
-        pagado: 0,
-        detalles: saveElement.detalles,
-      },
-      closeModal,
-    );
+    setIsSaving(true);
+    try {
+      await guardarEdicionFactura(
+        facturaDetails,
+        {
+          id: saveElement.id,
+          estado:
+            saveElement.estado.value === ""
+              ? 0
+              : parseInt(saveElement.estado.value, 10),
+          pagado: 0,
+          detalles: saveElement.detalles,
+        },
+        closeModal,
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   useEffect(() => {
@@ -288,7 +296,7 @@ export function EdicionFacturaReembolsos({
     estadoValor !== "2" && estadoValor !== "0" && estadoValor !== "";
 
   return (
-    <>
+    <div className="relative w-full min-h-[160px]">
       <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
         <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
           Reembolsos y devoluciones
@@ -323,7 +331,13 @@ export function EdicionFacturaReembolsos({
         </div>
       </div>
 
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void saveDevolution(sendData);
+        }}
+      >
         <div className="px-2 pb-4 space-y-5">
           <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-gray-900/60">
             <Label
@@ -624,20 +638,28 @@ export function EdicionFacturaReembolsos({
           )}
         </div>
         <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-          <Button size="sm" variant="outline" type="button" onClick={closeModal}>
+          <Button
+            size="sm"
+            variant="outline"
+            type="button"
+            onClick={closeModal}
+            disabled={isSaving}
+          >
             Cerrar
           </Button>
           <Button
             size="sm"
             type="button"
+            disabled={isSaving}
             onClick={() => {
-              saveDevolution(sendData);
+              void saveDevolution(sendData);
             }}
           >
-            Guardar reembolso
+            {isSaving ? "Enviando…" : "Guardar reembolso"}
           </Button>
         </div>
       </form>
-    </>
+      {isSaving && <LoaderFun />}
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import { ValidationUserProfile } from "./yup";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { useUserData } from "../../context/GlobalUserContext";
 import Swal from "sweetalert2";
+import LoaderFun from "../loader/LoaderFunc";
 
 export interface UserProfileFormValues {
   realName: string | null;
@@ -166,7 +167,7 @@ export default function EditUserProfile({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[700px] m-4">
-      <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+      <div className="no-scrollbar relative w-full max-w-[700px] min-h-[200px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
         <div className="px-2 pr-14">
           <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
             Editar Perfil
@@ -314,6 +315,7 @@ export default function EditUserProfile({
             </Button>
           </div>
         </form>
+        {isSaving && <LoaderFun />}
       </div>
     </Modal>
   );

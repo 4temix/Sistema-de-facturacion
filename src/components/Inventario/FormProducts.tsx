@@ -270,15 +270,66 @@ export default function FormProducts(params: Actions) {
     // Parcial = 2 → no cambiar montoPagado
   }, [valuesGasto.estado, valuesGasto.montoTotal, setFieldValueGastos]);
 
+  const handleSaveProductoYgasto = async () => {
+    const errorsProducto = await validateForm();
+    setTouched(
+      Object.keys(initialValues).reduce(
+        (acc, key) => {
+          acc[key] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+      true,
+    );
+    const errorsGastoForm = await formikGasto.validateForm();
+    formikGasto.setTouched(
+      Object.keys(gastosInitialValues).reduce(
+        (acc, key) => {
+          acc[key] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+      true,
+    );
+    if (
+      Object.keys(errorsProducto).length === 0 &&
+      Object.keys(errorsGastoForm).length === 0
+    ) {
+      const gastoToSave: SaveGasto = {
+        tipoGasto: valuesGasto.tipoGasto ?? TIPO_GASTO_DEFAULT,
+        proveedor: valuesGasto.proveedor || undefined,
+        comprobante: valuesGasto.comprobante || undefined,
+        fecha: toUtcIsoFromDateInput(valuesGasto.fecha),
+        montoTotal: valuesGasto.montoTotal!,
+        montoPagado: valuesGasto.montoPagado ?? 0,
+        saldoPendiente: valuesGasto.saldoPendiente || undefined,
+        estado: valuesGasto.estado!,
+        metodoPago: valuesGasto.metodoPago || undefined,
+        fechaPago: toUtcIsoFromDateInput(valuesGasto.fechaPago),
+        origenFondo: valuesGasto.origenFondo || undefined,
+        referencia: valuesGasto.referencia || undefined,
+        nota: valuesGasto.nota || undefined,
+      };
+      SaveProductoConGasto(values, gastoToSave);
+    }
+  };
+
   return (
-    <>
+    <div className="relative flex min-h-0 w-full flex-col">
       <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
-        {isLoading && <LoaderFun absolute={false} />}
         <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
           Agregar un producto
         </h4>
       </div>
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSaveProductoYgasto();
+        }}
+      >
         <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Código y nombre */}
@@ -894,67 +945,15 @@ export default function FormProducts(params: Actions) {
           </Button>
           <Button
             size="sm"
-            onClick={async (e?: React.MouseEvent<HTMLButtonElement>) => {
-              e?.preventDefault();
-
-              // Validar producto
-              const errorsProducto = await validateForm();
-              setTouched(
-                Object.keys(initialValues).reduce(
-                  (acc, key) => {
-                    acc[key] = true;
-                    return acc;
-                  },
-                  {} as Record<string, boolean>,
-                ),
-                true,
-              );
-
-              // Validar gasto
-              const errorsGastoForm = await formikGasto.validateForm();
-              formikGasto.setTouched(
-                Object.keys(gastosInitialValues).reduce(
-                  (acc, key) => {
-                    acc[key] = true;
-                    return acc;
-                  },
-                  {} as Record<string, boolean>,
-                ),
-                true,
-              );
-
-              // Si no hay errores en ninguno, guardar
-              if (
-                Object.keys(errorsProducto).length === 0 &&
-                Object.keys(errorsGastoForm).length === 0
-              ) {
-                const gastoToSave: SaveGasto = {
-                  tipoGasto: valuesGasto.tipoGasto ?? TIPO_GASTO_DEFAULT,
-                  proveedor: valuesGasto.proveedor || undefined,
-                  comprobante: valuesGasto.comprobante || undefined,
-                  fecha: toUtcIsoFromDateInput(valuesGasto.fecha),
-                  montoTotal: valuesGasto.montoTotal!,
-                  montoPagado: valuesGasto.montoPagado ?? 0,
-                  saldoPendiente: valuesGasto.saldoPendiente || undefined,
-                  estado: valuesGasto.estado!,
-                  metodoPago: valuesGasto.metodoPago || undefined,
-                  fechaPago: toUtcIsoFromDateInput(valuesGasto.fechaPago),
-                  origenFondo: valuesGasto.origenFondo || undefined,
-                  referencia: valuesGasto.referencia || undefined,
-                  nota: valuesGasto.nota || undefined,
-                };
-
-                SaveProductoConGasto(values, gastoToSave);
-              } else {
-                console.log("Errores producto:", errorsProducto);
-                console.log("Errores gasto:", errorsGastoForm);
-              }
+            onClick={() => {
+              void handleSaveProductoYgasto();
             }}
           >
             Guardar producto
           </Button>
         </div>
       </form>
-    </>
+      {isLoading && <LoaderFun />}
+    </div>
   );
 }

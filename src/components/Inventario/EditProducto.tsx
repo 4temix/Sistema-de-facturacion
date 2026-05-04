@@ -133,19 +133,41 @@ export default function EditProducto(params: Actions) {
     GetForUpdate(id);
   }, [id]);
 
+  const handleSaveProducto = async () => {
+    const errors = await validateForm();
+    setTouched(
+      Object.keys(initialValues).reduce(
+        (acc, key) => {
+          acc[key] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+      true,
+    );
+    if (Object.keys(errors).length === 0) {
+      Saveproducto(values);
+    }
+  };
+
   return (
     <>
       {isFetching ? (
         <ProductFormUpdateSkeleton />
       ) : (
-        <>
+        <div className="relative min-h-0 flex w-full flex-col">
           <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
-            {isSaving && <LoaderFun absolute={false} />}
             <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
               Actualizar un producto
             </h4>
           </div>
-          <form className="flex flex-col">
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleSaveProducto();
+            }}
+          >
             <div className="px-2 pb-4 pt-2">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5">
                 {/* 1️⃣ Código y nombre */}
@@ -525,33 +547,16 @@ export default function EditProducto(params: Actions) {
               </Button>
               <Button
                 size="sm"
-                onClick={async (e?: React.MouseEvent<HTMLButtonElement>) => {
-                  e?.preventDefault();
-                  // Valida todos los campos
-                  const errors = await validateForm();
-
-                  // Marca todos los campos como tocados
-                  setTouched(
-                    Object.keys(initialValues).reduce((acc, key) => {
-                      acc[key] = true;
-                      return acc;
-                    }, {} as Record<string, boolean>),
-                    true
-                  );
-                  // Si no hay errores
-                  if (Object.keys(errors).length === 0) {
-                    console.log("todo bien");
-                    Saveproducto(values);
-                  } else {
-                    console.log("Errores encontrados:", errors);
-                  }
+                onClick={() => {
+                  void handleSaveProducto();
                 }}
               >
                 Guardar producto
               </Button>
             </div>
           </form>
-        </>
+          {isSaving && <LoaderFun />}
+        </div>
       )}
     </>
   );
@@ -563,7 +568,10 @@ function ProductFormUpdateSkeleton() {
       <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-3 dark:border-gray-800 dark:bg-gray-900">
         <div className="shimmer h-6 w-60 rounded" />
       </div>
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Código y nombre */}

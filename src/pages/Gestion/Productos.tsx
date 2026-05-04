@@ -328,7 +328,16 @@ export default function Productos() {
               Filtra los elementos para encontrarlos mas rapido
             </p>
           </div>
-          <form className="flex flex-col">
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const filtersWithPageReset = { ...filters, page: 1 };
+              setFilters(filtersWithPageReset);
+              getData(filtersWithPageReset);
+              closeModal();
+            }}
+          >
             <div className="px-2">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5">
                 <div className="grid sm:grid-cols-1 gap-3 lg:grid-cols-2">

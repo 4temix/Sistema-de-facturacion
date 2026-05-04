@@ -4,7 +4,7 @@ import Label from "../form/Label";
 import Button from "../ui/button/Button";
 import Select, { SingleValue } from "react-select";
 import { useFormik } from "formik";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { BaseSelecst, Option } from "../../Types/ProductTypes";
 import { apiRequestThen } from "../../Utilities/FetchFuntions";
 import { toUtcIsoFromDateInput } from "../../Utilities/dateApi";
@@ -288,20 +288,24 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
     }
   };
 
+  const onFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void handleSubmit();
+  };
+
   if (isLoading) {
     return <GastoFormUpdateSkeleton />;
   }
 
   return (
-    <>
+    <div className="relative min-h-0 flex w-full flex-col">
       <div className="relative w-full shrink-0 border-b border-gray-100 bg-white px-2 pb-3 pr-14 pt-1 dark:border-gray-800 dark:bg-gray-900">
-        {isSaving && <LoaderFun absolute={false} />}
         <h4 className="mb-0 text-2xl font-semibold text-gray-800 dark:text-white/90">
           Actualizar Gasto
         </h4>
       </div>
 
-      <form className="flex flex-col">
+      <form className="flex flex-col" onSubmit={onFormSubmit}>
         <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Tipo de gasto y Estado */}
@@ -634,7 +638,8 @@ export default function EditGasto({ closeModal, id, onSuccess }: Actions) {
           </Button>
         </div>
       </form>
-    </>
+      {isSaving && <LoaderFun />}
+    </div>
   );
 }
 
@@ -645,7 +650,10 @@ function GastoFormUpdateSkeleton() {
         <div className="shimmer h-6 w-60 rounded" />
       </div>
 
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Tipo y Estado */}

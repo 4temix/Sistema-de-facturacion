@@ -205,12 +205,12 @@ export default function Nominas() {
               className="max-w-[500px] m-4"
               CloseClickBanner={false}
             >
-              {isSaving && <LoaderFun absolute={false} />}
               <FormNomina
                 formik={formik}
                 onCancel={closeModal}
                 onSubmit={() => formik.handleSubmit()}
               />
+              {isSaving && <LoaderFun />}
             </Modal>
           </article>
 

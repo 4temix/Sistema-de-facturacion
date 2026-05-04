@@ -154,12 +154,12 @@ export default function EditEmpleado({ id, closeModal, onSuccess }: Props) {
   }, [id]);
 
   if (isLoading) {
-    return <LoaderFun absolute={false} />;
+    return <LoaderFun />;
   }
 
   return (
     <div className="relative">
-      {isSaving && <LoaderFun absolute={false} />}
+      {isSaving && <LoaderFun />}
       <FormEmpleados
         formik={formik}
         selectsData={selectsData}

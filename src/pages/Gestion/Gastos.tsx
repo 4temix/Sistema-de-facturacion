@@ -479,7 +479,6 @@ export default function Gastos() {
             onClose={closeGastoModal}
             className="max-w-[900px] m-4 p-5"
           >
-            {isSaving && <LoaderFun absolute={false} />}
             <section className="min-h-0">
               <FormGastos
                 formik={formik}
@@ -488,6 +487,7 @@ export default function Gastos() {
                 onSubmit={() => formik.handleSubmit()}
               />
             </section>
+            {isSaving && <LoaderFun />}
           </Modal>
         </div>
       </article>
@@ -551,7 +551,16 @@ export default function Gastos() {
               Filtra los gastos para encontrarlos más rápido
             </p>
           </div>
-          <form className="flex flex-col">
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const filtersWithPageReset = { ...filters, pPage: 1 };
+              setFilters(filtersWithPageReset);
+              getData(filtersWithPageReset);
+              closeModal();
+            }}
+          >
             <div className="px-2">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5">
                 <div className="grid sm:grid-cols-1 gap-3 lg:grid-cols-2">

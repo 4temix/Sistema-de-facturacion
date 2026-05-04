@@ -113,7 +113,13 @@ export const Modal: React.FC<ModalProps> = ({
           </button>
         )}
         <div
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain rounded-b-2xl [-webkit-overflow-scrolling:touch] sm:rounded-b-3xl [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-200 dark:[&::-webkit-scrollbar-track]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-blue-500 [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+          className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain rounded-b-2xl [-webkit-overflow-scrolling:touch] sm:rounded-b-3xl [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-200 dark:[&::-webkit-scrollbar-track]:bg-gray-700 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-blue-500 [&::-webkit-scrollbar-thumb:hover]:bg-blue-600"
+          onSubmitCapture={(e) => {
+            const t = e.target as HTMLElement | null;
+            if (t?.tagName === "FORM") {
+              e.preventDefault();
+            }
+          }}
         >
           {children}
         </div>

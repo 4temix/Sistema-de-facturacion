@@ -234,9 +234,7 @@ export default function NominaEmpleadoDetails({
   };
 
   return (
-    <div className="bg-white w-full h-full overflow-y-auto p-6 relative">
-      {isSaving && <LoaderFun absolute={false} />}
-      
+    <div className="relative h-full w-full overflow-y-auto bg-white p-6">
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
@@ -641,6 +639,7 @@ export default function NominaEmpleadoDetails({
       >
         Cerrar
       </button>
+      {isSaving && <LoaderFun />}
     </div>
   );
 }

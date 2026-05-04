@@ -306,7 +306,6 @@ export default function Empleados() {
             onClose={closeEmpleadoModal}
             className="max-w-[900px] m-4 p-5"
           >
-            {isSaving && <LoaderFun absolute={false} />}
             <section className="min-h-0">
               <FormEmpleados
                 formik={formik}
@@ -315,6 +314,7 @@ export default function Empleados() {
                 onSubmit={() => formik.handleSubmit()}
               />
             </section>
+            {isSaving && <LoaderFun />}
           </Modal>
         </div>
       </article>

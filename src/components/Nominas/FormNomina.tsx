@@ -39,7 +39,13 @@ export default function FormNomina({
         </p>
       </div>
 
-      <form className="space-y-5">
+      <form
+        className="space-y-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+      >
         {/* Tipo de Nómina */}
         <div>
           <Label htmlFor="tipo">Tipo de Nómina</Label>

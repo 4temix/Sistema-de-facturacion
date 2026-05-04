@@ -50,7 +50,13 @@ export default function FormEmpleados({
           {title}
         </h4>
       </div>
-      <form className="flex flex-col">
+      <form
+        className="flex flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+      >
         <div className="px-2 pb-4 pt-2">
           <div className="grid grid-cols-1 gap-x-6 gap-y-5">
             {/* 1️⃣ Datos personales */}
