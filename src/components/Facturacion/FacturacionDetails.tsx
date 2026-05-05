@@ -13,6 +13,11 @@ import {
   FacturaPagosDto,
   ProductoVenta,
 } from "../../Types/FacturacionTypes";
+import {
+  cantidadDevueltaProducto,
+  getTotalesFacturaResumen,
+  subtotalLineaVentaActual,
+} from "../../Utilities/facturaDevoluciones";
 import { User } from "../../Types/Usuario";
 import { FacturaSkeleton } from "./FacturaSkeleton";
 import { LuPrinter, LuWallet } from "react-icons/lu";
@@ -88,6 +93,8 @@ export default function FacturacionDetails({
   const formatMoney = (n: number) =>
     n.toLocaleString("es-DO", { style: "currency", currency: "DOP" });
 
+  const tot = getTotalesFacturaResumen(factura);
+
   const pagosOrdenados: FacturaPagosDto[] = [...(factura.pagos ?? [])].sort(
     (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
   );
@@ -116,12 +123,12 @@ export default function FacturacionDetails({
         </div>
       </div>
 
-      {/* 🔹 Totales generales */}
+      {/* 🔹 Totales (netos tras devoluciones; referencia si hubo reembolso) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         <div className="bg-gray-50 p-4 rounded-lg border text-center">
-          <p className="text-xs text-gray-500">Subtotal</p>
+          <p className="text-xs text-gray-500">Subtotal (actual)</p>
           <p className="font-bold text-gray-900">
-            {factura.subtotal.toLocaleString("es-DO", {
+            {tot.subtotalActual.toLocaleString("es-DO", {
               style: "currency",
               currency: "DOP",
             })}
@@ -132,51 +139,44 @@ export default function FacturacionDetails({
           <p className="font-bold text-gray-900">{factura.impuestoTotal} %</p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg border text-center">
-          <p className="text-xs text-gray-500">Total</p>
+          <p className="text-xs text-gray-500">Total (actual)</p>
           <p className="font-bold text-blue-600 text-lg">
-            {factura.total.toLocaleString("es-DO", {
+            {tot.totalActual.toLocaleString("es-DO", {
               style: "currency",
               currency: "DOP",
             })}
           </p>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg border text-center">
-          <p className="text-xs text-gray-500">Total Descuento</p>
+          <p className="text-xs text-gray-500">Total descuento</p>
           <p className="font-bold text-green-600 text-lg">
             {factura.descuentoTotal} %
           </p>
         </div>
-      </div>
-
-      {/* 🔹 Totales detallados (actual / devuelto / original) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-        <div className="bg-white border p-3 rounded-lg text-center">
-          <p className="text-xs text-gray-500">Subtotal Actual</p>
-          <p className="font-medium">
-            {factura.totales.subtotalActual.toLocaleString("es-DO", {
-              style: "currency",
-              currency: "DOP",
-            })}
-          </p>
-        </div>
-        <div className="bg-white border p-3 rounded-lg text-center">
-          <p className="text-xs text-gray-500">Subtotal Devuelto</p>
-          <p className="font-medium">
-            {factura.totales.subtotalDevuelto.toLocaleString("es-DO", {
-              style: "currency",
-              currency: "DOP",
-            })}
-          </p>
-        </div>
-        <div className="bg-white border p-3 rounded-lg text-center">
-          <p className="text-xs text-gray-500">Subtotal Original</p>
-          <p className="font-medium">
-            {factura.totales.subtotalOriginal.toLocaleString("es-DO", {
-              style: "currency",
-              currency: "DOP",
-            })}
-          </p>
-        </div>
+        {tot.hayDevoluciones && tot.totalDevuelto > 0 && (
+          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center sm:col-span-2">
+            <p className="text-xs text-amber-800">Monto total devuelto (reembolso)</p>
+            <p className="font-bold text-amber-900 text-lg">
+              {tot.totalDevuelto.toLocaleString("es-DO", {
+                style: "currency",
+                currency: "DOP",
+              })}
+            </p>
+          </div>
+        )}
+        {tot.hayDevoluciones &&
+          tot.totalOriginal > 0 &&
+          tot.totalOriginal !== tot.totalActual && (
+            <div className="bg-white p-4 rounded-lg border border-dashed border-gray-300 text-center sm:col-span-2">
+              <p className="text-xs text-gray-500">Total venta original (referencia)</p>
+              <p className="font-medium text-gray-700">
+                {tot.totalOriginal.toLocaleString("es-DO", {
+                  style: "currency",
+                  currency: "DOP",
+                })}
+              </p>
+            </div>
+          )}
       </div>
 
       {/* 🔹 Cliente */}
@@ -234,20 +234,25 @@ export default function FacturacionDetails({
           Productos
         </h3>
         {factura.productos && factura.productos.length > 0 ? (
-          factura.productos.map((p: ProductoVenta) => (
+          factura.productos.map((p: ProductoVenta) => {
+            const dev = cantidadDevueltaProducto(p);
+            const qtyVenta = Math.max(0, p.cantidad - dev);
+            const subActual = subtotalLineaVentaActual(p);
+            return (
             <div key={p.productoId} className="border-b py-2 text-sm">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-medium text-gray-900">{p.nombre}</p>
                   <p className="text-gray-600 text-xs">
-                    Cantidad: {p.cantidad} | Desc: {p.descuento}% | Imp:{" "}
-                    {p.impuestos.toFixed(2)} %
+                    Facturado: {p.cantidad} uds
+                    {dev > 0 ? ` · En venta: ${qtyVenta} uds` : ""} | Desc:{" "}
+                    {p.descuento}% | Imp: {p.impuestos.toFixed(2)} %
                   </p>
-                  {p.cantidadDevuelta > 0 && (
+                  {dev > 0 && (
                     <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
                       <TbReceiptRefund className="text-sm" />
-                      Devuelto: {p.cantidadDevuelta} | Monto:{" "}
-                      {p.montoDevuelto.toLocaleString("es-DO", {
+                      Devuelto: {dev} uds | Monto devuelto:{" "}
+                      {(p.montoDevuelto ?? 0).toLocaleString("es-DO", {
                         style: "currency",
                         currency: "DOP",
                       })}
@@ -262,11 +267,11 @@ export default function FacturacionDetails({
                     })}
                   </p>
                   <p className="font-semibold text-gray-900">
-                    St:{" "}
-                    {(p.precioVentaActual * p.cantidad).toLocaleString(
-                      "es-DO",
-                      { style: "currency", currency: "DOP" },
-                    )}
+                    Subtotal línea (actual):{" "}
+                    {subActual.toLocaleString("es-DO", {
+                      style: "currency",
+                      currency: "DOP",
+                    })}
                   </p>
                 </div>
               </div>
@@ -296,7 +301,8 @@ export default function FacturacionDetails({
                 </div>
               )}
             </div>
-          ))
+            );
+          })
         ) : (
           <p className="text-gray-600 text-sm italic">
             No hay productos registrados.
@@ -324,7 +330,7 @@ export default function FacturacionDetails({
         </div>
       )}
 
-      {/* 🔹 Ganancia y Margen */}
+      {/* 🔹 Pagos (monto pagado sin alterar; devolución aparte) */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="bg-white border p-3 rounded-lg">
           <div className="flex items-center gap-2 mb-1">
@@ -345,6 +351,20 @@ export default function FacturacionDetails({
           </div>
           <p className="font-medium">{factura.metodoPago}</p>
         </div>
+        {tot.totalDevuelto > 0 && (
+          <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg sm:col-span-2">
+            <div className="flex items-center gap-2 mb-1">
+              <TbReceiptRefund className="text-amber-700 text-lg" />
+              <p className="text-xs text-amber-900">Monto devuelto (mercancía / reembolso)</p>
+            </div>
+            <p className="font-semibold text-amber-950">
+              {tot.totalDevuelto.toLocaleString("es-DO", {
+                style: "currency",
+                currency: "DOP",
+              })}
+            </p>
+          </div>
+        )}
       </div>
 
       {pagosOrdenados.length > 0 && (

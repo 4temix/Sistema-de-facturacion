@@ -1,22 +1,11 @@
+import { FacturaDetalle } from "../Types/FacturacionTypes";
 import {
-  FacturaDetalle,
-  FacturaPagosDto,
-} from "../Types/FacturacionTypes";
-
-function facturaPagosOrdenados(
-  pagos: FacturaDetalle["pagos"],
-): FacturaPagosDto[] {
-  return [...(pagos ?? [])].sort(
-    (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
-  );
-}
-
-/** Saldo pendiente mostrado en impresión: último `montoPendiente` del historial si existe, si no cálculo por total. */
-function saldoPendienteImpresion(f: FacturaDetalle): number {
-  const orden = facturaPagosOrdenados(f.pagos);
-  if (orden.length) return orden[orden.length - 1]!.montoPendiente;
-  return f.total - f.montoPagado;
-}
+  cantidadDevueltaProducto,
+  facturaPagosOrdenados,
+  getTotalesFacturaResumen,
+  saldoPendienteFactura,
+  subtotalLineaVentaActual,
+} from "../Utilities/facturaDevoluciones";
 
 function buildFacturaPagosPrintBlock(
   pagos: FacturaDetalle["pagos"],
@@ -86,6 +75,8 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
       maximumFractionDigits: 2,
     }).format(amount);
 
+  const tot = getTotalesFacturaResumen(factura);
+
   // let stringsms = `<img src="../../public/images/logo.jpg" class="logo" alt="Logo" />`;
 
   // docker run -d --name prueba-db --network red_prueba -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=forerunner117@# -e POSTGRES_DB=basePrueba -v postgres_data:/var/lib/postgresql/data postgres:18
@@ -113,6 +104,43 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
             line-height: 1.5;
             color: #000;
             text-align: center;
+            position: relative;
+            left: -3px;
+          }
+
+          /* Mismo tamaño que .product-line (11px); centrado */
+          .print-devolucion {
+            margin-top: 5px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #a40000;
+            line-height: 1.35;
+          }
+          .print-devolucion .print-devolucion-monto {
+            display: block;
+            font-size: 11px;
+            margin-top: 2px;
+          }
+          .print-total-original-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            margin: 6px 0 4px;
+            text-align: center;
+            width: 100%;
+          }
+          .print-total-original-block .print-total-original-lbl {
+            font-weight: 700;
+            font-size: 11px;
+            color: #222;
+            line-height: 1.25;
+          }
+          .print-total-original-block .print-total-original-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #000;
           }
 
           /* Header */
@@ -276,6 +304,7 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
               width: 48mm;
               max-width: 48mm;
               padding: 1mm;
+              left: -3px;
             }
             
             @page {
@@ -331,17 +360,22 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
 
         <div class="section-title">PRODUCTOS</div>
         
-        ${factura
-          .productos!.map(
-            (p) => `
+        ${(factura.productos ?? [])
+          .map((p) => {
+            const dev = cantidadDevueltaProducto(p);
+            const stActual = subtotalLineaVentaActual(p);
+            const devLine =
+              dev > 0
+                ? `<div class="print-devolucion"><span>Devuelto: ${dev} uds</span><span class="print-devolucion-monto">RD$ ${formatCurrency(p.montoDevuelto ?? 0)}</span></div>`
+                : "";
+            return `
             <div class="product">
               <div class="product-name">${p.nombre}</div>
               <div class="product-line">
-                <span>x${p.cantidad}</span>
-                <span>RD$ ${formatCurrency(
-                  p.precioVentaActual * p.cantidad,
-                )}</span>
+                <span>x${p.cantidad}${dev > 0 ? ` (en venta: ${p.cantidad - dev})` : ""}</span>
+                <span>RD$ ${formatCurrency(stActual)}</span>
               </div>
+              ${devLine}
               ${
                 p.descuento > 0 || p.impuestos > 0
                   ? `<div class="product-extras">
@@ -354,8 +388,8 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
                   : ""
               }
             </div>
-          `,
-          )
+          `;
+          })
           .join("")}
 
         ${
@@ -383,9 +417,17 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
         <hr class="divider-double" />
 
         <div class="total-row">
-          <span>Subtotal:</span>
-          <span>RD$ ${formatCurrency(factura.subtotal)}</span>
+          <span>Subtotal (actual):</span>
+          <span>RD$ ${formatCurrency(tot.subtotalActual)}</span>
         </div>
+        ${
+          tot.hayDevoluciones && tot.subtotalDevuelto > 0
+            ? `<div class="total-row" style="color:#a40000;">
+                <span>Subtotal devuelto:</span>
+                <span>RD$ ${formatCurrency(tot.subtotalDevuelto)}</span>
+              </div>`
+            : ""
+        }
         
         ${
           factura.impuestoTotal > 0
@@ -404,13 +446,29 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
               </div>`
             : ""
         }
+        ${
+          tot.hayDevoluciones && tot.totalOriginal !== tot.totalActual
+            ? `<div class="print-total-original-block">
+                <span class="print-total-original-lbl">Total venta original</span>
+                <span class="print-total-original-val">RD$ ${formatCurrency(tot.totalOriginal)}</span>
+              </div>`
+            : ""
+        }
         
         <div class="grand-total">
           <div class="product-line">
-            <span>TOTAL</span>
-            <span>RD$ ${formatCurrency(factura.total)}</span>
+            <span>TOTAL (actual)</span>
+            <span>RD$ ${formatCurrency(tot.totalActual)}</span>
           </div>
         </div>
+        ${
+          tot.totalDevuelto > 0
+            ? `<div class="total-row" style="margin-top:4px;font-weight:bold;color:#a40000;">
+                <span>Reembolso / devolución:</span>
+                <span>RD$ ${formatCurrency(tot.totalDevuelto)}</span>
+              </div>`
+            : ""
+        }
 
         ${buildFacturaPagosPrintBlock(
           factura.pagos,
@@ -425,11 +483,16 @@ export const handlePrintFactura = (factura: FacturaDetalle, user: User) => {
           <div class="payment-date">fecha de pago: ${formatDate(
             factura.fechaPago,
           )}</div>
-          <div class="payment-date">Monto pagado: ${formatCurrency(
+          <div class="payment-date">Monto pagado: RD$ ${formatCurrency(
             factura.montoPagado,
           )}</div>
-           <div class="payment-date">Monto pendiente: ${formatCurrency(
-             saldoPendienteImpresion(factura),
+          ${
+            tot.totalDevuelto > 0
+              ? `<div class="payment-date" style="color:#a40000;font-weight:bold;">Monto devuelto (mercancía): RD$ ${formatCurrency(tot.totalDevuelto)}</div>`
+              : ""
+          }
+           <div class="payment-date">Monto pendiente: RD$ ${formatCurrency(
+             saldoPendienteFactura(factura),
            )}</div>
         </div>
 
@@ -476,6 +539,8 @@ export const handlePrintFacturaFullPage = (
       maximumFractionDigits: 2,
     }).format(amount);
 
+  const tot = getTotalesFacturaResumen(factura);
+
   const printContent = `
     <html>
       <head>
@@ -486,10 +551,43 @@ export const handlePrintFacturaFullPage = (
             width: 100%;
             max-width: 210mm;
             margin: 0 auto;
-            padding: 12mm 14mm;
+            padding: 12mm 14mm 12mm calc(14mm - 3px);
             font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 12pt;
             line-height: 1.45;
+            color: #111;
+          }
+          /* Igual que .product-line (0.9rem); centrado */
+          .print-devolucion-a4 {
+            margin-top: 6px;
+            color: #a40000;
+            font-weight: 700;
+            font-size: 0.9rem;
+            line-height: 1.35;
+            text-align: center;
+          }
+          .print-devolucion-a4 .print-devolucion-monto {
+            display: block;
+            font-size: 0.9rem;
+            margin-top: 3px;
+          }
+          .print-total-original-a4 {
+            margin: 10px 0 8px;
+            padding: 8px 0;
+            border-top: 1px dashed #bbb;
+            text-align: center;
+          }
+          .print-total-original-a4 .lbl {
+            display: block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 3px;
+          }
+          .print-total-original-a4 .val {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 700;
             color: #111;
           }
           h1 { font-size: 1.35rem; margin-bottom: 4px; }
@@ -536,7 +634,9 @@ export const handlePrintFacturaFullPage = (
           .payment-box { margin: 12px 0; font-size: 0.95rem; }
           .footer { margin-top: 16px; text-align: center; font-size: 0.9rem; color: #444; }
           @media print {
-            body { padding: 10mm; }
+            body {
+              padding: 10mm 10mm 10mm calc(10mm - 3px);
+            }
             .no-print { display: none !important; }
           }
           @page { size: A4 portrait; margin: 12mm; }
@@ -555,16 +655,23 @@ export const handlePrintFacturaFullPage = (
         <hr class="divider" />
         <div class="section-title">Productos</div>
         ${(factura.productos ?? [])
-          .map(
-            (p) => `
+          .map((p) => {
+            const dev = cantidadDevueltaProducto(p);
+            const stActual = subtotalLineaVentaActual(p);
+            const devLine =
+              dev > 0
+                ? `<div class="print-devolucion-a4"><span>Devuelto: ${dev} uds</span><span class="print-devolucion-monto">RD$ ${formatCurrency(p.montoDevuelto ?? 0)}</span></div>`
+                : "";
+            return `
           <div class="product">
             <div class="product-name">${p.nombre}</div>
             <div class="product-line">
-              <span>Cant. ${p.cantidad}</span>
-              <span>RD$ ${formatCurrency(p.precioVentaActual * p.cantidad)}</span>
+              <span>Cant. ${p.cantidad}${dev > 0 ? ` (en venta: ${p.cantidad - dev})` : ""}</span>
+              <span>RD$ ${formatCurrency(stActual)}</span>
             </div>
-          </div>`,
-          )
+            ${devLine}
+          </div>`;
+          })
           .join("")}
         ${
           factura.manoDeObra > 0
@@ -574,10 +681,25 @@ export const handlePrintFacturaFullPage = (
             : ""
         }
         <hr class="divider-double" />
-        <div class="total-row"><span>Subtotal</span><span>RD$ ${formatCurrency(factura.subtotal)}</span></div>
+        <div class="total-row"><span>Subtotal (actual)</span><span>RD$ ${formatCurrency(tot.subtotalActual)}</span></div>
+        ${
+          tot.hayDevoluciones && tot.subtotalDevuelto > 0
+            ? `<div class="total-row" style="color:#a40000;"><span>Subtotal devuelto</span><span>RD$ ${formatCurrency(tot.subtotalDevuelto)}</span></div>`
+            : ""
+        }
+        ${
+          tot.hayDevoluciones && tot.totalOriginal !== tot.totalActual
+            ? `<div class="print-total-original-a4"><span class="lbl">Total venta original</span><span class="val">RD$ ${formatCurrency(tot.totalOriginal)}</span></div>`
+            : ""
+        }
         <div class="grand-total">
-          <div class="product-line"><span>TOTAL</span><span>RD$ ${formatCurrency(factura.total)}</span></div>
+          <div class="product-line"><span>TOTAL (actual)</span><span>RD$ ${formatCurrency(tot.totalActual)}</span></div>
         </div>
+        ${
+          tot.totalDevuelto > 0
+            ? `<div class="info-row" style="color:#a40000;font-weight:600;margin-top:8px;"><span>Reembolso / devolución</span><span>RD$ ${formatCurrency(tot.totalDevuelto)}</span></div>`
+            : ""
+        }
         ${buildFacturaPagosPrintBlock(
           factura.pagos,
           formatDate,
@@ -588,7 +710,12 @@ export const handlePrintFacturaFullPage = (
           <div class="info-row"><span>Método de pago</span><span>${factura.metodoPago || "N/A"}</span></div>
           <div class="info-row"><span>Fecha de pago</span><span>${formatDate(factura.fechaPago)}</span></div>
           <div class="info-row"><span>Monto pagado (acum.)</span><span>RD$ ${formatCurrency(factura.montoPagado)}</span></div>
-          <div class="info-row"><span>Saldo pendiente</span><span>RD$ ${formatCurrency(saldoPendienteImpresion(factura))}</span></div>
+          ${
+            tot.totalDevuelto > 0
+              ? `<div class="info-row" style="color:#a40000;"><span>Monto devuelto (mercancía)</span><span>RD$ ${formatCurrency(tot.totalDevuelto)}</span></div>`
+              : ""
+          }
+          <div class="info-row"><span>Saldo pendiente</span><span>RD$ ${formatCurrency(saldoPendienteFactura(factura))}</span></div>
         </div>
         <div class="footer"><p>Gracias por su compra.</p><p class="muted">Documento generado desde el sistema.</p></div>
         <button class="no-print" style="margin-top:16px;padding:10px;width:100%;cursor:pointer;" onclick="window.print()">Imprimir</button>

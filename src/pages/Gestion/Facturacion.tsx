@@ -297,9 +297,7 @@ function FacturacionPageContent() {
     if (filters.fechaFin) params.fechaFin = filters.fechaFin;
     if (filters.page) params.page = filters.page;
 
-    setSearchParams(
-      params as unknown as Parameters<typeof setSearchParams>[0],
-    );
+    setSearchParams(params as unknown as Parameters<typeof setSearchParams>[0]);
   }, [filters]);
 
   return (
@@ -583,7 +581,7 @@ function FacturacionPageContent() {
       </section>
       <Modal
         isOpen={modalEditIsOpen}
-        onClose={cerrarModalEdicionFactura}
+        onClose={closeModalEdit}
         zIndex="z-[100]"
         className={
           editModalMode === "devoluciones"
