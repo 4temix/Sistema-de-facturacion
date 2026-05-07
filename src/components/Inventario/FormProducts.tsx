@@ -110,7 +110,7 @@ export default function FormProducts(params: Actions) {
       estadoId: null,
       precioCompra: 0,
       precioVenta: 0,
-      precioMinimo: null,
+      minPriceSale: 0,
       stockActual: 0,
       stockMinimo: 0,
       unidadMedida: "unidad",
@@ -505,19 +505,19 @@ export default function FormProducts(params: Actions) {
                   type="text"
                   id="precio_minimo"
                   placeholder="0.00"
-                  hint={errors.precioMinimo}
+                  hint={errors.minPriceSale}
                   value={
-                    values.precioMinimo === 0 ? "" : (values.precioMinimo ?? "")
+                    values.minPriceSale === 0 ? "" : (values.minPriceSale ?? "")
                   }
-                  error={errors.precioMinimo ? true : false}
+                  error={errors.minPriceSale ? true : false}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === "") {
-                      setFieldValue("precioMinimo", null);
+                      setFieldValue("minPriceSale", null);
                       return;
                     }
                     if (regexNum.test(value)) {
-                      setFieldValue("precioMinimo", Number(value));
+                      setFieldValue("minPriceSale", Number(value));
                     }
                   }}
                 />
@@ -693,8 +693,8 @@ export default function FormProducts(params: Actions) {
                     Información del gasto
                   </h5>
                   <p className="mt-0.5 max-w-xl text-xs text-gray-500 dark:text-gray-400">
-                    Primero define el estado de pago; al elegir &quot;Pagado&quot; se
-                    ajustan los montos automáticamente.
+                    Primero define el estado de pago; al elegir
+                    &quot;Pagado&quot; se ajustan los montos automáticamente.
                   </p>
                 </div>
               </div>
@@ -848,9 +848,7 @@ export default function FormProducts(params: Actions) {
                     value={valuesGasto.fecha ?? ""}
                     onChange={(value) => setFieldValueGastos("fecha", value)}
                     onBlur={() => setFieldTouchedGasto("fecha", true)}
-                    error={
-                      !!errorsGasto.fecha && !!touchedGasto.fecha
-                    }
+                    error={!!errorsGasto.fecha && !!touchedGasto.fecha}
                     errorMessage={
                       touchedGasto.fecha ? errorsGasto.fecha : undefined
                     }
@@ -867,13 +865,9 @@ export default function FormProducts(params: Actions) {
                       setFieldValueGastos("fechaPago", value)
                     }
                     onBlur={() => setFieldTouchedGasto("fechaPago", true)}
-                    error={
-                      !!errorsGasto.fechaPago && !!touchedGasto.fechaPago
-                    }
+                    error={!!errorsGasto.fechaPago && !!touchedGasto.fechaPago}
                     errorMessage={
-                      touchedGasto.fechaPago
-                        ? errorsGasto.fechaPago
-                        : undefined
+                      touchedGasto.fechaPago ? errorsGasto.fechaPago : undefined
                     }
                   />
                 </div>
