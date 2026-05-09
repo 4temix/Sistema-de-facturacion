@@ -5,6 +5,14 @@ type Parameters = {
   ganancias: number;
 };
 
+const fmtDOP = (n: number) =>
+  new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n);
+
 export default function EcommerceMetrics({
   ventas = 0,
   ganancias = 0,
@@ -20,8 +28,8 @@ export default function EcommerceMetrics({
           <span className="text-sm text-gray-500 dark:text-gray-400">
             Ventas de la semana
           </span>
-          <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
-            ${ventas.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+          <h4 className="mt-2 text-2xl font-bold tabular-nums text-gray-800 dark:text-white/90">
+            {fmtDOP(ventas)}
           </h4>
         </div>
       </div>
@@ -35,8 +43,8 @@ export default function EcommerceMetrics({
           <span className="text-sm text-gray-500 dark:text-gray-400">
             Ganancias de la semana
           </span>
-          <h4 className="mt-2 text-2xl font-bold text-gray-800 dark:text-white/90">
-            ${ganancias.toLocaleString("es-DO", { minimumFractionDigits: 2 })}
+          <h4 className="mt-2 text-2xl font-bold tabular-nums text-gray-800 dark:text-white/90">
+            {fmtDOP(ganancias)}
           </h4>
         </div>
       </div>

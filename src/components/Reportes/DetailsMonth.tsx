@@ -15,6 +15,15 @@ import {
   TbClockDollar,
   TbReceipt,
 } from "react-icons/tb";
+import { mesMetaEncadenada } from "../../Utilities/reportesMesMetaEncadenada";
+
+const fmtDOP = (n: number, fractionDigits = 0) =>
+  new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(n);
 
 export default function DetailsMonth({ params }: { params: ReporteMensual }) {
   const { fechaInit, fechaFin } = generarRangoFecha(
@@ -212,41 +221,76 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Ventas por Semana */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
               Ventas por Semana
             </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              La primera semana del mes es la referencia; las demás comparan sus
+              ventas con la semana anterior.
+            </p>
             <div className="space-y-4">
-              {params.semanas?.map((week, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        Semana {week.numeroSemana}
-                      </span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {new Intl.NumberFormat("es-DO", {
-                          style: "currency",
-                          currency: "DOP",
-                          minimumFractionDigits: 2,
-                        }).format(week?.totalSemana)}
-                      </span>
-                    </div>
-                    <div className="bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
-                        style={{
-                          width: `${(week.totalSemana / 30000) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-600">
-                        {week.cantidadFacturas} pedidos
-                      </span>
+              {params.semanas?.map((week, idx) => {
+                const totalSemanaPrev =
+                  idx === 0 ? null : params.semanas[idx - 1]!.totalSemana;
+                const meta = mesMetaEncadenada(
+                  week.totalSemana,
+                  totalSemanaPrev,
+                );
+                const badgeClass = meta.superoMeta
+                  ? "bg-green-100 text-green-700"
+                  : meta.esMesReferencia
+                    ? "bg-blue-100 text-blue-700"
+                    : meta.anchoBarra < 50
+                      ? "bg-gray-100 text-gray-700"
+                      : "bg-blue-50 text-blue-800";
+
+                return (
+                  <div key={idx} className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2 gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          Semana {week.numeroSemana}
+                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            title="Progreso respecto a la semana anterior"
+                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeClass}`}
+                          >
+                            {meta.etiquetaProgreso}
+                          </span>
+                          <span className="text-sm font-bold text-gray-900 tabular-nums">
+                            {fmtDOP(week.totalSemana, 2)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${
+                            meta.superoMeta
+                              ? "from-green-500 to-green-600"
+                              : meta.anchoBarra > 0
+                                ? "from-blue-500 to-blue-600"
+                                : "from-gray-300 to-gray-400"
+                          }`}
+                          style={{
+                            width: `${meta.anchoBarra}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-600">
+                          {week.cantidadFacturas} pedidos
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {meta.esMesReferencia
+                            ? "Semana base"
+                            : "vs semana anterior"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -291,61 +335,82 @@ export default function DetailsMonth({ params }: { params: ReporteMensual }) {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">Devoluciones</h3>
-              <TbReceiptRefund className="text-red-500 text-2xl" />
+              <TbReceiptRefund className="text-red-500 text-2xl shrink-0" />
             </div>
+
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Total Devuelto</p>
-                  <p className="text-lg font-bold text-gray-900">
-                    {params.devoluciones.cantidad}
-                  </p>
-                  <p className="text-xs text-gray-600">unidades</p>
-                  <p className="text-xs text-gray-600 mb-1">Valor</p>
-                  <p className="text-lg font-bold text-purple-500">
-                    ${params.devoluciones.valorTotal?.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-600">total</p>
-                </div>
-
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Total Devuelto</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {params.devoluciones.cantidadPerdida}
+              {/* Resumen del mes */}
+              <div className="rounded-lg border border-gray-200 bg-gray-50/90 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
+                  Resumen del mes
+                </p>
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-gray-600 mb-0.5">
+                      Unidades devueltas (total)
                     </p>
-                    <p className="text-xs text-gray-600">unidades</p>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-1">Valor</p>
-                  <p className="text-lg font-bold text-red-600">
-                    ${params.devoluciones.valorTotalPerdido?.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-600">perdido</p>
-                </div>
-
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Total Devuelto</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {params.devoluciones.cantidadReintegrable}
+                    <p className="text-2xl font-bold text-gray-900 tabular-nums">
+                      {params.devoluciones.cantidad}
+                      <span className="text-sm font-normal text-gray-500 ml-1">
+                        uds.
+                      </span>
                     </p>
-                    <p className="text-xs text-gray-600">unidades</p>
                   </div>
-                  <p className="text-xs text-gray-600 mb-1">Valor</p>
-                  <p className="text-lg font-bold text-blue-500">
-                    $
-                    {params.devoluciones.valorTotalReintegrable?.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-600">reintegrable</p>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-600 mb-0.5">
+                      Valor de esas devoluciones
+                    </p>
+                    <p className="text-xl font-bold text-violet-700 tabular-nums">
+                      {fmtDOP(params.devoluciones.valorTotal ?? 0)}
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="pt-3 border-t border-gray-100">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Producto más devuelto:</span>
-                  <span className="font-medium text-gray-900">
-                    {params.devoluciones.productoMasDevuelto}
-                  </span>
+
+              {/* Desglose: pérdida vs reintegrable */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-lg border border-red-100 bg-red-50/60 p-4">
+                  <p className="text-xs font-semibold text-red-800 mb-2">
+                    No recuperable (pérdida)
+                  </p>
+                  <p className="text-xs text-red-700/90 mb-1">Unidades</p>
+                  <p className="text-lg font-bold text-red-900 tabular-nums mb-3">
+                    {params.devoluciones.cantidadPerdida}{" "}
+                    <span className="text-sm font-normal">uds.</span>
+                  </p>
+                  <p className="text-xs text-red-700/90 mb-1">
+                    Valor que no se reintegra
+                  </p>
+                  <p className="text-lg font-bold text-red-700 tabular-nums">
+                    {fmtDOP(params.devoluciones.valorTotalPerdido ?? 0)}
+                  </p>
                 </div>
+
+                <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+                  <p className="text-xs font-semibold text-blue-900 mb-2">
+                    Reintegrable
+                  </p>
+                  <p className="text-xs text-blue-800/90 mb-1">Unidades</p>
+                  <p className="text-lg font-bold text-blue-950 tabular-nums mb-3">
+                    {params.devoluciones.cantidadReintegrable}{" "}
+                    <span className="text-sm font-normal">uds.</span>
+                  </p>
+                  <p className="text-xs text-blue-800/90 mb-1">
+                    Valor susceptible de reintegro
+                  </p>
+                  <p className="text-lg font-bold text-blue-700 tabular-nums">
+                    {fmtDOP(params.devoluciones.valorTotalReintegrable ?? 0)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-amber-100 bg-amber-50/50 px-4 py-3">
+                <p className="text-xs font-medium text-amber-900/80 mb-1">
+                  Producto con más devoluciones este mes
+                </p>
+                <p className="text-sm font-semibold text-gray-900 break-words">
+                  {params.devoluciones.productoMasDevuelto?.trim() || "—"}
+                </p>
               </div>
             </div>
           </div>

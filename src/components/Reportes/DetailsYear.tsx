@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { DetailsYearType, VentaMensual } from "../../Types/Reportes";
 import { Link } from "react-router";
 import { TbCurrencyDollar, TbChartBar, TbTrophy } from "react-icons/tb";
+import { mesMetaEncadenada } from "../../Utilities/reportesMesMetaEncadenada";
 
 type Params = {
   data: DetailsYearType;
 };
 
 export default function DetailsYear({ data }: Params) {
-  console.log(data);
-
   const [mejorMes, setMejorMes] = useState<VentaMensual | null>(null);
 
   let comp = parseFloat(
@@ -88,7 +87,23 @@ export default function DetailsYear({ data }: Params) {
 
         {/* Monthly Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {data.ventasMensuales.map((monthData) => (
+          {data.ventasMensuales.map((monthData, index) => {
+            const totalAnterior =
+              index === 0
+                ? null
+                : data.ventasMensuales[index - 1]!.totalMes;
+            const meta = mesMetaEncadenada(monthData.totalMes, totalAnterior);
+            const badgeClass = meta.superoMeta
+              ? "bg-green-100 text-green-700"
+              : meta.esMesReferencia
+                ? "bg-blue-100 text-blue-700"
+                : meta.anchoBarra >= 100
+                  ? "bg-blue-100 text-blue-700"
+                  : meta.anchoBarra < 50
+                    ? "bg-gray-100 text-gray-700"
+                    : "bg-blue-50 text-blue-800";
+
+            return (
             <Link
               key={monthData.mesNumero}
               to={`/reportes/${data.anio}/${monthData.mesNumero}`}
@@ -100,24 +115,10 @@ export default function DetailsYear({ data }: Params) {
                   {monthData.mesNombre}
                 </h3>
                 <div
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    monthData.crecimientoMensual == null
-                      ? "bg-blue-100 text-blue-700"
-                      : monthData.crecimientoMensual >= 15
-                      ? "bg-green-100 text-green-700"
-                      : monthData.crecimientoMensual >= 10
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
+                  title="Respecto al total de ventas del mes anterior en la lista (el primero es mes base)."
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${badgeClass}`}
                 >
-                  {monthData.crecimientoMensual != null &&
-                  monthData.crecimientoMensual > 0
-                    ? "+"
-                    : ""}
-                  {monthData.crecimientoMensual == null
-                    ? "100"
-                    : monthData.crecimientoMensual}
-                  %
+                  {meta.etiquetaProgreso}
                 </div>
               </div>
 
@@ -146,16 +147,22 @@ export default function DetailsYear({ data }: Params) {
                 </div>
               </div>
 
-              {/* Progress Bar */}
+              {/* Progress Bar: meta = ventas del mes previo en el listado */}
               <div className="mb-4">
+                <p className="text-[10px] text-gray-500 mb-1">
+                  {meta.esMesReferencia
+                    ? "Mes base del seguimiento"
+                    : "Avance vs mes anterior"}
+                </p>
                 <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+                    className={`h-full rounded-full bg-gradient-to-r ${
+                      meta.superoMeta
+                        ? "from-green-500 to-green-600"
+                        : "from-blue-500 to-blue-600"
+                    }`}
                     style={{
-                      width: `${Math.min(
-                        (monthData.totalMes / 120000) * 100,
-                        100
-                      )}%`,
+                      width: `${meta.anchoBarra}%`,
                     }}
                   />
                 </div>
@@ -168,7 +175,8 @@ export default function DetailsYear({ data }: Params) {
                 </span>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

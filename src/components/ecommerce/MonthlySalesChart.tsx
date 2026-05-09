@@ -10,6 +10,30 @@ type Parameters = {
   ventasYear: number[];
 };
 
+const MESES_ES = [
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
+];
+
+const fmtDOPCorto = (val: number) =>
+  new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    notation: val >= 100_000 ? "compact" : "standard",
+    compactDisplay: "short",
+    maximumFractionDigits: 1,
+  }).format(val);
+
 export default function MonthlySalesChart({ ventasYear = [] }: Parameters) {
   const options: ApexOptions = {
     colors: ["#465fff"],
@@ -38,20 +62,7 @@ export default function MonthlySalesChart({ ventasYear = [] }: Parameters) {
       colors: ["transparent"],
     },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: MESES_ES,
       axisBorder: {
         show: false,
       },
@@ -69,6 +80,9 @@ export default function MonthlySalesChart({ ventasYear = [] }: Parameters) {
       title: {
         text: undefined,
       },
+      labels: {
+        formatter: (val: number) => fmtDOPCorto(val),
+      },
     },
     grid: {
       yaxis: {
@@ -82,11 +96,13 @@ export default function MonthlySalesChart({ ventasYear = [] }: Parameters) {
     },
 
     tooltip: {
-      x: {
-        show: false,
-      },
       y: {
-        formatter: (val: number) => `${val}`,
+        formatter: (val: number) =>
+          new Intl.NumberFormat("es-DO", {
+            style: "currency",
+            currency: "DOP",
+            maximumFractionDigits: 0,
+          }).format(val),
       },
     },
   };
@@ -136,7 +152,7 @@ export default function MonthlySalesChart({ ventasYear = [] }: Parameters) {
           </Dropdown>
         </div>
       </div> */}
-      <PageBreadcrumb pageTitle="Metricas mensuales" />
+      <PageBreadcrumb pageTitle="Métricas mensuales" />
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
           <Chart options={options} series={series} type="bar" height={180} />

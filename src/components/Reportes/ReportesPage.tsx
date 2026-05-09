@@ -1,6 +1,22 @@
 import { VentasAnuales } from "../../Types/Reportes";
 import { Link } from "react-router";
 import { TbCalendarStats } from "react-icons/tb";
+import { mesMetaEncadenada } from "../../Utilities/reportesMesMetaEncadenada";
+
+const MESES_CORTOS = [
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
+] as const;
 
 type Params = {
   data: VentasAnuales[];
@@ -50,44 +66,42 @@ export default function ReportesPage({ data = [] }: Params) {
                   Ventas por Mes
                 </p>
                 <div className="space-y-1.5">
-                  {[
-                    { month: "Ene", value: yearData.ventasMensuales[0] },
-                    { month: "Feb", value: yearData.ventasMensuales[1] },
-                    { month: "Mar", value: yearData.ventasMensuales[2] },
-                    { month: "Abr", value: yearData.ventasMensuales[3] },
-                    { month: "May", value: yearData.ventasMensuales[4] },
-                    { month: "Jun", value: yearData.ventasMensuales[5] },
-                    { month: "Jul", value: yearData.ventasMensuales[6] },
-                    { month: "Ago", value: yearData.ventasMensuales[7] },
-                    { month: "Sep", value: yearData.ventasMensuales[8] },
-                    { month: "Oct", value: yearData.ventasMensuales[9] },
-                    { month: "Nov", value: yearData.ventasMensuales[10] },
-                    { month: "Dic", value: yearData.ventasMensuales[11] },
-                  ].map((item, idx) => (
+                  {MESES_CORTOS.map((month, idx) => {
+                    const ventas = yearData.ventasMensuales[idx] ?? 0;
+                    const ventasMesPrevio =
+                      idx === 0 ? null : (yearData.ventasMensuales[idx - 1] ?? 0);
+                    const meta = mesMetaEncadenada(ventas, ventasMesPrevio);
+
+                    return (
                     <div
                       key={`${yearData.anio}-${idx}`}
                       className="flex items-center gap-2"
+                      title={
+                        meta.esMesReferencia
+                          ? "Primer mes del año: referencia base para el resto."
+                          : "Barra según ventas vs el mes anterior (100% = igualaste ese total)."
+                      }
                     >
                       <span className="text-xs text-gray-500 w-8">
-                        {item.month}
+                        {month}
                       </span>
                       <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div
-                          className={`h-full bg-gradient-to-r ${
-                            item.value > 0
-                              ? "from-blue-500 to-blue-600"
-                              : "from-error-500 to-error-600"
-                          }  rounded-full transition-all`}
+                          className={`h-full rounded-full transition-all bg-gradient-to-r ${
+                            meta.superoMeta
+                              ? "from-green-500 to-green-600"
+                              : meta.anchoBarra > 0
+                                ? "from-blue-500 to-blue-600"
+                                : "from-gray-300 to-gray-400"
+                          }`}
                           style={{
-                            width: `${Math.min(
-                              (item.value / 120000) * 100,
-                              100,
-                            )}%`,
+                            width: `${meta.anchoBarra}%`,
                           }}
                         />
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
