@@ -455,6 +455,10 @@ export default function UserAdministracion() {
           }}
           columnVisibility={columnVisibility}
           onColumnVisibilityChange={setColumnVisibility}
+          onRefreshUserList={() => {
+            BeforeFilter.current = "";
+            getData(filters);
+          }}
         />
       ) : (
         <LoadingTable columns={7} />

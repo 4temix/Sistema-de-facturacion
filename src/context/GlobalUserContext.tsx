@@ -3,6 +3,7 @@ import { LoginResponse, User } from "../Types/Usuario";
 import { Menu } from "../Types/Menu";
 import { useState, useCallback } from "react";
 import { apiRequest, refreshAccessToken } from "../Utilities/FetchFuntions";
+import { normalizeUserFromApi } from "../Utilities/normalizeUserApi";
 
 export interface AuthContextType {
   user: User | null;
@@ -110,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData: LoginResponse = {
           token: (responseToken as string) || token,
           refreshToken: (responseRefreshToken as string) || currentRefreshToken,
-          user: responseUser as User,
+          user: normalizeUserFromApi(responseUser),
           menu: (Array.isArray(responseMenu) ? responseMenu : []) as Menu,
         };
 
@@ -162,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Guardar datos del usuario y menú en el estado
     setAuth({
-      user: data.user,
+      user: normalizeUserFromApi(data.user),
       menu: Array.isArray(data.menu) ? data.menu : [],
       token: data.token,
     });

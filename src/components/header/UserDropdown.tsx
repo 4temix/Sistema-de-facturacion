@@ -11,6 +11,10 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { useNavigate } from "react-router";
 import { useUserData } from "../../context/GlobalUserContext";
 import UserAvatarWithFallback from "../common/UserAvatarWithFallback";
+import { getMembershipVisualPhase } from "../../Utilities/membershipTime";
+import MembershipStatusChip from "../common/MembershipStatusChip";
+import MembresiaSoporteCta from "../common/MembresiaSoporteCta";
+import { getMembresiaSoporteDefaults } from "../../config/membresiaSoporte";
 
 const MENU_MAX_W = 260;
 const VIEWPORT_PAD = 12;
@@ -126,6 +130,25 @@ export default function UserDropdown() {
   const userName = user ? `${user.realName} ${user.lastName}` : "Usuario";
   const userEmail = user?.email || "";
   const displayName = userName.trim() || "Usuario";
+  const soporteContacto = getMembresiaSoporteDefaults();
+
+  const membershipMenuBlock =
+    user != null ? (
+      <div className="mt-3 space-y-2">
+        <MembershipStatusChip density="compact" />
+        {narrow &&
+          (user.membership == null ||
+            getMembershipVisualPhase(user.membership) === "expired") && (
+            <MembresiaSoporteCta
+              variant="compact"
+              className="border-gray-200/80 bg-white/50 dark:border-gray-600/80 dark:bg-gray-900/30"
+              whatsappPhone={soporteContacto.whatsapp}
+              email={soporteContacto.email}
+              title="Contratar o renovar"
+            />
+          )}
+      </div>
+    ) : null;
 
   const menuInner = (
     <>
@@ -137,6 +160,8 @@ export default function UserDropdown() {
           {userEmail}
         </span>
       </div>
+
+      {membershipMenuBlock}
 
       <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
         <li>

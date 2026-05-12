@@ -24,6 +24,7 @@ type Props = {
   onEdit: (id: number) => void;
   columnVisibility?: VisibilityState;
   onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
+  onRefreshUserList?: () => void;
 };
 
 // Valor por defecto para visibilidad de columnas
@@ -47,6 +48,7 @@ const initialEmpleadoDetails: User = {
   fechaCreacion: "",
   address: "",
   userImage: null,
+  membership: null,
 };
 
 export default function TableUsers({
@@ -54,6 +56,7 @@ export default function TableUsers({
   onEdit,
   columnVisibility: columnVisibilityProp,
   onColumnVisibilityChange: onColumnVisibilityChangeProp,
+  onRefreshUserList,
 }: Props) {
   // Estado interno para cuando no se pasan las props
   const [internalColumnVisibility, setInternalColumnVisibility] =
@@ -244,6 +247,7 @@ export default function TableUsers({
             closeDrawer();
             onEdit(id);
           }}
+          onMembershipChange={onRefreshUserList}
         />
       </Drawer>
 

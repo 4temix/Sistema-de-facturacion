@@ -46,6 +46,9 @@ const UserAdministracion = lazy(
 const RoleAdministration = lazy(
   () => import("./pages/Administracion/RoleAdministration"),
 );
+const AdminMembresias = lazy(
+  () => import("./pages/Administracion/AdminMembresias"),
+);
 
 // Definición de rutas
 const routes = createBrowserRouter([
@@ -176,6 +179,14 @@ const routes = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <RoleAdministration />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin_membresias",
+        element: (
+          <ProtectedRoute>
+            <AdminMembresias />
           </ProtectedRoute>
         ),
       },

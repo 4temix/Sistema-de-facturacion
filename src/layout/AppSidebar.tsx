@@ -21,6 +21,7 @@ import {
 import { useSidebar } from "../context/SidebarContext";
 import { useUserData } from "../context/GlobalUserContext";
 import { MenuSection, SubMenu } from "../Types/Menu";
+import MembershipStatusChip from "../components/common/MembershipStatusChip";
 
 // Función para obtener icono según el nombre de la sección o submenú
 const getIconForMenu = (menuName: string) => {
@@ -283,38 +284,52 @@ const AppSidebar = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+        className={`flex flex-col gap-3 py-6 lg:py-8 ${
+          !isExpanded && !isHovered ? "lg:justify-center" : ""
         }`}
       >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
+        <div
+          className={`flex items-start gap-2 lg:block ${
+            !isExpanded && !isHovered ? "lg:justify-center" : "justify-between"
+          }`}
+        >
+          <Link
+            to="/"
+            className="shrink-0 lg:inline-flex"
+            onClick={() => isMobileOpen && closeMobileSidebar()}
+          >
+            {isExpanded || isHovered || isMobileOpen ? (
+              <>
+                <img
+                  className="dark:hidden w-16"
+                  src="/favicon.png"
+                  alt="Logo"
+                  width={150}
+                  height={40}
+                />
+                <img
+                  className="hidden dark:block"
+                  src="/images/logo/logo-dark.svg"
+                  alt="Logo"
+                  width={150}
+                  height={40}
+                />
+              </>
+            ) : (
               <img
-                className="dark:hidden w-16"
+                className="w-9 h-9 object-contain shrink-0"
                 src="/favicon.png"
                 alt="Logo"
-                width={150}
-                height={40}
+                width={36}
+                height={36}
               />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              className="w-9 h-9 object-contain shrink-0"
-              src="/favicon.png"
-              alt="Logo"
-              width={36}
-              height={36}
-            />
-          )}
-        </Link>
+            )}
+          </Link>
+          {/* Membresía solo en móvil, al lado del logo dentro del menú deslizable */}
+          <div className="min-w-0 flex-1 pt-0.5 lg:hidden">
+            <MembershipStatusChip density="compact" />
+          </div>
+        </div>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
+import HeaderMembershipBadge from "../components/header/HeaderMembershipBadge";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -124,7 +125,10 @@ const AppHeader: React.FC = () => {
           {/* <!-- Notification Menu Area --> */}
           {/* </div> */}
           {/* <!-- User Area --> */}
-          <UserDropdown />
+          <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <HeaderMembershipBadge />
+            <UserDropdown />
+          </div>
         </div>
       </div>
     </header>

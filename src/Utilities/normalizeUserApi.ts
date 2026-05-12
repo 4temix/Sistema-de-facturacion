@@ -1,4 +1,4 @@
-import type { User } from "../Types/Usuario";
+import type { User, UserMembershipSnapshot } from "../Types/Usuario";
 
 function str(v: unknown): string {
   if (v === null || v === undefined) return "";
@@ -11,6 +11,12 @@ function num(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function nullableNum(v: unknown): number | null {
+  if (v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 function record(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" ? (v as Record<string, unknown>) : {};
 }
@@ -18,6 +24,41 @@ function record(v: unknown): Record<string, unknown> {
 /** Une `nombre` / `name` / PascalCase en anidados rol y estado. */
 function rolNombre(r: Record<string, unknown>): string {
   return str(r.nombre ?? r.Nombre ?? r.name ?? r.Name);
+}
+
+function normalizeMembershipFromApi(
+  raw: unknown,
+): UserMembershipSnapshot | null {
+  if (raw === null || raw === undefined) return null;
+  const o = record(raw);
+  const status = record(o.status ?? o.Status);
+  const planLabel = str(o.plan ?? o.Plan ?? "");
+  const statusNombre = rolNombre(status);
+  const statusId = num(status.id ?? status.Id);
+  if (!planLabel && !statusId && nullableNum(o.planId ?? o.PlanId) == null) {
+    return null;
+  }
+  const startRaw = o.startAt ?? o.StartAt;
+  const expRaw = o.expiresAt ?? o.ExpiresAt;
+  const graceRaw = o.graceUntil ?? o.GraceUntil;
+  const isActiveRaw = o.isActive ?? o.IsActive;
+  return {
+    planId: nullableNum(o.planId ?? o.PlanId),
+    plan: planLabel || "—",
+    price: num(o.price ?? o.Price),
+    status: {
+      id: statusId,
+      nombre: statusNombre || "—",
+    },
+    isActive:
+      isActiveRaw === null || isActiveRaw === undefined
+        ? null
+        : Boolean(isActiveRaw),
+    startAt: startRaw != null && String(startRaw).trim() ? String(startRaw) : null,
+    expiresAt: expRaw != null && String(expRaw).trim() ? String(expRaw) : null,
+    graceUntil:
+      graceRaw != null && String(graceRaw).trim() ? String(graceRaw) : null,
+  };
 }
 
 /**
@@ -49,5 +90,6 @@ export function normalizeUserFromApi(raw: unknown): User {
       id: num(estado.id ?? estado.Id),
       nombre: rolNombre(estado),
     },
+    membership: normalizeMembershipFromApi(o.membership ?? o.Membership),
   };
 }

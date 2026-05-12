@@ -11,6 +11,18 @@ export interface Estado {
   nombre: string;
 }
 
+/** Membresía embebida en usuario (lista admin, login, by_id). */
+export interface UserMembershipSnapshot {
+  planId: number | null;
+  plan: string;
+  price: number;
+  status: { id: number; nombre: string };
+  isActive: boolean | null;
+  startAt: string | null;
+  expiresAt: string | null;
+  graceUntil: string | null;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -26,6 +38,8 @@ export interface User {
 
   rol: Rol;
   estado: Estado;
+  /** Membresía vigente o última conocida; `null` si no tiene. */
+  membership?: UserMembershipSnapshot | null;
 }
 
 export interface CreateUser {

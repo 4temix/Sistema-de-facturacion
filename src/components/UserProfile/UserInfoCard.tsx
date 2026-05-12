@@ -1,6 +1,25 @@
 import { useModal } from "../../hooks/useModal";
 import { useUserData } from "../../context/GlobalUserContext";
 import EditUserProfile from "./EditUserProfile";
+import { TbCreditCard } from "react-icons/tb";
+import {
+  getMembershipIndicatorShort,
+  getMembershipVisualPhase,
+  type MembershipVisualPhase,
+} from "../../Utilities/membershipTime";
+
+function perfilMembresiaSurface(phase: MembershipVisualPhase): string {
+  if (phase === "none") {
+    return "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/40";
+  }
+  if (phase === "expired") {
+    return "border-red-200 bg-red-50/70 dark:border-red-900/45 dark:bg-red-950/25";
+  }
+  if (phase === "grace") {
+    return "border-amber-200 bg-amber-50/70 dark:border-amber-900/45 dark:bg-amber-950/20";
+  }
+  return "border-emerald-200 bg-emerald-50/70 dark:border-emerald-900/45 dark:bg-emerald-950/20";
+}
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -15,9 +34,36 @@ export default function UserInfoCard() {
     return null;
   }
 
+  const m = user.membership ?? null;
+  const apiPhase = getMembershipVisualPhase(m);
+  const { title: membTitle, subtitle: membSubtitle } =
+    getMembershipIndicatorShort(m);
+  const visualPhase: MembershipVisualPhase =
+    !m ? "none" : apiPhase === "none" ? "active" : apiPhase;
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+        <div
+          className={`mb-5 rounded-xl border p-4 ${perfilMembresiaSurface(visualPhase)}`}
+        >
+          <div className="flex items-start gap-3">
+            <TbCreditCard className="mt-0.5 h-5 w-5 shrink-0 text-gray-600 dark:text-gray-300" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Membresía
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-gray-900 dark:text-white">
+                {membTitle}
+              </p>
+              {membSubtitle ? (
+                <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                  {membSubtitle}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">

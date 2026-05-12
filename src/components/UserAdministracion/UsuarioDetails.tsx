@@ -1,4 +1,5 @@
-import type { User } from "../../Types/Usuario";
+import { useState } from "react";
+import type { User, UserMembershipSnapshot } from "../../Types/Usuario";
 import { PencilIcon } from "../../icons";
 import {
   TbUser,
@@ -10,12 +11,23 @@ import {
   TbNotes,
   TbId,
   TbShieldCheck,
+  TbCreditCard,
 } from "react-icons/tb";
+import ModalRegistroMembresiaUsuario from "./ModalRegistroMembresiaUsuario";
+import MembresiaHistorialPanel from "./MembresiaHistorialPanel";
+import { formatUtcToLocal } from "../../Utilities/dateTimeUtc";
+import {
+  getMembershipHeadlineDescription,
+  getMembershipVisualPhase,
+  type MembershipVisualPhase,
+} from "../../Utilities/membershipTime";
 
 export type UsuarioDetailsProps = {
   user: User;
   onClose: () => void;
   onEditar: (id: number) => void;
+  /** Tras registrar o editar membresía, recarga la tabla de usuarios (lista admin). */
+  onMembershipChange?: () => void;
 };
 
 function formatRegistro(iso: string | null | undefined) {
@@ -44,11 +56,90 @@ function badgeEstadoCuenta(nombre: string) {
   return "bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600";
 }
 
+function membresiaCardClass(phase: MembershipVisualPhase): string {
+  if (phase === "expired") {
+    return "border-red-200 bg-red-50/80 dark:border-red-900/50 dark:bg-red-950/25";
+  }
+  if (phase === "grace") {
+    return "border-amber-200 bg-amber-50/80 dark:border-amber-900/50 dark:bg-amber-950/25";
+  }
+  if (phase === "none") {
+    return "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/40";
+  }
+  return "border-emerald-200 bg-emerald-50/80 dark:border-emerald-900/50 dark:bg-emerald-950/25";
+}
+
+function formatPrecioUsd(n: number) {
+  return new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(Number.isFinite(n) ? n : 0);
+}
+
+function MembresiaActualDetalle({ m }: { m: UserMembershipSnapshot }) {
+  const { primary, secondary } = getMembershipHeadlineDescription(m);
+  return (
+    <>
+      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+        {primary}
+      </p>
+      {secondary && (
+        <p className="mt-1.5 text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+          {secondary}
+        </p>
+      )}
+      <dl className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+        <div>
+          <dt className="text-gray-500 dark:text-gray-400">Precio</dt>
+          <dd className="font-medium text-gray-900 dark:text-white">
+            {formatPrecioUsd(m.price)}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-gray-500 dark:text-gray-400">Estado</dt>
+          <dd className="font-medium text-gray-900 dark:text-white">
+            {m.status.nombre}
+            {m.isActive != null ? (
+              <span className="ml-1 text-gray-500">
+                ({m.isActive ? "activa" : "inactiva"})
+              </span>
+            ) : null}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-gray-500 dark:text-gray-400">Inicio</dt>
+          <dd className="font-medium text-gray-900 dark:text-white">
+            {formatUtcToLocal(m.startAt) ?? "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-gray-500 dark:text-gray-400">Vence período</dt>
+          <dd className="font-medium text-gray-900 dark:text-white">
+            {formatUtcToLocal(m.expiresAt) ?? "—"}
+          </dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-gray-500 dark:text-gray-400">
+            Fin de acceso (con gracia)
+          </dt>
+          <dd className="font-medium text-gray-900 dark:text-white">
+            {formatUtcToLocal(m.graceUntil ?? m.expiresAt) ?? "—"}
+          </dd>
+        </div>
+      </dl>
+    </>
+  );
+}
+
 export default function UsuarioDetails({
   user,
   onClose,
   onEditar,
+  onMembershipChange,
 }: UsuarioDetailsProps) {
+  const [membresiaModalOpen, setMembresiaModalOpen] = useState(false);
+  const [histNonce, setHistNonce] = useState(0);
   const nombreCompleto = `${user.realName ?? ""} ${user.lastName ?? ""}`.trim() || "Sin nombre";
   const estadoNombre = user.estado?.nombre || "—";
   const fechaReg = formatRegistro(user.fechaCreacion);
@@ -100,6 +191,28 @@ export default function UsuarioDetails({
           </p>
         </div>
       </div>
+
+      <section
+        className={`mb-6 rounded-lg border p-4 ${membresiaCardClass(
+          user.membership
+            ? getMembershipVisualPhase(user.membership)
+            : "none",
+        )}`}
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <TbCreditCard className="text-xl text-violet-600 dark:text-violet-400" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">
+            Membresía actual
+          </h3>
+        </div>
+        {!user.membership ? (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Sin membresía asignada.
+          </p>
+        ) : (
+          <MembresiaActualDetalle m={user.membership} />
+        )}
+      </section>
 
       {/* Identidad / cuenta (bloque azul como EmpleadoDetails “Información personal”) */}
       <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50/90 p-4 dark:border-blue-900/60 dark:bg-blue-950/30">
@@ -187,8 +300,22 @@ export default function UsuarioDetails({
         </p>
       </div>
 
+      <MembresiaHistorialPanel
+        userId={user.id}
+        reloadKey={histNonce}
+        onChanged={onMembershipChange}
+      />
+
       {/* Acciones (mismo patrón que EmpleadoDetails) */}
       <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setMembresiaModalOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+        >
+          <TbCreditCard className="h-5 w-5 shrink-0" />
+          Registrar membresía
+        </button>
         <button
           type="button"
           onClick={() => onEditar(user.id)}
@@ -205,6 +332,17 @@ export default function UsuarioDetails({
           Cerrar
         </button>
       </div>
+
+      <ModalRegistroMembresiaUsuario
+        isOpen={membresiaModalOpen}
+        onClose={() => setMembresiaModalOpen(false)}
+        userId={user.id}
+        userLabel={nombreCompleto}
+        onSuccess={() => {
+          setHistNonce((n) => n + 1);
+          onMembershipChange?.();
+        }}
+      />
     </div>
   );
 }

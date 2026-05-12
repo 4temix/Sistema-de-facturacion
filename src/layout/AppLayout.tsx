@@ -4,6 +4,7 @@ import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 import { ScrollToTop } from "../components/common/ScrollToTop";
+import MembresiaSoporteTopBanner from "../components/common/MembresiaSoporteTopBanner";
 import { useUserData } from "../context/GlobalUserContext";
 import LoaderFun from "../components/loader/LoaderFunc";
 
@@ -30,6 +31,7 @@ const LayoutContent: React.FC = () => {
         } ${isMobileOpen ? "pl-0" : ""}`}
       >
         <AppHeader />
+        <MembresiaSoporteTopBanner />
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) overflow-x-hidden">
           <Outlet />
         </div>
